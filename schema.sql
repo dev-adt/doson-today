@@ -113,7 +113,7 @@ CREATE TABLE IF NOT EXISTS chat_logs (
 
 -- Admin mặc định (password: Admin@123)
 INSERT INTO admins (username, password_hash, name, email, role) VALUES
-('admin', '$2b$10$rJ9z1XqGkz7KbW2mNvLhBOQfGkZjHpLxKvNmRqWsTuYvZaXbCdEfG', 'Quản trị viên', 'admin@bizhub.vn', 'superadmin');
+('admin', '$2b$10$3luJFH.EMVPnxeH8BdXn9.5tnCQ9huv13yzOzHrwYGiRhgV7dcufq', 'Quản trị viên', 'admin@bizhub.vn', 'superadmin');
 
 -- Hội viên mẫu
 INSERT INTO members (name, tax_code, industry, tier, status, contact_name, contact_pos, email, phone, description, address) VALUES
