@@ -447,6 +447,23 @@ app.get('/api/events', async (req, res) => {
   }
 });
 
+// Lấy số liệu công khai cho trang chủ
+app.get('/api/public-stats', async (req, res) => {
+  try {
+    const [[memberStats]] = await db.query("SELECT COUNT(*) AS total FROM members WHERE status='approved'");
+    const [[postStats]]   = await db.query("SELECT COUNT(*) AS total FROM posts WHERE status='approved'");
+    const [[eventStats]]  = await db.query("SELECT COUNT(*) AS total FROM events WHERE status='upcoming' AND event_date >= CURDATE()");
+
+    res.json({
+      members: memberStats.total,
+      posts: postStats.total,
+      events: eventStats.total
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ════════════════════════════════════════════
 // STATS API (Dashboard)
 // ════════════════════════════════════════════

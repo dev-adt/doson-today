@@ -373,7 +373,7 @@ document.querySelectorAll('a[href^="#"]').forEach(a=>{
 async function initDynamicData() {
   try {
     // 1. Tải thống kê số liệu
-    const statsRes = await fetch('/api/stats');
+    const statsRes = await fetch('/api/public-stats');
     if (statsRes.ok) {
       const stats = await statsRes.json();
       document.getElementById('stat-m').textContent = (stats.members || 47) + '+';
