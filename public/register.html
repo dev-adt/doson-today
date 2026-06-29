@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BizHub — Đăng ký hội viên</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar">
+    <div class="sb-logo"><div class="sb-logo-icon"><i class="ti ti-building-community"></i></div><div><div class="sb-logo-name">BizHub</div><div class="sb-logo-sub">Hội viên doanh nghiệp</div></div></div>
+    <div class="sb-sec">Quản lý</div>
+    <a href="index.html" class="sb-item"><i class="ti ti-layout-dashboard"></i> Tổng quan</a>
+    <a href="members.html" class="sb-item"><i class="ti ti-users"></i> Hội viên</a>
+    <a href="posts.html" class="sb-item"><i class="ti ti-news"></i> Bài viết</a>
+    <a href="register.html" class="sb-item active"><i class="ti ti-user-plus"></i> Đăng ký</a>
+    <a href="admin.html" class="sb-item"><i class="ti ti-shield-check"></i> Duyệt hội viên</a>
+    <a href="ai-chat.html" class="sb-item"><i class="ti ti-robot"></i> Trợ lý AI</a>
+    <div class="sb-sec">Hệ thống</div>
+    <a href="provider-config.html" class="sb-item"><i class="ti ti-settings"></i> Cài đặt AI</a>
+    <div class="lang-section">
+      <div class="lang-label">NGÔN NGỮ</div>
+      <div class="lang-grid">
+        <button class="lb active" onclick="setLang('vi')">🇻🇳 VI</button>
+        <button class="lb" onclick="setLang('en')">🇺🇸 EN</button>
+        <button class="lb" onclick="setLang('zh')">🇨🇳 ZH</button>
+        <button class="lb" onclick="setLang('ja')">🇯🇵 JA</button>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="tb-title"><i class="ti ti-user-plus" style="color:#185FA5"></i> Đăng ký hội viên doanh nghiệp</div>
+      <div class="tb-right"><div class="av-sm">AD</div></div>
+    </div>
+    <div class="content" style="max-width:640px">
+
+      <!-- Steps -->
+      <div class="wizard-steps" id="steps">
+        <div class="ws active" id="s0"><div class="ws-dot">1</div> Doanh nghiệp</div>
+        <div class="ws-line"></div>
+        <div class="ws" id="s1"><div class="ws-dot">2</div> Đại diện</div>
+        <div class="ws-line"></div>
+        <div class="ws" id="s2"><div class="ws-dot">3</div> Gói hội viên</div>
+        <div class="ws-line"></div>
+        <div class="ws" id="s3"><div class="ws-dot">4</div> Xem trước</div>
+      </div>
+
+      <!-- Step 1 -->
+      <div id="step1">
+        <div class="card" style="margin-bottom:10px">
+          <div class="card-header"><div class="card-title"><i class="ti ti-building-skyscraper"></i> Thông tin doanh nghiệp</div></div>
+          <div style="padding:1rem">
+            <div class="form-row">
+              <div class="fg"><label>Tên doanh nghiệp <span class="req">*</span></label><input id="r-name" type="text" placeholder="Công ty TNHH ABC"></div>
+              <div class="fg"><label>Mã số thuế <span class="req">*</span></label><input id="r-tax" type="text" placeholder="0123456789"></div>
+            </div>
+            <div class="form-row">
+              <div class="fg"><label>Ngành nghề <span class="req">*</span></label>
+                <select id="r-industry"><option value="">Chọn ngành nghề</option><option>Công nghệ thông tin</option><option>Xuất nhập khẩu</option><option>Bất động sản</option><option>Sản xuất & Chế biến</option><option>Dịch vụ tài chính</option><option>Du lịch & Khách sạn</option><option>Giáo dục & Đào tạo</option><option>Y tế & Sức khỏe</option><option>Nông nghiệp</option><option>Xây dựng</option></select>
+              </div>
+              <div class="fg"><label>Quy mô nhân sự</label>
+                <select id="r-size"><option value="">Chọn quy mô</option><option>Dưới 10 người</option><option>10 – 50 người</option><option>50 – 200 người</option><option>200 – 500 người</option><option>Trên 500 người</option></select>
+              </div>
+            </div>
+            <div class="fg"><label>Địa chỉ trụ sở <span class="req">*</span></label><input id="r-address" type="text" placeholder="123 Nguyễn Huệ, Quận 1, TP. HCM"></div>
+            <div class="form-row">
+              <div class="fg"><label>Website</label><input id="r-web" type="text" placeholder="https://company.vn"></div>
+              <div class="fg"><label>Fanpage / LinkedIn</label><input id="r-social" type="text" placeholder="facebook.com/company"></div>
+            </div>
+            <div class="fg"><label>Mô tả hoạt động <span class="req">*</span></label><textarea id="r-desc" placeholder="Mô tả ngắn về sản phẩm, dịch vụ và thị trường..."></textarea></div>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end"><button class="btn btn-primary" onclick="goStep(2)">Tiếp theo <i class="ti ti-arrow-right"></i></button></div>
+      </div>
+
+      <!-- Step 2 -->
+      <div id="step2" style="display:none">
+        <div class="card" style="margin-bottom:10px">
+          <div class="card-header"><div class="card-title"><i class="ti ti-user-circle"></i> Người đại diện pháp lý</div></div>
+          <div style="padding:1rem">
+            <div class="form-row">
+              <div class="fg"><label>Họ và tên <span class="req">*</span></label><input id="r-cname" type="text" placeholder="Nguyễn Văn A"></div>
+              <div class="fg"><label>Chức vụ <span class="req">*</span></label><input id="r-pos" type="text" placeholder="Giám đốc / CEO"></div>
+            </div>
+            <div class="form-row">
+              <div class="fg"><label>Email <span class="req">*</span></label><input id="r-email" type="email" placeholder="contact@company.vn"></div>
+              <div class="fg"><label>Điện thoại <span class="req">*</span></label><input id="r-phone" type="tel" placeholder="0901 234 567"></div>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between">
+          <button class="btn" onclick="goStep(1)"><i class="ti ti-arrow-left"></i> Quay lại</button>
+          <button class="btn btn-primary" onclick="goStep(3)">Tiếp theo <i class="ti ti-arrow-right"></i></button>
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div id="step3" style="display:none">
+        <div class="card" style="margin-bottom:10px">
+          <div class="card-header"><div class="card-title"><i class="ti ti-crown"></i> Chọn gói hội viên</div></div>
+          <div style="padding:1rem">
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:10px">
+              <div class="tier-opt" id="t-silver" onclick="selTier('Silver')" style="border:1.5px solid var(--border);border-radius:10px;padding:.85rem;cursor:pointer;transition:all .15s;background:var(--surface-2)">
+                <div style="font-size:13px;font-weight:500;margin-bottom:3px">🪙 Silver</div>
+                <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px">Miễn phí</div>
+                <div style="font-size:11px;color:var(--text-secondary);line-height:1.6">3 bài/tháng<br>Hồ sơ cơ bản<br>Tham gia diễn đàn</div>
+              </div>
+              <div class="tier-opt selected" id="t-gold" onclick="selTier('Gold')" style="border:1.5px solid #185FA5;border-radius:10px;padding:.85rem;cursor:pointer;transition:all .15s;background:#E6F1FB;position:relative">
+                <div style="position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:#185FA5;color:#fff;font-size:10px;padding:2px 10px;border-radius:99px;white-space:nowrap">Phổ biến nhất</div>
+                <div style="font-size:13px;font-weight:500;margin-bottom:3px;color:#0C447C">🏅 Gold</div>
+                <div style="font-size:11px;color:#185FA5;margin-bottom:8px">5.000.000đ/năm</div>
+                <div style="font-size:11px;color:#0C447C;line-height:1.6">15 bài/tháng<br>Sự kiện VIP<br>Kết nối ưu tiên<br>Báo cáo thị trường</div>
+              </div>
+              <div class="tier-opt" id="t-platinum" onclick="selTier('Platinum')" style="border:1.5px solid var(--border);border-radius:10px;padding:.85rem;cursor:pointer;transition:all .15s;background:var(--surface-2)">
+                <div style="font-size:13px;font-weight:500;margin-bottom:3px">💎 Platinum</div>
+                <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px">15.000.000đ/năm</div>
+                <div style="font-size:11px;color:var(--text-secondary);line-height:1.6">Không giới hạn<br>Hồ sơ premium<br>AI hỗ trợ riêng<br>Đại sứ hội</div>
+              </div>
+            </div>
+            <div class="fg"><label>Mục tiêu khi gia nhập hội</label><textarea id="r-goal" placeholder="Tìm kiếm đối tác, mở rộng thị trường..."></textarea></div>
+            <div class="fg"><label>Biết đến BizHub qua</label>
+              <select id="r-ref"><option value="">Chọn kênh</option><option>Giới thiệu từ hội viên</option><option>Mạng xã hội</option><option>Sự kiện / Hội thảo</option><option>Báo chí / Truyền thông</option><option>Tìm kiếm Google</option><option>Khác</option></select>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between">
+          <button class="btn" onclick="goStep(2)"><i class="ti ti-arrow-left"></i> Quay lại</button>
+          <button class="btn btn-primary" onclick="goStep(4)"><i class="ti ti-eye"></i> Xem trước & Gửi</button>
+        </div>
+      </div>
+
+      <!-- Step 4: Preview -->
+      <div id="step4" style="display:none">
+        <div class="card" style="margin-bottom:10px">
+          <div class="card-header"><div class="card-title"><i class="ti ti-id-badge"></i> Xem trước hồ sơ đăng ký</div></div>
+          <div style="padding:1rem" id="preview-body"></div>
+        </div>
+        <div style="background:#FAEEDA;border:0.5px solid #EF9F27;border-radius:8px;padding:9px 13px;font-size:12px;color:#633806;display:flex;gap:7px;align-items:flex-start;margin-bottom:10px">
+          <i class="ti ti-info-circle" style="font-size:14px;flex-shrink:0;margin-top:1px"></i>
+          Hồ sơ sẽ được admin xét duyệt trong 1–2 ngày làm việc. Sau khi duyệt bạn sẽ nhận email xác nhận.
+        </div>
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:10px">
+          <input type="checkbox" id="agree" style="width:15px;height:15px">
+          <label for="agree" style="font-size:12px;color:var(--text-secondary);cursor:pointer">Tôi xác nhận thông tin chính xác và đồng ý với <span style="color:#185FA5">Điều lệ hội viên</span> và <span style="color:#185FA5">Chính sách bảo mật</span>.</label>
+        </div>
+        <div style="display:flex;justify-content:space-between">
+          <button class="btn" onclick="goStep(3)"><i class="ti ti-arrow-left"></i> Chỉnh sửa</button>
+          <button class="btn btn-primary" onclick="submitForm()"><i class="ti ti-send"></i> Gửi đăng ký</button>
+        </div>
+      </div>
+
+      <!-- Success -->
+      <div id="step-success" style="display:none;text-align:center;padding:2rem 1rem">
+        <div style="width:60px;height:60px;background:#EAF3DE;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:26px;color:#3B6D11"><i class="ti ti-circle-check"></i></div>
+        <div style="font-size:18px;font-weight:500;margin-bottom:6px">Đăng ký đã được gửi!</div>
+        <div style="font-size:13px;color:var(--text-secondary);max-width:380px;margin:0 auto 1.5rem;line-height:1.6">Hồ sơ của <strong id="success-name"></strong> đang chờ xét duyệt. Chúng tôi sẽ liên hệ qua email trong vòng 1–2 ngày làm việc.</div>
+        <button class="btn btn-primary" onclick="resetForm()">Đăng ký doanh nghiệp khác</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="js/i18n.js"></script>
+<script src="js/app.js"></script>
+<script>
+let selectedTier = 'Gold';
+let currentStep = 1;
+
+function goStep(n){
+  if(n > currentStep && !validateStep(currentStep)) return;
+  if(n===4) buildPreview();
+  ['step1','step2','step3','step4','step-success'].forEach(id=>document.getElementById(id).style.display='none');
+  if(n<=4) document.getElementById('step'+n).style.display='block';
+  [0,1,2,3].forEach(i=>{
+    const el=document.getElementById('s'+i);
+    el.classList.remove('active','done');
+    if(i<n-1) el.classList.add('done');
+    else if(i===n-1) el.classList.add('active');
+  });
+  currentStep=n;
+}
+
+function validateStep(s){
+  const req={1:['r-name','r-tax','r-industry','r-address','r-desc'],2:['r-cname','r-pos','r-email','r-phone']};
+  if(!req[s]) return true;
+  let ok=true;
+  req[s].forEach(id=>{
+    const el=document.getElementById(id);
+    if(!el.value.trim()){el.style.borderColor='#A32D2D';ok=false;}
+    else el.style.borderColor='';
+  });
+  if(!ok) alert('Vui lòng điền đầy đủ các trường bắt buộc (*)');
+  return ok;
+}
+
+function selTier(t){
+  selectedTier=t;
+  document.querySelectorAll('.tier-opt').forEach(el=>{
+    el.style.border='1.5px solid var(--border)';
+    el.style.background='var(--surface-2)';
+  });
+  const el=document.getElementById('t-'+t.toLowerCase());
+  el.style.border='1.5px solid #185FA5';
+  el.style.background='#E6F1FB';
+}
+
+function g(id){return document.getElementById(id)?.value?.trim()||'—';}
+
+function buildPreview(){
+  const tierLabel={Silver:'🪙 Silver — Miễn phí',Gold:'🏅 Gold — 5.000.000đ/năm',Platinum:'💎 Platinum — 15.000.000đ/năm'};
+  document.getElementById('preview-body').innerHTML=`
+    <div style="margin-bottom:12px">
+      <div style="font-size:10px;font-weight:500;color:var(--text-muted);letter-spacing:.06em;border-bottom:0.5px solid var(--border);padding-bottom:4px;margin-bottom:8px">DOANH NGHIỆP</div>
+      ${row('Tên',g('r-name'))}${row('Mã số thuế',g('r-tax'))}${row('Ngành nghề',g('r-industry'))}${row('Địa chỉ',g('r-address'))}${row('Website',g('r-web'))}
+    </div>
+    <div style="margin-bottom:12px">
+      <div style="font-size:10px;font-weight:500;color:var(--text-muted);letter-spacing:.06em;border-bottom:0.5px solid var(--border);padding-bottom:4px;margin-bottom:8px">NGƯỜI ĐẠI DIỆN</div>
+      ${row('Họ và tên',g('r-cname'))}${row('Chức vụ',g('r-pos'))}${row('Email',g('r-email'))}${row('Điện thoại',g('r-phone'))}
+    </div>
+    <div>
+      <div style="font-size:10px;font-weight:500;color:var(--text-muted);letter-spacing:.06em;border-bottom:0.5px solid var(--border);padding-bottom:4px;margin-bottom:8px">GÓI HỘI VIÊN</div>
+      ${row('Gói đăng ký',tierLabel[selectedTier])}${row('Biết đến qua',g('r-ref'))}
+    </div>`;
+}
+function row(k,v){return `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:0.5px solid var(--border)"><span style="font-size:12px;color:var(--text-secondary)">${k}</span><span style="font-size:12px;text-align:right;max-width:60%">${v}</span></div>`;}
+
+async function submitForm(){
+  if(!document.getElementById('agree').checked){alert('Vui lòng đồng ý với điều lệ hội viên.');return;}
+  
+  const submitBtn = document.querySelector('#step4 button[onclick="submitForm()"]');
+  const originalHtml = submitBtn ? submitBtn.innerHTML : 'Gửi đăng ký';
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="ti ti-loader animate-spin"></i> Đang gửi...';
+  }
+
+  const payload = {
+    name: g('r-name'),
+    tax_code: g('r-tax'),
+    industry: document.getElementById('r-industry').value,
+    size: document.getElementById('r-size').value,
+    address: g('r-address'),
+    website: g('r-web'),
+    social: g('r-social'),
+    description: g('r-desc'),
+    contact_name: g('r-cname'),
+    contact_pos: g('r-pos'),
+    email: g('r-email'),
+    phone: g('r-phone'),
+    tier: selectedTier,
+    goal: g('r-goal'),
+    referral: document.getElementById('r-ref').value
+  };
+
+  try {
+    const res = await fetch('/api/members', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || 'Có lỗi xảy ra khi gửi đăng ký.');
+    }
+
+    document.getElementById('step4').style.display='none';
+    document.getElementById('step-success').style.display='block';
+    document.getElementById('success-name').textContent=g('r-name');
+  } catch (err) {
+    alert(err.message);
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalHtml;
+    }
+  }
+}
+
+function resetForm(){
+  ['r-name','r-tax','r-address','r-web','r-social','r-desc','r-cname','r-pos','r-email','r-phone','r-goal'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['r-industry','r-size','r-ref'].forEach(id=>{const el=document.getElementById(id);if(el)el.selectedIndex=0;});
+  document.getElementById('agree').checked=false;
+  selTier('Gold'); goStep(1);
+  document.getElementById('step-success').style.display='none';
+  document.getElementById('step1').style.display='block';
+  currentStep=1;
+}
+</script>
+</body>
+</html>

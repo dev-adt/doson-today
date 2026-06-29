@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BizHub — Duyệt hội viên</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar">
+    <div class="sb-logo"><div class="sb-logo-icon"><i class="ti ti-building-community"></i></div><div><div class="sb-logo-name">BizHub</div><div class="sb-logo-sub">Hội viên doanh nghiệp</div></div></div>
+    <div class="sb-search"><div class="sb-sw"><i class="ti ti-search"></i><input type="text" id="sb-search" placeholder="Tìm kiếm..."><div class="search-dropdown" id="sb-results"></div></div></div>
+    <div class="sb-sec">Quản lý</div>
+    <a href="index.html" class="sb-item"><i class="ti ti-layout-dashboard"></i> Tổng quan</a>
+    <a href="members.html" class="sb-item"><i class="ti ti-users"></i> Hội viên</a>
+    <a href="posts.html" class="sb-item"><i class="ti ti-news"></i> Bài viết</a>
+    <a href="register.html" class="sb-item"><i class="ti ti-user-plus"></i> Đăng ký</a>
+    <a href="admin.html" class="sb-item active"><i class="ti ti-shield-check"></i> Duyệt hội viên <span class="sb-badge" id="sb-badge">3</span></a>
+    <a href="ai-chat.html" class="sb-item"><i class="ti ti-robot"></i> Trợ lý AI</a>
+    <div class="sb-sec">Hệ thống</div>
+    <a href="provider-config.html" class="sb-item"><i class="ti ti-settings"></i> Cài đặt AI</a>
+    <div class="lang-section"><div class="lang-label">NGÔN NGỮ</div><div class="lang-grid"><button class="lb active" onclick="setLang('vi')">🇻🇳 VI</button><button class="lb" onclick="setLang('en')">🇺🇸 EN</button><button class="lb" onclick="setLang('zh')">🇨🇳 ZH</button><button class="lb" onclick="setLang('ja')">🇯🇵 JA</button></div></div>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="tb-title"><i class="ti ti-shield-check" style="color:#185FA5"></i> Duyệt hội viên</div>
+      <div class="tb-center"><div class="tb-search-wrap"><i class="ti ti-search"></i><input type="text" id="main-search" placeholder="Tìm kiếm..." oninput="filterQ(this.value)"><div class="search-dropdown" id="main-results"></div></div></div>
+      <div class="tb-right"><div class="lang-pill" onclick="toggleLangDrop()"><span id="cur-flag">🇻🇳</span> <span id="cur-lang">VI</span> <i class="ti ti-chevron-down"></i><div class="lang-drop" id="lang-drop"><div class="ld-item active" onclick="setLang('vi')">🇻🇳 Tiếng Việt <i class="ti ti-check"></i></div><div class="ld-item" onclick="setLang('en')">🇺🇸 English <i class="ti ti-check"></i></div><div class="ld-item" onclick="setLang('zh')">🇨🇳 中文 <i class="ti ti-check"></i></div><div class="ld-item" onclick="setLang('ja')">🇯🇵 日本語 <i class="ti ti-check"></i></div></div></div><div class="av-sm">AD</div></div>
+    </div>
+    <div class="content">
+      <div class="stats-row" style="grid-template-columns:repeat(4,1fr)">
+        <div class="stat-card"><div class="stat-label">Tổng hội viên</div><div class="stat-val" id="st-total">0</div></div>
+        <div class="stat-card"><div class="stat-label">Chờ duyệt</div><div class="stat-val" id="st-pending" style="color:#BA7517">0</div></div>
+        <div class="stat-card"><div class="stat-label">Đã duyệt</div><div class="stat-val" id="st-approved" style="color:#3B6D11">0</div></div>
+        <div class="stat-card"><div class="stat-label">Từ chối</div><div class="stat-val" id="st-rejected" style="color:#A32D2D">0</div></div>
+      </div>
+      <div class="tabs">
+        <div class="tab active" onclick="filterTab('pending',this)">Chờ duyệt (<span id="cnt-p">0</span>)</div>
+        <div class="tab" onclick="filterTab('approved',this)">Đã duyệt (<span id="cnt-a">0</span>)</div>
+        <div class="tab" onclick="filterTab('rejected',this)">Từ chối (<span id="cnt-r">0</span>)</div>
+        <div class="tab" onclick="filterTab('all',this)">Tất cả (<span id="cnt-all">0</span>)</div>
+      </div>
+      <div class="card">
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr><th><input type="checkbox" id="chk-all" onchange="toggleAll(this)" style="width:14px;height:14px"></th><th>Doanh nghiệp</th><th>Ngành</th><th>Gói</th><th>Ngày đăng ký</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
+            <tbody id="admin-tbody"></tbody>
+          </table>
+        </div>
+        <div id="bulk-bar" style="display:none;padding:8px 12px;border-top:0.5px solid var(--border);background:#E6F1FB;display:flex;align-items:center;gap:8px">
+          <span style="font-size:12px;color:#185FA5"><span id="bulk-count">0</span> hội viên đang chọn</span>
+          <button class="btn btn-approve" onclick="bulkApprove()"><i class="ti ti-check"></i> Duyệt tất cả</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal từ chối -->
+<div id="reject-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:200;align-items:flex-start;justify-content:center;padding-top:3rem">
+  <div style="background:var(--surface-2);border-radius:14px;border:0.5px solid var(--border);width:100%;max-width:440px;overflow:hidden">
+    <div style="padding:.9rem 1.2rem;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between"><div style="font-size:14px;font-weight:500">Lý do từ chối</div><button onclick="closeReject()" style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--text-muted)"><i class="ti ti-x"></i></button></div>
+    <div style="padding:1.2rem">
+      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:10px">Hội viên sẽ nhận email thông báo từ chối kèm lý do.</div>
+      <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:10px">
+        <label style="font-size:12px;display:flex;align-items:center;gap:6px;cursor:pointer"><input type="radio" name="rr" value="Thông tin không hợp lệ hoặc thiếu giấy tờ"> Thông tin không hợp lệ hoặc thiếu giấy tờ</label>
+        <label style="font-size:12px;display:flex;align-items:center;gap:6px;cursor:pointer"><input type="radio" name="rr" value="Doanh nghiệp không đủ điều kiện"> Doanh nghiệp không đủ điều kiện</label>
+        <label style="font-size:12px;display:flex;align-items:center;gap:6px;cursor:pointer"><input type="radio" name="rr" value="Trùng lặp đăng ký"> Trùng lặp đăng ký</label>
+        <label style="font-size:12px;display:flex;align-items:center;gap:6px;cursor:pointer"><input type="radio" name="rr" value="other"> Lý do khác</label>
+      </div>
+      <textarea id="reject-note" placeholder="Ghi chú thêm (tuỳ chọn)..." style="width:100%;min-height:70px;padding:7px 10px;border-radius:8px;border:0.5px solid var(--border-strong);font-size:12px;font-family:inherit;background:var(--surface-2);color:var(--text-primary);resize:vertical"></textarea>
+    </div>
+    <div style="padding:.85rem 1.2rem;border-top:0.5px solid var(--border);display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn" onclick="closeReject()">Huỷ</button>
+      <button class="btn btn-reject" onclick="confirmReject()"><i class="ti ti-x"></i> Xác nhận từ chối</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/i18n.js"></script><script src="js/search.js"></script><script src="js/app.js"></script>
+<script>
+let members = [];
+let tabFilter='pending', searchQ='', rejectId=null, selected=new Set();
+
+const getInitialsColors = (name) => {
+  const sum = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const colors = [
+    { bg: '#E6F1FB', fg: '#0C447C' },
+    { bg: '#EAF3DE', fg: '#27500A' },
+    { bg: '#FAEEDA', fg: '#633806' },
+    { bg: '#EEEDFE', fg: '#3C3489' },
+    { bg: '#E1F5EE', fg: '#085041' },
+    { bg: '#FAECE7', fg: '#712B13' }
+  ];
+  return colors[sum % colors.length];
+};
+
+async function loadData() {
+  const admin = await window.checkAuthOrRedirect();
+  if (!admin) return;
+
+  try {
+    const res = await fetch('/api/members', { headers: window.authHeaders() });
+    if (!res.ok) {
+      if (res.status === 401) {
+        window.clearAuthToken();
+        window.location.href = 'login.html';
+        return;
+      }
+      throw new Error('Không thể tải danh sách hội viên');
+    }
+    const data = await res.json();
+    members = data.data.map(m => {
+      const colors = getInitialsColors(m.name);
+      return {
+        id: m.id,
+        name: m.name,
+        initials: m.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase(),
+        bg: colors.bg,
+        fg: colors.fg,
+        tier: m.tier,
+        industry: m.industry || 'Chưa phân loại',
+        email: m.email,
+        phone: m.phone || 'Chưa cung cấp',
+        date: new Date(m.created_at).toLocaleDateString('vi-VN'),
+        status: m.status,
+        desc: m.description || 'Chưa có mô tả',
+        goal: m.goal || 'Không ghi nhận',
+        referral: m.referral || 'Không ghi nhận'
+      };
+    });
+    render();
+  } catch (err) {
+    console.error(err);
+    document.getElementById('admin-tbody').innerHTML = `<tr><td colspan="7"><div class="empty"><i class="ti ti-alert-triangle"></i>Lỗi tải dữ liệu: ${err.message}</div></td></tr>`;
+  }
+}
+
+function updateStats(){
+  document.getElementById('st-total').textContent=members.length;
+  document.getElementById('st-pending').textContent=members.filter(m=>m.status==='pending').length;
+  document.getElementById('st-approved').textContent=members.filter(m=>m.status==='approved').length;
+  document.getElementById('st-rejected').textContent=members.filter(m=>m.status==='rejected').length;
+  document.getElementById('cnt-p').textContent=members.filter(m=>m.status==='pending').length;
+  document.getElementById('cnt-a').textContent=members.filter(m=>m.status==='approved').length;
+  document.getElementById('cnt-r').textContent=members.filter(m=>m.status==='rejected').length;
+  document.getElementById('cnt-all').textContent=members.length;
+  
+  const badge = document.getElementById('sb-badge');
+  if (badge) badge.textContent=members.filter(m=>m.status==='pending').length;
+}
+
+function render(){
+  updateStats();
+  const list=members.filter(m=>{
+    if(tabFilter!=='all'&&m.status!==tabFilter) return false;
+    if(searchQ&&!m.name.toLowerCase().includes(searchQ)&&!m.email.toLowerCase().includes(searchQ)) return false;
+    return true;
+  });
+  const tbody=document.getElementById('admin-tbody');
+  tbody.innerHTML=list.map(m=>`<tr>
+    <td><input type="checkbox" class="row-chk" data-id="${m.id}" ${selected.has(m.id)?'checked':''} onchange="toggleRow(this)" style="width:14px;height:14px"></td>
+    <td><div style="display:flex;align-items:center;gap:8px"><div class="av-circle" style="background:${m.bg};color:${m.fg}">${m.initials}</div><div><div style="font-weight:500;font-size:13px">${m.name}</div><div style="font-size:11px;color:var(--text-muted)">${m.email}</div></div></div></td>
+    <td style="font-size:12px;color:var(--text-secondary)">${m.industry}</td>
+    <td>${window.tierBadge(m.tier)}</td>
+    <td style="font-size:12px;color:var(--text-muted)">${m.date}</td>
+    <td>${window.statusBadge(m.status)}</td>
+    <td>
+      <div style="display:flex;gap:4px;flex-wrap:wrap">
+        ${m.status==='pending'?`<button class="btn btn-approve" style="font-size:11px" onclick="approve(${m.id})"><i class="ti ti-check"></i> Duyệt</button><button class="btn btn-reject" style="font-size:11px" onclick="openReject(${m.id})"><i class="ti ti-x"></i> Từ chối</button>`:''}
+        <button class="btn" style="font-size:11px" onclick="viewDetail(${m.id})"><i class="ti ti-eye"></i></button>
+      </div>
+    </td>
+  </tr>`).join('') || `<tr><td colspan="7"><div class="empty"><i class="ti ti-search"></i>Không có kết quả.</div></td></tr>`;
+  updateBulk();
+}
+
+function filterTab(f,el){tabFilter=f;document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');render();}
+function filterQ(q){searchQ=q.toLowerCase();render();}
+function toggleAll(cb){const pending=members.filter(m=>m.status==='pending');pending.forEach(m=>cb.checked?selected.add(m.id):selected.delete(m.id));render();}
+function toggleRow(cb){const id=parseInt(cb.dataset.id);cb.checked?selected.add(id):selected.delete(id);updateBulk();}
+function updateBulk(){const n=selected.size;document.getElementById('bulk-bar').style.display=n>0?'flex':'none';document.getElementById('bulk-count').textContent=n;}
+
+async function bulkApprove(){
+  if (!selected.size) return;
+  const count = selected.size;
+  const listToApprove = Array.from(selected);
+  
+  try {
+    const promises = listToApprove.map(id => 
+      fetch(`/api/members/${id}/approve`, {
+        method: 'PATCH',
+        headers: window.authHeaders()
+      })
+    );
+    await Promise.all(promises);
+    selected.clear();
+    showToast(`Đã duyệt thành công ${count} hội viên.`, 'success');
+    loadData();
+  } catch (err) {
+    alert('Lỗi khi duyệt hàng loạt: ' + err.message);
+  }
+}
+
+async function approve(id){
+  const m=members.find(x=>x.id===id);
+  if(!m) return;
+  try {
+    const res = await fetch(`/api/members/${id}/approve`, {
+      method: 'PATCH',
+      headers: window.authHeaders()
+    });
+    if (!res.ok) throw new Error('Không thể duyệt hội viên này');
+    showToast('Đã duyệt: ' + m.name, 'success');
+    loadData();
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+function openReject(id){rejectId=id;document.getElementById('reject-note').value='';document.querySelectorAll('input[name="rr"]').forEach(r=>r.checked=false);document.getElementById('reject-modal').style.display='flex';}
+function closeReject(){document.getElementById('reject-modal').style.display='none';rejectId=null;}
+
+async function confirmReject(){
+  const m=members.find(x=>x.id===rejectId);
+  if(!m) return;
+  
+  const radio = document.querySelector('input[name="rr"]:checked');
+  let reason = radio ? radio.value : '';
+  const note = document.getElementById('reject-note').value.trim();
+  if (reason === 'other' || !reason) {
+    reason = note || 'Không có lý do chi tiết';
+  } else if (note) {
+    reason += ` (${note})`;
+  }
+
+  try {
+    const res = await fetch(`/api/members/${rejectId}/reject`, {
+      method: 'PATCH',
+      headers: window.authHeaders(),
+      body: JSON.stringify({ reason })
+    });
+    if (!res.ok) throw new Error('Không thể từ chối hội viên này');
+    showToast('Đã từ chối: ' + m.name, 'danger');
+    closeReject();
+    loadData();
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+function viewDetail(id){
+  const m=members.find(x=>x.id===id);
+  if(m) alert(`${m.name}\nNgành: ${m.industry} · Gói: ${m.tier}\nEmail: ${m.email} · SĐT: ${m.phone}\nMô tả: ${m.desc}\nMục tiêu: ${m.goal}\nNguồn: ${m.referral}`);
+}
+
+function showToast(msg,type){const el=document.getElementById('global-toast')||document.createElement('div');el.id='global-toast';el.className='toast show '+type;el.innerHTML=`<i class="ti ti-${type==='success'?'circle-check':'circle-x'}"></i> ${msg}`;document.body.appendChild(el);clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),2800);};
+document.addEventListener('DOMContentLoaded', loadData);
+</script>
+</body>
+</html>

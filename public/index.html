@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BizHub — Quản lý hội viên doanh nghiệp</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-icon"><i class="ti ti-building-community"></i></div>
+      <div>
+        <div class="sb-logo-name">BizHub</div>
+        <div class="sb-logo-sub" data-i18n="sb_sub">Hội viên doanh nghiệp</div>
+      </div>
+    </div>
+    <div class="sb-search">
+      <div class="sb-sw">
+        <i class="ti ti-search"></i>
+        <input type="text" id="sb-search" data-i18n-placeholder="search_placeholder" placeholder="Tìm kiếm...">
+        <div class="search-dropdown" id="sb-results"></div>
+      </div>
+    </div>
+    <div class="sb-sec" data-i18n="menu_manage">Quản lý</div>
+    <a href="index.html" class="sb-item active"><i class="ti ti-layout-dashboard"></i> <span data-i18n="menu_dashboard">Tổng quan</span></a>
+    <a href="members.html" class="sb-item"><i class="ti ti-users"></i> <span data-i18n="menu_members">Hội viên</span> <span class="sb-badge">3</span></a>
+    <a href="posts.html" class="sb-item"><i class="ti ti-news"></i> <span data-i18n="menu_posts">Bài viết</span> <span class="sb-badge">2</span></a>
+    <a href="register.html" class="sb-item"><i class="ti ti-user-plus"></i> <span data-i18n="menu_register">Đăng ký</span></a>
+    <a href="admin.html" class="sb-item"><i class="ti ti-shield-check"></i> <span data-i18n="menu_admin">Duyệt hội viên</span></a>
+    <a href="ai-chat.html" class="sb-item"><i class="ti ti-robot"></i> <span data-i18n="menu_ai">Trợ lý AI</span></a>
+    <div class="sb-sec" data-i18n="menu_system">Hệ thống</div>
+    <a href="provider-config.html" class="sb-item"><i class="ti ti-settings"></i> <span data-i18n="menu_settings">Cài đặt AI</span></a>
+    <div class="lang-section">
+      <div class="lang-label" data-i18n="lang_label">NGÔN NGỮ</div>
+      <div class="lang-grid">
+        <button class="lb active" onclick="setLang('vi')">🇻🇳 VI</button>
+        <button class="lb" onclick="setLang('en')">🇺🇸 EN</button>
+        <button class="lb" onclick="setLang('zh')">🇨🇳 ZH</button>
+        <button class="lb" onclick="setLang('ja')">🇯🇵 JA</button>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="tb-title"><i class="ti ti-layout-dashboard"></i> <span data-i18n="menu_dashboard">Tổng quan</span></div>
+      <div class="tb-center">
+        <div class="tb-search-wrap">
+          <i class="ti ti-search"></i>
+          <input type="text" id="main-search" data-i18n-placeholder="search_placeholder" placeholder="Tìm kiếm...">
+          <div class="search-dropdown" id="main-results"></div>
+        </div>
+      </div>
+      <div class="tb-right">
+        <div class="lang-pill" onclick="toggleLangDrop()">
+          <span id="cur-flag">🇻🇳</span> <span id="cur-lang">VI</span>
+          <i class="ti ti-chevron-down"></i>
+          <div class="lang-drop" id="lang-drop">
+            <div class="ld-item active" onclick="setLang('vi')">🇻🇳 Tiếng Việt <i class="ti ti-check"></i></div>
+            <div class="ld-item" onclick="setLang('en')">🇺🇸 English <i class="ti ti-check"></i></div>
+            <div class="ld-item" onclick="setLang('zh')">🇨🇳 中文 <i class="ti ti-check"></i></div>
+            <div class="ld-item" onclick="setLang('ja')">🇯🇵 日本語 <i class="ti ti-check"></i></div>
+          </div>
+        </div>
+        <div class="av-sm">AD</div>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-label" data-i18n="stat_total_members">Tổng hội viên</div><div class="stat-val">47</div><div class="stat-sub" data-i18n="stat_active">đang hoạt động</div></div>
+        <div class="stat-card"><div class="stat-label" data-i18n="stat_pending">Chờ duyệt</div><div class="stat-val" style="color:#BA7517">3</div><div class="stat-sub" data-i18n="stat_need_action">cần xử lý</div></div>
+        <div class="stat-card"><div class="stat-label" data-i18n="stat_posts">Bài viết tháng này</div><div class="stat-val">128</div><div class="stat-sub" data-i18n="stat_published">đã xuất bản</div></div>
+        <div class="stat-card"><div class="stat-label" data-i18n="stat_events">Sự kiện sắp tới</div><div class="stat-val" style="color:#185FA5">5</div><div class="stat-sub" data-i18n="stat_this_month">trong tháng này</div></div>
+      </div>
+      <div class="grid2">
+        <div class="card">
+          <div class="card-header"><div class="card-title"><i class="ti ti-clock"></i> <span data-i18n="section_new_members">Hội viên mới đăng ký</span></div><a href="admin.html" class="btn">Xem tất cả</a></div>
+          <div class="card-body">
+            <div class="list-row"><div class="av-circle" style="background:#E6F1FB;color:#0C447C">VT</div><div class="lr-info"><div class="lr-name">Vina Tech</div><div class="lr-sub">Công nghệ · 24/06</div></div><span class="badge b-pending">Chờ duyệt</span></div>
+            <div class="list-row"><div class="av-circle" style="background:#EAF3DE;color:#27500A">HL</div><div class="lr-info"><div class="lr-name">Hoàng Long</div><div class="lr-sub">Xuất nhập khẩu · 23/06</div></div><span class="badge b-pending">Chờ duyệt</span></div>
+            <div class="list-row"><div class="av-circle" style="background:#FAEEDA;color:#633806">PT</div><div class="lr-info"><div class="lr-name">Phú Thịnh BĐS</div><div class="lr-sub">Bất động sản · 22/06</div></div><span class="badge b-pending">Chờ duyệt</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title"><i class="ti ti-news"></i> <span data-i18n="section_pending_posts">Bài chờ duyệt</span></div><a href="posts.html" class="btn">Xem tất cả</a></div>
+          <div class="card-body">
+            <div class="list-row"><div class="av-circle" style="background:#E6F1FB;color:#0C447C">VT</div><div class="lr-info"><div class="lr-name">Tìm đối tác ERP miền Trung</div><div class="lr-sub">Vina Tech · 22/06</div></div><span class="badge b-pending">Chờ</span></div>
+            <div class="list-row"><div class="av-circle" style="background:#EAF3DE;color:#27500A">HL</div><div class="lr-info"><div class="lr-name">Cần nhà cung cấp gạo ST25</div><div class="lr-sub">Hoàng Long · 21/06</div></div><span class="badge b-pending">Chờ</span></div>
+            <div class="list-row"><div class="av-circle" style="background:#EEEDFE;color:#3C3489">SM</div><div class="lr-info"><div class="lr-name">Hội thảo dược phẩm Q3</div><div class="lr-sub">Sao Mai · 20/06</div></div><span class="badge b-approved">Xuất bản</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+<script src="js/i18n.js"></script>
+<script src="js/search.js"></script>
+<script src="js/app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  // 1. Kiểm tra đăng nhập
+  const admin = await window.checkAuthOrRedirect();
+  if (!admin) return;
+
+  // 2. Tải thống kê
+  try {
+    const resStats = await fetch('/api/stats', { headers: window.authHeaders() });
+    if (resStats.ok) {
+      const data = await resStats.json();
+      const stats = data.members;
+      const posts = data.posts;
+      const events = data.events;
+
+      // Cập nhật giao diện
+      document.querySelector('.stat-card:nth-child(1) .stat-val').textContent = stats.approved || 0;
+      document.querySelector('.stat-card:nth-child(2) .stat-val').textContent = stats.pending || 0;
+      document.querySelector('.stat-card:nth-child(3) .stat-val').textContent = posts.published || 0;
+      document.querySelector('.stat-card:nth-child(4) .stat-val').textContent = events.upcoming || 0;
+    }
+  } catch (err) {
+    console.error('Lỗi tải thống kê:', err);
+  }
+
+  // Helper sinh mã màu ngẫu nhiên dựa trên chữ cái đầu
+  const getInitialsColors = (name) => {
+    const sum = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const colors = [
+      { bg: '#E6F1FB', fg: '#0C447C' },
+      { bg: '#EAF3DE', fg: '#27500A' },
+      { bg: '#FAEEDA', fg: '#633806' },
+      { bg: '#EEEDFE', fg: '#3C3489' },
+      { bg: '#E1F5EE', fg: '#085041' },
+      { bg: '#FAECE7', fg: '#712B13' }
+    ];
+    return colors[sum % colors.length];
+  };
+
+  // 3. Tải danh sách hội viên chờ duyệt mới nhất (tối đa 3)
+  try {
+    const resMembers = await fetch('/api/members?status=pending', { headers: window.authHeaders() });
+    if (resMembers.ok) {
+      const data = await resMembers.json();
+      const list = data.data.slice(0, 3);
+      const container = document.querySelector('.grid2 > .card:nth-child(1) .card-body');
+      
+      if (!list.length) {
+        container.innerHTML = '<div class="empty"><i class="ti ti-users"></i>Không có hội viên chờ duyệt.</div>';
+      } else {
+        container.innerHTML = list.map(m => {
+          const initials = m.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+          const colors = getInitialsColors(m.name);
+          const date = new Date(m.created_at).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' });
+          return `
+            <div class="list-row">
+              <div class="av-circle" style="background:${colors.bg};color:${colors.fg}">${initials}</div>
+              <div class="lr-info">
+                <div class="lr-name">${m.name}</div>
+                <div class="lr-sub">${m.industry || 'Chưa phân loại'} · ${date}</div>
+              </div>
+              <span class="badge b-pending">Chờ duyệt</span>
+            </div>`;
+        }).join('');
+      }
+    }
+  } catch (err) {
+    console.error('Lỗi tải danh sách hội viên:', err);
+  }
+
+  // 4. Tải danh sách bài viết chờ duyệt mới nhất (tối đa 3)
+  try {
+    const resPosts = await fetch('/api/posts?status=pending', { headers: window.authHeaders() });
+    if (resPosts.ok) {
+      const data = await resPosts.json();
+      const list = data.data.slice(0, 3);
+      const container = document.querySelector('.grid2 > .card:nth-child(2) .card-body');
+      
+      if (!list.length) {
+        container.innerHTML = '<div class="empty"><i class="ti ti-news"></i>Không có bài chờ duyệt.</div>';
+      } else {
+        container.innerHTML = list.map(p => {
+          const initials = p.company_name ? p.company_name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() : 'AI';
+          const colors = p.company_name ? getInitialsColors(p.company_name) : { bg: '#E6F1FB', fg: '#0C447C' };
+          const date = new Date(p.created_at).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' });
+          return `
+            <div class="list-row">
+              <div class="av-circle" style="background:${colors.bg};color:${colors.fg}">${initials}</div>
+              <div class="lr-info">
+                <div class="lr-name">${p.title}</div>
+                <div class="lr-sub">${p.company_name || 'Hội viên'} · ${date}</div>
+              </div>
+              <span class="badge b-pending">Chờ</span>
+            </div>`;
+        }).join('');
+      }
+    }
+  } catch (err) {
+    console.error('Lỗi tải danh sách bài viết:', err);
+  }
+
+  // Cập nhật số lượng thông báo badge trên menu trái
+  try {
+    const resPending = await fetch('/api/members?status=pending', { headers: window.authHeaders() });
+    if (resPending.ok) {
+      const data = await resPending.json();
+      const badges = document.querySelectorAll('.sb-badge');
+      if (badges.length > 0) badges[0].textContent = data.total;
+    }
+  } catch {}
+});
+</script>
+</body>
+</html>

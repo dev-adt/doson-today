@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BizHub — Hội viên</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar">
+    <div class="sb-logo"><div class="sb-logo-icon"><i class="ti ti-building-community"></i></div><div><div class="sb-logo-name">BizHub</div><div class="sb-logo-sub">Hội viên doanh nghiệp</div></div></div>
+    <div class="sb-search"><div class="sb-sw"><i class="ti ti-search"></i><input type="text" id="sb-search" placeholder="Tìm kiếm..."><div class="search-dropdown" id="sb-results"></div></div></div>
+    <div class="sb-sec">Quản lý</div>
+    <a href="index.html" class="sb-item"><i class="ti ti-layout-dashboard"></i> Tổng quan</a>
+    <a href="members.html" class="sb-item active"><i class="ti ti-users"></i> Hội viên</a>
+    <a href="posts.html" class="sb-item"><i class="ti ti-news"></i> Bài viết</a>
+    <a href="register.html" class="sb-item"><i class="ti ti-user-plus"></i> Đăng ký</a>
+    <a href="admin.html" class="sb-item"><i class="ti ti-shield-check"></i> Duyệt hội viên</a>
+    <a href="ai-chat.html" class="sb-item"><i class="ti ti-robot"></i> Trợ lý AI</a>
+    <div class="sb-sec">Hệ thống</div>
+    <a href="provider-config.html" class="sb-item"><i class="ti ti-settings"></i> Cài đặt AI</a>
+    <div class="lang-section"><div class="lang-label">NGÔN NGỮ</div><div class="lang-grid"><button class="lb active" onclick="setLang('vi')">🇻🇳 VI</button><button class="lb" onclick="setLang('en')">🇺🇸 EN</button><button class="lb" onclick="setLang('zh')">🇨🇳 ZH</button><button class="lb" onclick="setLang('ja')">🇯🇵 JA</button></div></div>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="tb-title"><i class="ti ti-users" style="color:#185FA5"></i> Danh sách hội viên</div>
+      <div class="tb-center"><div class="tb-search-wrap"><i class="ti ti-search"></i><input type="text" id="main-search" placeholder="Tìm kiếm..." oninput="filterMembers(this.value)"><div class="search-dropdown" id="main-results"></div></div></div>
+      <div class="tb-right"><div class="lang-pill" onclick="toggleLangDrop()"><span id="cur-flag">🇻🇳</span> <span id="cur-lang">VI</span> <i class="ti ti-chevron-down"></i><div class="lang-drop" id="lang-drop"><div class="ld-item active" onclick="setLang('vi')">🇻🇳 Tiếng Việt <i class="ti ti-check"></i></div><div class="ld-item" onclick="setLang('en')">🇺🇸 English <i class="ti ti-check"></i></div><div class="ld-item" onclick="setLang('zh')">🇨🇳 中文 <i class="ti ti-check"></i></div><div class="ld-item" onclick="setLang('ja')">🇯🇵 日本語 <i class="ti ti-check"></i></div></div></div><a href="register.html" class="btn btn-primary"><i class="ti ti-plus"></i> Thêm hội viên</a><div class="av-sm">AD</div></div>
+    </div>
+    <div class="content">
+      <div class="tabs">
+        <div class="tab active" onclick="filterTab('all',this)">Tất cả (<span id="cnt-all">0</span>)</div>
+        <div class="tab" onclick="filterTab('approved',this)">Đã duyệt (<span id="cnt-approved">0</span>)</div>
+        <div class="tab" onclick="filterTab('pending',this)">Chờ duyệt (<span id="cnt-pending">0</span>)</div>
+      </div>
+      <div class="card">
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr><th>Doanh nghiệp</th><th>Ngành nghề</th><th>Gói</th><th>Ngày đăng ký</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
+            <tbody id="members-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="js/i18n.js"></script><script src="js/search.js"></script><script src="js/app.js"></script>
+<script>
+let members = [];
+let tabFilter='all', searchQ='';
+
+const getInitialsColors = (name) => {
+  const sum = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const colors = [
+    { bg: '#E6F1FB', fg: '#0C447C' },
+    { bg: '#EAF3DE', fg: '#27500A' },
+    { bg: '#FAEEDA', fg: '#633806' },
+    { bg: '#EEEDFE', fg: '#3C3489' },
+    { bg: '#E1F5EE', fg: '#085041' },
+    { bg: '#FAECE7', fg: '#712B13' }
+  ];
+  return colors[sum % colors.length];
+};
+
+async function loadMembers() {
+  const token = window.getAuthToken();
+  let url = '/api/members';
+  let headers = {};
+
+  if (token) {
+    headers = window.authHeaders();
+  } else {
+    // Nếu không phải admin, chỉ xem các hội viên đã approved
+    url = '/api/members?status=approved';
+    // Ẩn tab "Chờ duyệt" nếu không phải admin
+    const pendingTab = document.querySelector('.tab[onclick*="pending"]');
+    if (pendingTab) pendingTab.style.display = 'none';
+  }
+
+  try {
+    const res = await fetch(url, { headers });
+    if (!res.ok) {
+      if (res.status === 401 && token) {
+        window.clearAuthToken();
+        window.location.reload();
+      }
+      throw new Error('Không thể tải danh sách hội viên');
+    }
+    const data = await res.json();
+    members = data.data.map(m => {
+      const colors = getInitialsColors(m.name);
+      return {
+        id: m.id,
+        name: m.name,
+        initials: m.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase(),
+        bg: colors.bg,
+        fg: colors.fg,
+        tier: m.tier,
+        industry: m.industry || 'Chưa phân loại',
+        email: m.email,
+        date: new Date(m.created_at).toLocaleDateString('vi-VN'),
+        status: m.status
+      };
+    });
+    renderMembers();
+  } catch (err) {
+    console.error(err);
+    document.getElementById('members-tbody').innerHTML = `<tr><td colspan="6"><div class="empty"><i class="ti ti-alert-triangle"></i>Lỗi tải dữ liệu.</div></td></tr>`;
+  }
+}
+
+function renderMembers(){
+  const list=members.filter(m=>{
+    if(tabFilter!=='all'&&m.status!==tabFilter) return false;
+    if(searchQ&&!m.name.toLowerCase().includes(searchQ)&&!m.email.toLowerCase().includes(searchQ)) return false;
+    return true;
+  });
+  
+  document.getElementById('cnt-all').textContent=members.length;
+  document.getElementById('cnt-approved').textContent=members.filter(m=>m.status==='approved').length;
+  const pendingCntEl = document.getElementById('cnt-pending');
+  if (pendingCntEl) pendingCntEl.textContent=members.filter(m=>m.status==='pending').length;
+  
+  const tbody=document.getElementById('members-tbody');
+  tbody.innerHTML=list.map(m=>`<tr>
+    <td><div style="display:flex;align-items:center;gap:8px"><div class="av-circle" style="background:${m.bg};color:${m.fg}">${m.initials}</div><div><div style="font-weight:500;font-size:13px">${m.name}</div><div style="font-size:11px;color:var(--text-muted)">${m.email}</div></div></div></td>
+    <td style="color:var(--text-secondary)">${m.industry}</td>
+    <td>${window.tierBadge(m.tier)}</td>
+    <td style="color:var(--text-muted);font-size:12px">${m.date}</td>
+    <td>${window.statusBadge(m.status)}</td>
+    <td><a href="admin.html" class="btn" style="font-size:11px"><i class="ti ti-eye"></i> Xem</a></td>
+  </tr>`).join('') || `<tr><td colspan="6"><div class="empty"><i class="ti ti-search"></i>Không tìm thấy hội viên nào.</div></td></tr>`;
+}
+
+function filterTab(f,el){tabFilter=f;document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');renderMembers();}
+function filterMembers(q){searchQ=q.toLowerCase();renderMembers();}
+document.addEventListener('DOMContentLoaded', loadMembers);
+</script>
+</body>
+</html>
