@@ -83,7 +83,7 @@ export const Members = () => {
             <h1 style={{ fontFamily: 'var(--font-title)', fontSize: '26px', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '10px', margin: 0 }}>
               <i className="ti ti-users" style={{ color: 'var(--primary)' }}></i> Thư mục doanh nghiệp hội viên
             </h1>
-            <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px', marginBlockEnd: 0 }}>Khám phá các doanh nghiệp thành viên đáng tin cậy trong mạng lưới BizHub.</p>
+            <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px', marginBlockEnd: 0 }}>Khám phá các doanh nghiệp thành viên đáng tin cậy trong mạng lưới AVG.</p>
           </div>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             <input 

@@ -54,7 +54,7 @@ export const Login = () => {
               <img src="/favicon.png" alt="Logo" style={{ width: '32px', height: '32px', objectFit: 'contain' }} />
             </div>
             <div>
-              <div className="logo-name" style={{ fontFamily: 'var(--font-title)', fontSize: '22px', fontWeight: 700, color: '#FFFFFF' }}>BizHub AI</div>
+              <div className="logo-name" style={{ fontFamily: 'var(--font-title)', fontSize: '22px', fontWeight: 700, color: '#FFFFFF' }}>AVG AI</div>
               <div className="logo-sub" style={{ fontSize: '11px', color: '#64748B', marginTop: '2px', transform: 'uppercase', letterSpacing: '0.08em' }}>Cổng Đăng Nhập Hợp Nhất</div>
             </div>
           </div>

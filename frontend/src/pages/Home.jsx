@@ -91,7 +91,7 @@ export const Home = () => {
               Kết nối doanh nghiệp,<br /><span>Cùng phát triển bền vững</span>
             </h1>
             <p className="hero-desc">
-              BizHub là cầu nối tin cậy giữa các doanh nghiệp hàng đầu. Tìm kiếm đối tác kinh doanh nhanh chóng, chia sẻ cơ hội đầu tư hợp tác và tiếp cận trợ lý AI nghiệp vụ thông minh 24/7.
+              AVG là cầu nối tin cậy giữa các doanh nghiệp hàng đầu. Tìm kiếm đối tác kinh doanh nhanh chóng, chia sẻ cơ hội đầu tư hợp tác và tiếp cận trợ lý AI nghiệp vụ thông minh 24/7.
             </p>
             <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
               <Link to="/register" className="btn btn-primary" style={{ padding: '12px 24px', fontSize: '14px', textDecoration: 'none' }}>
@@ -105,7 +105,7 @@ export const Home = () => {
           
           <div className="hero-right float-effect" style={{ flex: '1', minWidth: '320px', display: 'flex', justifyContent: 'center' }}>
             <div className="hero-img-wrap">
-              <img src="/images/hero_network.png" alt="Mạng lưới kết nối BizHub" />
+              <img src="/images/hero_network.png" alt="Mạng lưới kết nối AVG" />
               <div style={{ position: 'absolute', bottom: '12px', left: '12px', right: '12px', background: 'rgba(8, 14, 30, 0.75)', backdropFilter: 'blur(8px)', padding: '10px 14px', borderRadius: 'var(--radius)', border: '0.5px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'var(--emerald)', animation: 'pulse 2s infinite' }}></div>
                 <span style={{ fontSize: '11px', fontWeight: 600, color: '#FFFFFF' }}>Thời gian thực kết nối doanh nghiệp Việt</span>
@@ -143,7 +143,7 @@ export const Home = () => {
           <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
             <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--neon-cyan)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>Các dịch vụ chính</div>
             <h2 style={{ fontFamily: 'var(--font-title)', fontSize: '32px', fontWeight: 700, color: '#ffffff' }}>Giải pháp số hoá kết nối doanh nghiệp</h2>
-            <p style={{ fontSize: '14px', color: 'var(--text-dark-secondary)', maxWidth: '600px', margin: '8px auto 0' }}>BizHub cung cấp hạ tầng chuyển đổi số toàn diện để bạn giao thương, tìm đối tác và sử dụng Trợ lý AI phân tích sâu.</p>
+            <p style={{ fontSize: '14px', color: 'var(--text-dark-secondary)', maxWidth: '600px', margin: '8px auto 0' }}>AVG cung cấp hạ tầng chuyển đổi số toàn diện để bạn giao thương, tìm đối tác và sử dụng Trợ lý AI phân tích sâu.</p>
           </div>
           
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px' }}>

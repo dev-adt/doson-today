@@ -9,12 +9,12 @@ export const Footer = () => {
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontFamily: 'var(--font-title)', fontSize: '20px', fontWeight: '700', color: '#ffffff', marginBottom: '1.5rem' }}>
               <div style={{ width: '34px', height: '34px', borderRadius: '8px', background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ffffff', fontSize: '16px' }}>
-                <i className="ti ti-building-community"></i>
+                <img src="/favicon.png" alt="Logo" style={{ width: '22px', height: '22px', objectFit: 'contain' }} />
               </div>
-              BizHub
+              AVG
             </div>
             <p style={{ lineHeight: '1.7', marginBottom: '1.5rem' }}>
-              BizHub là cầu nối tin cậy giữa các doanh nghiệp hàng đầu. Tìm kiếm đối tác kinh doanh nhanh chóng, chia sẻ cơ hội đầu tư, tự động kết nối doanh nghiệp Việt Nam 24/7.
+              AVG là cầu nối tin cậy giữa các doanh nghiệp hàng đầu. Tìm kiếm đối tác kinh doanh nhanh chóng, chia sẻ cơ hội đầu tư, tự động kết nối doanh nghiệp Việt Nam 24/7.
             </p>
             <div style={{ display: 'flex', gap: '10px' }}>
               <a href="#" style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94A3B8', fontSize: '16px' }}><i className="ti ti-brand-facebook"></i></a>
@@ -38,7 +38,7 @@ export const Footer = () => {
           </div>
           <div>
             <h4 style={{ color: '#ffffff', fontFamily: 'var(--font-title)', fontSize: '14px', fontWeight: '600', marginBottom: '1.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Liên hệ</h4>
-            <div style={{ padding: '6px 0', display: 'flex', alignItems: 'center', gap: '8px' }}><i className="ti ti-mail"></i> support@bizhub.vn</div>
+            <div style={{ padding: '6px 0', display: 'flex', alignItems: 'center', gap: '8px' }}><i className="ti ti-mail"></i> support@avg.today</div>
             <div style={{ padding: '6px 0', display: 'flex', alignItems: 'center', gap: '8px' }}><i className="ti ti-phone"></i> 1900 xxxx</div>
             <div style={{ padding: '6px 0', display: 'flex', alignItems: 'center', gap: '8px' }}><i className="ti ti-map-pin"></i> Hà Nội, Việt Nam</div>
           </div>

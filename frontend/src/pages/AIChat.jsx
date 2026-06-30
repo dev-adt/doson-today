@@ -315,7 +315,7 @@ export const AIChat = () => {
             <div className="chat-hist-title" style={{ marginBottom: '8px' }}>Chủ đề</div>
             <button className="chat-topic-btn" onClick={() => handleSend('Nghiệp vụ Kinh doanh B2B doanh nghiệp')}><i className="ti ti-briefcase" style={{ color: 'var(--neon-cyan)' }}></i> &nbsp;Kinh doanh</button>
             <button className="chat-topic-btn" onClick={() => handleSend('Cơ hội đầu tư xúc tiến mới nhất')}><i className="ti ti-chart-line" style={{ color: 'var(--neon-cyan)' }}></i> &nbsp;Đầu tư</button>
-            <button className="chat-topic-btn" onClick={() => handleSend('Đối tác kết nối hội viên BizHub')}><i className="ti ti-users" style={{ color: 'var(--neon-cyan)' }}></i> &nbsp;Kết nối</button>
+            <button className="chat-topic-btn" onClick={() => handleSend('Đối tác kết nối hội viên AVG')}><i className="ti ti-users" style={{ color: 'var(--neon-cyan)' }}></i> &nbsp;Kết nối</button>
           </div>
         </div>
 
@@ -342,7 +342,7 @@ export const AIChat = () => {
               ) : messages.length === 0 ? (
                 // Welcome Message
                 <div className="chat-bubble ai" style={{ alignSelf: 'flex-start', maxWidth: '85%', padding: '12px 16px', borderRadius: '12px', background: 'var(--surface-2)', color: '#fff', fontSize: '13px', lineHeight: '1.6', border: '1px solid rgba(255,255,255,0.04)', textAlign: 'left' }}>
-                  Xin chào! Tôi là Trợ lý AI phân tích doanh nghiệp của <strong>BizHub</strong>.<br/><br/>
+                  Xin chào! Tôi là Trợ lý AI phân tích doanh nghiệp của <strong>AVG</strong>.<br/><br/>
                   Tôi được tích hợp dữ liệu cơ sở thực của hội viên để hỗ trợ tra cứu hồ sơ năng lực, các cơ hội hợp tác và sự kiện. Bạn cần phân tích lĩnh vực nào hôm nay?
                   <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '12px' }}>
                     <button className="chip" onClick={() => handleSend('Phân tích xu hiện trạng doanh nghiệp B2B năm 2026')} style={{ padding: '4px 10px', fontSize: '11px', borderRadius: '99px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)', color: '#fff', cursor: 'pointer' }}>Phân tích thị trường B2B</button>

@@ -143,7 +143,7 @@ export const Register = () => {
               <path id="textCircle" d="M 150,150 m -115,0 a 115,115 0 1,1 230,0 a 115,115 0 1,1 -230,0" fill="none" />
               <text fill="rgba(255, 255, 255, 0.75)" fontSize="9.5" fontFamily="var(--font-title)" fontWeight="600" letterSpacing="0.065em">
                 <textPath href="#textCircle">
-                  BIZHUB — MỞ RỘNG MẠNG LƯỚI, TỐI ĐA HÓA CƠ HỘI. KẾT NỐI TOÀN CẦU, PHÁT TRIỂN BỀN VỮNG.
+                  AVG — MỞ RỘNG MẠNG LƯỚI, TỐI ĐA HÓA CƠ HỘI. KẾT NỐI TOÀN CẦU, PHÁT TRIỂN BỀN VỮNG.
                 </textPath>
               </text>
             </svg>
@@ -151,7 +151,7 @@ export const Register = () => {
           </div>
           
           <div className="register-sidebar-text">
-            <h2>BizHub Connection</h2>
+            <h2>AVG Connection</h2>
             <p>Khởi tạo doanh nghiệp, xây dựng hồ sơ uy tín và mở rộng mạng lưới giao lưu kinh doanh rộng khắp toàn quốc.</p>
           </div>
         </div>
@@ -162,7 +162,7 @@ export const Register = () => {
           {!success ? (
             <>
               <div className="reg-wizard-header">
-                <div style={{ fontFamily: 'var(--font-title)', fontSize: '22px', fontWeight: 700, color: '#0F172A' }}>Gia nhập BizHub</div>
+                <div style={{ fontFamily: 'var(--font-title)', fontSize: '22px', fontWeight: 700, color: '#0F172A' }}>Gia nhập AVG</div>
                 
                 <div style={{ display: 'flex', gap: '16px' }}>
                   <div className={`reg-step-item ${step === 1 ? 'active' : step > 1 ? 'completed' : ''}`}>
@@ -309,17 +309,17 @@ export const Register = () => {
                     </div>
 
                     <div className="fg" style={{ marginBottom: '1.25rem' }}>
-                      <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px', display: 'block' }}>Mục tiêu lớn nhất khi gia nhập BizHub</label>
+                      <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px', display: 'block' }}>Mục tiêu lớn nhất khi gia nhập AVG</label>
                       <input type="text" id="r-goal" value={formData.goal} onChange={handleInputChange} placeholder="Ví dụ: Tìm đối tác xuất khẩu nông sản sang Nhật" style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #D8E2EF', fontSize: '13px', outline: 'none' }} />
                     </div>
 
                     <div className="fg" style={{ marginBottom: '1.5rem' }}>
-                      <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px', display: 'block' }}>Biết tới BizHub qua kênh nào?</label>
+                      <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px', display: 'block' }}>Biết tới AVG qua kênh nào?</label>
                       <select id="r-referral" value={formData.referral} onChange={handleInputChange} style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #D8E2EF', fontSize: '13px', outline: 'none', backgroundColor: '#fff' }}>
                         <option value="">-- Chọn kênh giới thiệu --</option>
                         <option value="Mạng xã hội (Facebook, LinkedIn...)">Mạng xã hội (Facebook, LinkedIn...)</option>
                         <option value="Báo chí, truyền thông">Báo chí, truyền thông</option>
-                        <option value="Được hội viên BizHub giới thiệu">Được hội viên BizHub giới thiệu</option>
+                        <option value="Được hội viên AVG giới thiệu">Được hội viên AVG giới thiệu</option>
                         <option value="Tìm kiếm Google">Tìm kiếm Google</option>
                         <option value="Hội thảo, sự kiện">Hội thảo, sự kiện</option>
                       </select>
@@ -340,7 +340,7 @@ export const Register = () => {
                     <div className="fg" style={{ marginBottom: '1.25rem' }}>
                       <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px', display: 'block' }}>Email đăng nhập (Username) <span style={{ color: 'var(--rose)' }}>*</span></label>
                       <input type="text" value={formData.email} disabled style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #D8E2EF', fontSize: '13px', backgroundColor: '#F1F5F9', color: '#64748B' }} />
-                      <div style={{ fontSize: '11px', color: 'var(--text-light-muted)', marginTop: '4px' }}>BizHub sử dụng Email doanh nghiệp ở Bước 2 làm tên đăng nhập tài khoản.</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-light-muted)', marginTop: '4px' }}>AVG sử dụng Email doanh nghiệp ở Bước 2 làm tên đăng nhập tài khoản.</div>
                     </div>
 
                     <div className="fg" style={{ marginBottom: '1.5rem' }}>
@@ -425,7 +425,7 @@ export const Register = () => {
               </div>
               <h2 style={{ fontFamily: 'var(--font-title)', fontSize: '22px', fontWeight: 700, color: '#0F172A', marginBottom: '8px' }}>Đăng ký hồ sơ thành công!</h2>
               <p style={{ fontSize: '13.5px', color: '#64748B', lineHeight: '1.6', maxWidth: '440px', margin: '0 auto 1.5rem' }}>
-                Hồ sơ doanh nghiệp <strong>{formData.name}</strong> đã được lưu trữ trên hệ thống BizHub AI và đang chờ quản trị viên phê duyệt. Chúng tôi sẽ liên hệ sớm qua email <strong>{formData.email}</strong>.
+                Hồ sơ doanh nghiệp <strong>{formData.name}</strong> đã được lưu trữ trên hệ thống AVG AI và đang chờ quản trị viên phê duyệt. Chúng tôi sẽ liên hệ sớm qua email <strong>{formData.email}</strong>.
               </p>
               <div style={{ display: 'flex', justifyContent: 'center', gap: '12px' }}>
                 <Link to="/" className="btn" style={{ textDecoration: 'none' }}>Quay lại Trang chủ</Link>

@@ -119,7 +119,7 @@ const LanguageContext = createContext();
 
 export const LanguageProvider = ({ children }) => {
   const [currentLang, setCurrentLang] = useState(() => {
-    return localStorage.getItem('bizhub_lang') || 'vi';
+    return localStorage.getItem('avg_lang') || 'vi';
   });
 
   const t = (key) => {
@@ -132,7 +132,7 @@ export const LanguageProvider = ({ children }) => {
   const changeLang = (lang) => {
     if (LANGS[lang]) {
       setCurrentLang(lang);
-      localStorage.setItem('bizhub_lang', lang);
+      localStorage.setItem('avg_lang', lang);
     }
   };
 

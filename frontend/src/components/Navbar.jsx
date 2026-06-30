@@ -40,7 +40,7 @@ export const Navbar = () => {
     <nav style={{ zIndex: 1000 }}>
       <Link to="/" className="nav-logo" style={{ textDecoration: 'none' }}>
         <div className="nav-logo-icon"><img src="/favicon.png" alt="Logo" style={{ width: '20px', height: '20px', objectFit: 'contain' }} /></div>
-        BizHub
+        AVG
       </Link>
 
       <div className="nav-links">
@@ -63,7 +63,7 @@ export const Navbar = () => {
         <div className="nav-link nav-dropdown">
           Hội viên <i className="ti ti-chevron-down" style={{ fontSize: '10px' }}></i>
           <div className="nav-dropdown-menu">
-            <Link to="/register" className="nav-dropdown-item">Gia nhập BizHub <span className="nav-dropdown-sub">&gt;</span></Link>
+            <Link to="/register" className="nav-dropdown-item">Gia nhập AVG <span className="nav-dropdown-sub">&gt;</span></Link>
             <a href="#tiers" onClick={(e) => handleAnchorClick(e, '#tiers')} className="nav-dropdown-item">Phân hạng hội viên <span className="nav-dropdown-sub">&gt;</span></a>
           </div>
         </div>
