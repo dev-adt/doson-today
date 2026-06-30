@@ -333,6 +333,7 @@
       <div class="dash-card">
         <div class="card-title" style="display:flex; justify-content:space-between; align-items:center">
           <span style="display:flex; align-items:center; gap:8px"><i class="ti ti-list" style="color:var(--neon-cyan)"></i> Cơ hội giao thương đã đăng</span>
+          <button class="btn btn-primary" style="padding:6px 14px; font-size:11px" onclick="openNewPostModal()" id="new-post-btn"><i class="ti ti-plus"></i> Đăng tin mới</button>
         </div>
         <div id="posts-container">
           <div style="text-align:center; padding:2rem; font-size:12px; color:var(--text-muted)">Không có tin đăng nào.</div>
@@ -343,6 +344,48 @@
 
   </div>
 
+</div>
+
+<!-- Modal đăng tin giao thương mới -->
+<div id="new-post-modal" style="display:none; position:fixed; inset:0; background:rgba(8,14,30,0.88); backdrop-filter:blur(10px); z-index:9999; align-items:center; justify-content:center; padding:1.5rem">
+  <div style="background:rgba(15,27,53,0.7); backdrop-filter:blur(20px); border:1px solid rgba(255,255,255,0.08); border-radius:16px; width:100%; max-width:560px; padding:2rem; box-shadow:var(--shadow-deep)">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:10px">
+      <h3 style="font-family:var(--font-title); font-size:16px; color:#FFFFFF; display:flex; align-items:center; gap:8px"><i class="ti ti-news" style="color:var(--neon-cyan)"></i> Đăng tin giao thương mới</h3>
+      <button onclick="closeNewPostModal()" style="background:none; border:none; color:var(--text-muted); font-size:18px; cursor:pointer"><i class="ti ti-x"></i></button>
+    </div>
+    <form id="new-post-form" onsubmit="submitNewPost(event)">
+      <div class="fg" style="margin-bottom:1rem">
+        <label>Tiêu đề bài đăng *</label>
+        <input type="text" id="np-title" required placeholder="VD: Tìm đối tác triển khai ERP khu vực miền Trung">
+      </div>
+      <div class="fg" style="margin-bottom:1rem">
+        <label>Loại cơ hội</label>
+        <select id="np-type" style="background-color:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:8px; color:#ffffff; font-size:13px; padding:9px 12px">
+          <option value="Tìm kiếm đối tác">Tìm kiếm đối tác</option>
+          <option value="Cần mua / Cần bán">Cần mua / Cần bán</option>
+          <option value="Tuyển dụng">Tuyển dụng</option>
+          <option value="Thông báo sự kiện">Thông báo sự kiện</option>
+          <option value="Khác">Khác</option>
+        </select>
+      </div>
+      <div class="fg" style="margin-bottom:1rem">
+        <label>Tóm tắt ngắn gọn</label>
+        <input type="text" id="np-summary" placeholder="Mô tả ngắn 1-2 câu về cơ hội này">
+      </div>
+      <div class="fg" style="margin-bottom:1rem">
+        <label>Nội dung chi tiết *</label>
+        <textarea id="np-body" rows="5" required placeholder="Mô tả chi tiết yêu cầu, điều kiện hợp tác..."></textarea>
+      </div>
+      <div class="fg" style="margin-bottom:1.5rem">
+        <label>Thông tin liên hệ</label>
+        <input type="text" id="np-contact" placeholder="Email hoặc số điện thoại liên hệ">
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:10px">
+        <button type="button" class="btn" onclick="closeNewPostModal()">Hủy</button>
+        <button type="submit" class="btn btn-primary" id="submit-post-btn"><i class="ti ti-send"></i> Gửi bài đăng</button>
+      </div>
+    </form>
+  </div>
 </div>
 
 <script>
@@ -527,6 +570,53 @@ function escapeHtml(str) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
+}
+
+function openNewPostModal() {
+  document.getElementById('new-post-modal').style.display = 'flex';
+}
+
+function closeNewPostModal() {
+  document.getElementById('new-post-modal').style.display = 'none';
+  document.getElementById('new-post-form').reset();
+}
+
+async function submitNewPost(event) {
+  event.preventDefault();
+  const btn = document.getElementById('submit-post-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ti ti-loader animate-spin"></i> Đang gửi...';
+
+  const payload = {
+    title: document.getElementById('np-title').value.trim(),
+    type: document.getElementById('np-type').value,
+    summary: document.getElementById('np-summary').value.trim(),
+    body: document.getElementById('np-body').value.trim(),
+    contact_info: document.getElementById('np-contact').value.trim()
+  };
+
+  try {
+    const res = await fetch('/api/posts', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Không thể đăng bài.');
+
+    alert('Bài đăng đã được gửi thành công! Vui lòng chờ admin duyệt.');
+    closeNewPostModal();
+    loadDashboard();
+  } catch (err) {
+    alert(err.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-send"></i> Gửi bài đăng';
+  }
 }
 
 document.addEventListener('DOMContentLoaded', loadDashboard);

@@ -458,6 +458,19 @@
 
 <script src="js/i18n.js"></script>
 <script src="js/app.js"></script>
+
+<!-- Overlay yêu cầu đăng nhập -->
+<div id="auth-overlay" style="display:none; position:fixed; inset:0; background:rgba(8,14,30,0.92); backdrop-filter:blur(12px); z-index:9999; display:flex; align-items:center; justify-content:center">
+  <div style="text-align:center; max-width:420px; padding:2.5rem">
+    <i class="ti ti-lock" style="font-size:48px; color:var(--neon-cyan); display:block; margin-bottom:1.5rem"></i>
+    <h2 style="font-family:var(--font-title); font-size:22px; color:#FFFFFF; margin-bottom:0.75rem">Đăng nhập để sử dụng Trợ lý AI</h2>
+    <p style="font-size:13.5px; color:var(--text-secondary); line-height:1.7; margin-bottom:2rem">Tính năng Trợ lý AI chỉ dành cho hội viên đã đăng nhập và được phê duyệt. Vui lòng đăng nhập tài khoản hội viên hoặc đăng ký mới.</p>
+    <div style="display:flex; gap:12px; justify-content:center">
+      <a href="member-login.html" class="btn btn-primary" style="padding:10px 24px; font-size:14px"><i class="ti ti-login"></i> Đăng nhập hội viên</a>
+      <a href="register.html" class="btn" style="padding:10px 24px; font-size:14px"><i class="ti ti-user-plus"></i> Đăng ký mới</a>
+    </div>
+  </div>
+</div>
 <script>
 let localHistory = [];
 let isBusy = false;
@@ -622,7 +635,7 @@ function renderWelcomeMessage() {
 async function loadSessionsFromDB() {
   const container = document.getElementById('history-container');
   try {
-    const res = await fetch('/api/chat/sessions');
+    const res = await fetch('/api/chat/sessions', { headers: window.getAnyAuthHeaders() });
     if (!res.ok) throw new Error();
     const json = await res.json();
     const list = json.data || [];
@@ -684,7 +697,7 @@ async function selectSession(sessionId) {
   `;
   
   try {
-    const res = await fetch(`/api/chat/history/${sessionId}`);
+    const res = await fetch(`/api/chat/history/${sessionId}`, { headers: window.getAnyAuthHeaders() });
     if (!res.ok) throw new Error();
     const json = await res.json();
     const messages = json.data || [];
@@ -719,7 +732,7 @@ async function deleteSession(event, sessionId) {
   if (!confirm('Bạn có chắc chắn muốn xóa cuộc trò chuyện này?')) return;
   
   try {
-    const res = await fetch(`/api/chat/session/${sessionId}`, { method: 'DELETE' });
+    const res = await fetch(`/api/chat/session/${sessionId}`, { method: 'DELETE', headers: window.getAnyAuthHeaders() });
     if (!res.ok) throw new Error();
     
     if (sessionId === currentSessionId) {
@@ -770,6 +783,19 @@ async function initChatDetails() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Kiểm tra đăng nhập trước khi cho phép sử dụng AI Chat
+  const memberToken = localStorage.getItem('bizhub_member_token');
+  const adminToken = localStorage.getItem('bizhub_admin_token');
+  const overlay = document.getElementById('auth-overlay');
+  
+  if (!memberToken && !adminToken) {
+    // Chưa đăng nhập — hiển thị overlay chặn
+    overlay.style.display = 'flex';
+    return;
+  }
+  
+  // Đã đăng nhập — ẩn overlay và khởi tạo chat
+  overlay.style.display = 'none';
   initChatDetails();
   loadSessionsFromDB();
 });

@@ -34,6 +34,13 @@ window.callAI = async (messages, systemPrompt, sessionId) => {
   if (sessionId) {
     headers['X-Session-Id'] = sessionId;
   }
+  // Gửi kèm token xác thực (ưu tiên member, fallback admin)
+  const memberToken = localStorage.getItem('bizhub_member_token');
+  const adminToken = localStorage.getItem('bizhub_admin_token');
+  const authToken = memberToken || adminToken;
+  if (authToken) {
+    headers['Authorization'] = 'Bearer ' + authToken;
+  }
   const res = await fetch('/api/chat', {
     method: 'POST',
     headers: headers,
@@ -49,6 +56,23 @@ window.callAI = async (messages, systemPrompt, sessionId) => {
     throw new Error(err.error || `HTTP ${res.status}`);
   }
   return res.json(); // { text, usage }
+};
+
+// Helper: lấy headers xác thực cho API Member hoặc Admin
+window.getAnyAuthHeaders = () => {
+  const memberToken = localStorage.getItem('bizhub_member_token');
+  const adminToken = localStorage.getItem('bizhub_admin_token');
+  const token = memberToken || adminToken;
+  return token
+    ? { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }
+    : { 'Content-Type': 'application/json' };
+};
+
+window.getMemberAuthHeaders = () => {
+  const token = localStorage.getItem('bizhub_member_token');
+  return token
+    ? { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }
+    : { 'Content-Type': 'application/json' };
 };
 
 // ── Build system prompt từ dữ liệu hội viên ──────────────────

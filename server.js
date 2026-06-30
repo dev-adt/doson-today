@@ -81,10 +81,25 @@ db.query(`
       ) ENGINE=InnoDB COMMENT='Phiên đăng nhập hội viên'
     `);
     console.log('✅ Bảng member_sessions đã sẵn sàng');
+
+    // Thêm cột member_id vào chat_logs để phân tách lịch sử chat theo tài khoản
+    const [chatCols] = await db.query("SHOW COLUMNS FROM chat_logs LIKE 'member_id'");
+    if (!chatCols.length) {
+      await db.query("ALTER TABLE chat_logs ADD COLUMN member_id INT DEFAULT NULL AFTER session_id");
+      await db.query("ALTER TABLE chat_logs ADD INDEX idx_member (member_id)");
+      console.log('✅ Đã thêm cột member_id vào bảng chat_logs');
+    }
   } catch (err) {
     console.error('❌ Lỗi khởi tạo DB hội viên:', err.message);
   }
 })();
+
+// Giới hạn phân hạng Tier
+const TIER_LIMITS = {
+  Silver:   { posts_per_month: 3,  chats_per_day: 5 },
+  Gold:     { posts_per_month: 15, chats_per_day: 50 },
+  Platinum: { posts_per_month: Infinity, chats_per_day: Infinity }
+};
 
 // Middleware xác thực Admin bằng token
 async function authMiddleware(req, res, next) {
@@ -152,6 +167,55 @@ async function memberAuthMiddleware(req, res, next) {
     next();
   } catch (err) {
     res.status(500).json({ success: false, error: 'Lỗi xác thực hội viên: ' + err.message });
+  }
+}
+
+// Middleware xác thực hỗn hợp (Admin HOẶC Member) — dùng cho AI Chat
+async function anyAuthMiddleware(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ success: false, error: 'Vui lòng đăng nhập để sử dụng tính năng này.' });
+  }
+
+  const token = authHeader.substring(7);
+  try {
+    // Thử xác thực Member trước
+    const [memberSessions] = await db.query(
+      `SELECT s.*, m.name, m.email, m.status, m.tier, m.id as mid
+       FROM member_sessions s JOIN members m ON s.member_id = m.id
+       WHERE s.token = ? AND s.expires_at > NOW()`, [token]
+    );
+    if (memberSessions.length) {
+      req.authUser = {
+        type: 'member',
+        id: memberSessions[0].mid,
+        name: memberSessions[0].name,
+        email: memberSessions[0].email,
+        status: memberSessions[0].status,
+        tier: memberSessions[0].tier
+      };
+      return next();
+    }
+
+    // Fallback: thử xác thực Admin
+    const [adminSessions] = await db.query(
+      `SELECT s.*, a.username, a.name, a.role
+       FROM admin_sessions s JOIN admins a ON s.admin_id = a.id
+       WHERE s.token = ? AND s.expires_at > NOW()`, [token]
+    );
+    if (adminSessions.length) {
+      req.authUser = {
+        type: 'admin',
+        id: adminSessions[0].admin_id,
+        name: adminSessions[0].name,
+        tier: 'Platinum' // Admin không bị giới hạn
+      };
+      return next();
+    }
+
+    return res.status(401).json({ success: false, error: 'Phiên đăng nhập không hợp lệ hoặc đã hết hạn.' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: 'Lỗi xác thực: ' + err.message });
   }
 }
 
@@ -455,20 +519,24 @@ app.get('/api/members', async (req, res) => {
   try {
     const { status, tier, industry, search } = req.query;
 
-    // Nếu muốn xem danh sách chưa duyệt/tất cả -> Chỉ cho phép admin đã xác thực
-    if (status !== 'approved') {
-      const authHeader = req.headers['authorization'];
-      if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({ success: false, error: 'Cần quyền Admin để xem danh sách này.' });
-      }
+    // Kiểm tra quyền truy cập nâng cao
+    let isAuthenticated = false;
+    const authHeader = req.headers['authorization'];
+    if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.substring(7);
-      const [sessions] = await db.query(
-        'SELECT id FROM admin_sessions WHERE token = ? AND expires_at > NOW()',
-        [token]
-      );
-      if (!sessions.length) {
-        return res.status(401).json({ success: false, error: 'Token không hợp lệ hoặc đã hết hạn.' });
+      const [adminSess] = await db.query('SELECT id FROM admin_sessions WHERE token = ? AND expires_at > NOW()', [token]);
+      if (adminSess.length) { isAuthenticated = true; }
+      else {
+        const [memberSess] = await db.query(
+          `SELECT s.id FROM member_sessions s JOIN members m ON s.member_id = m.id WHERE s.token = ? AND s.expires_at > NOW() AND m.status = 'approved'`, [token]
+        );
+        if (memberSess.length) { isAuthenticated = true; }
       }
+    }
+
+    // Nếu muốn xem danh sách chưa duyệt/tất cả -> Chỉ cho phép admin đã xác thực
+    if (status !== 'approved' && !isAuthenticated) {
+      return res.status(401).json({ success: false, error: 'Cần quyền Admin để xem danh sách này.' });
     }
 
     let sql = 'SELECT * FROM members WHERE 1=1';
@@ -485,7 +553,14 @@ app.get('/api/members', async (req, res) => {
     sql += ' ORDER BY created_at DESC';
 
     const [rows] = await db.query(sql, params);
-    res.json({ success: true, data: rows, total: rows.length });
+
+    // Ẩn thông tin liên hệ nhạy cảm cho khách vãng lai
+    const safeRows = isAuthenticated ? rows : rows.map(m => {
+      const { email, phone, contact_name, contact_pos, password_hash, username, ...safe } = m;
+      return { ...safe, email: '***@***.***', phone: '09** *** ***', contact_name: '***', contact_pos: '***' };
+    });
+
+    res.json({ success: true, data: safeRows, total: safeRows.length });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
@@ -578,22 +653,22 @@ app.get('/api/posts', async (req, res) => {
   try {
     const { status, member_id, search } = req.query;
 
-    // Nếu status không phải 'approved', chỉ cho phép admin đã đăng nhập xem
-    if (status !== 'approved') {
-      const authHeader = req.headers['authorization'];
-      if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({ success: false, error: 'Cần quyền Admin để xem danh sách bài viết này.' });
-      }
+    // Kiểm tra quyền truy cập
+    let isAuthenticated = false;
+    const authHeader = req.headers['authorization'];
+    if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.substring(7);
-      const [sessions] = await db.query(
-        'SELECT id FROM admin_sessions WHERE token = ? AND expires_at > NOW()',
-        [token]
-      );
-      if (!sessions.length) {
-        return res.status(401).json({ success: false, error: 'Token không hợp lệ hoặc đã hết hạn.' });
+      const [adminSess] = await db.query('SELECT id FROM admin_sessions WHERE token = ? AND expires_at > NOW()', [token]);
+      if (adminSess.length) { isAuthenticated = true; }
+      else {
+        const [memberSess] = await db.query(
+          `SELECT s.id FROM member_sessions s JOIN members m ON s.member_id = m.id WHERE s.token = ? AND s.expires_at > NOW() AND m.status = 'approved'`, [token]
+        );
+        if (memberSess.length) { isAuthenticated = true; }
       }
     }
 
+    // Nếu status không phải 'approved', chỉ cho phép admin đã đăng nhập xem
     let sql = `SELECT p.*, m.name AS company_name, m.tier AS company_tier
                FROM posts p LEFT JOIN members m ON p.member_id = m.id WHERE 1=1`;
     const params = [];
@@ -713,32 +788,35 @@ app.get('/api/stats', authMiddleware, async (req, res) => {
 // AI CHAT API
 // ════════════════════════════════════════════
 
-// Lấy danh sách các phiên chat độc lập
-app.get('/api/chat/sessions', async (req, res) => {
+// Lấy danh sách các phiên chat — chỉ hiển thị phiên của người dùng đang đăng nhập
+app.get('/api/chat/sessions', anyAuthMiddleware, async (req, res) => {
   try {
+    const userId = req.authUser.id;
+    const userType = req.authUser.type;
     const [rows] = await db.query(`
       SELECT 
         session_id, 
         MAX(created_at) as last_activity, 
         (SELECT content FROM chat_logs WHERE session_id = t.session_id ORDER BY id ASC LIMIT 1) as title
       FROM chat_logs t
-      WHERE session_id != 'anonymous'
+      WHERE session_id != 'anonymous' AND member_id = ?
       GROUP BY session_id
       ORDER BY last_activity DESC
       LIMIT 50
-    `);
+    `, [userId]);
     res.json({ success: true, data: rows });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// Lấy toàn bộ lịch sử tin nhắn của một phiên chat
-app.get('/api/chat/history/:sessionId', async (req, res) => {
+// Lấy toàn bộ lịch sử tin nhắn của một phiên chat — kiểm tra quyền sở hữu
+app.get('/api/chat/history/:sessionId', anyAuthMiddleware, async (req, res) => {
   try {
+    const userId = req.authUser.id;
     const [rows] = await db.query(
-      'SELECT role, content, created_at FROM chat_logs WHERE session_id = ? ORDER BY id ASC',
-      [req.params.sessionId]
+      'SELECT role, content, created_at FROM chat_logs WHERE session_id = ? AND member_id = ? ORDER BY id ASC',
+      [req.params.sessionId, userId]
     );
     res.json({ success: true, data: rows });
   } catch (err) {
@@ -746,17 +824,37 @@ app.get('/api/chat/history/:sessionId', async (req, res) => {
   }
 });
 
-// Xóa một phiên chat
-app.delete('/api/chat/session/:sessionId', async (req, res) => {
+// Xóa một phiên chat — chỉ cho phép xóa phiên thuộc sở hữu
+app.delete('/api/chat/session/:sessionId', anyAuthMiddleware, async (req, res) => {
   try {
-    await db.query('DELETE FROM chat_logs WHERE session_id = ?', [req.params.sessionId]);
+    const userId = req.authUser.id;
+    await db.query('DELETE FROM chat_logs WHERE session_id = ? AND member_id = ?', [req.params.sessionId, userId]);
     res.json({ success: true, message: 'Đã xóa lịch sử trò chuyện thành công.' });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
-app.post('/api/chat', async (req, res) => {
+app.post('/api/chat', anyAuthMiddleware, async (req, res) => {
+  // Kiểm tra hội viên phải được phê duyệt
+  if (req.authUser.type === 'member' && req.authUser.status !== 'approved') {
+    return res.status(403).json({ error: 'Hồ sơ hội viên chưa được phê duyệt. Vui lòng chờ admin duyệt trước khi sử dụng Trợ lý AI.' });
+  }
+
+  // Kiểm tra giới hạn chat theo tier
+  const tierLimit = TIER_LIMITS[req.authUser.tier] || TIER_LIMITS.Silver;
+  if (tierLimit.chats_per_day !== Infinity) {
+    const [[countRow]] = await db.query(
+      `SELECT COUNT(*) AS cnt FROM chat_logs WHERE member_id = ? AND role = 'user' AND DATE(created_at) = CURDATE()`,
+      [req.authUser.id]
+    );
+    if (countRow.cnt >= tierLimit.chats_per_day) {
+      return res.status(429).json({
+        error: `Gói ${req.authUser.tier} chỉ được hỏi tối đa ${tierLimit.chats_per_day} câu/ngày. Nâng cấp gói để sử dụng thêm.`
+      });
+    }
+  }
+
   const { provider, model, messages, system, apiKey } = req.body;
   if (!provider || !model || !messages) {
     return res.status(400).json({ error: 'Thiếu provider, model hoặc messages.' });
@@ -874,14 +972,15 @@ ${events.map(e => `• ${e.title} — ${new Date(e.event_date).toLocaleDateStrin
       return res.status(400).json({ error: `Provider "${provider}" không hỗ trợ.` });
     }
 
-    // Lưu chat log
+    // Lưu chat log kèm member_id để phân tách lịch sử
     try {
       const sessionId = req.headers['x-session-id'] || 'anonymous';
+      const userId = req.authUser.id;
       const lastMsg = messages[messages.length - 1];
-      await db.query('INSERT INTO chat_logs (session_id,role,content,provider,model,tokens_in,tokens_out) VALUES (?,?,?,?,?,?,?)',
-        [sessionId, 'user', lastMsg?.content || '', provider, model, 0, 0]);
-      await db.query('INSERT INTO chat_logs (session_id,role,content,provider,model,tokens_in,tokens_out) VALUES (?,?,?,?,?,?,?)',
-        [sessionId, 'assistant', result.text, provider, model, result.usage?.input || 0, result.usage?.output || 0]);
+      await db.query('INSERT INTO chat_logs (session_id,member_id,role,content,provider,model,tokens_in,tokens_out) VALUES (?,?,?,?,?,?,?,?)',
+        [sessionId, userId, 'user', lastMsg?.content || '', provider, model, 0, 0]);
+      await db.query('INSERT INTO chat_logs (session_id,member_id,role,content,provider,model,tokens_in,tokens_out) VALUES (?,?,?,?,?,?,?,?)',
+        [sessionId, userId, 'assistant', result.text, provider, model, result.usage?.input || 0, result.usage?.output || 0]);
     } catch {}
 
     res.json(result);
