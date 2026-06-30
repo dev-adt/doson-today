@@ -7,24 +7,38 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
 <link rel="stylesheet" href="css/main.css?v=2.0">
 </head>
-<body>
+<body class="light-theme">
 <div class="shell">
+  <!-- LEFT SIDEBAR -->
   <aside class="sidebar">
-    <div class="sb-logo"><div class="sb-logo-icon"><i class="ti ti-building-community"></i></div><div><div class="sb-logo-name">BizHub</div><div class="sb-logo-sub">Hội viên doanh nghiệp</div></div></div>
+    <a href="admin-dashboard.html" class="sb-logo" style="text-decoration:none">
+      <div class="sb-logo-icon"><i class="ti ti-building-community"></i></div>
+      <div>
+        <div class="sb-logo-name">BizHub</div>
+        <div class="sb-logo-sub">Hội viên doanh nghiệp</div>
+      </div>
+    </a>
+    
+    <div class="sb-search">
+      <div class="sb-sw">
+        <i class="ti ti-search"></i>
+        <input type="text" placeholder="Tìm kiếm...">
+      </div>
+    </div>
+    
     <div class="sb-sec">Quản trị</div>
-    <a href="admin-dashboard.html" class="sb-item"><i class="ti ti-layout-dashboard"></i> Tổng quan</a>
+    <a href="admin-dashboard.html" class="sb-item"><i class="ti ti-layout-dashboard"></i> Dashboard</a>
     <a href="admin-members.html" class="sb-item"><i class="ti ti-users"></i> Duyệt hội viên <span class="sb-badge" id="sb-badge-members">0</span></a>
-    <a href="admin-posts.html" class="sb-item"><i class="ti ti-news"></i> Duyệt bài viết <span class="sb-badge" id="sb-badge-posts">0</span></a>
+    <a href="admin-posts.html" class="sb-item"><i class="ti ti-clipboard-check"></i> Duyệt bài viết <span class="sb-badge" id="sb-badge-posts">0</span></a>
     <div class="sb-sec">Hệ thống</div>
-    <a href="admin-config.html" class="sb-item active"><i class="ti ti-settings"></i> Cài đặt AI</a>
+    <a href="admin-config.html" class="sb-item active"><i class="ti ti-settings"></i> Cấu hình AI</a>
     <a href="index.html" class="sb-item" target="_blank"><i class="ti ti-external-link"></i> Xem Trang chủ</a>
+    
     <div class="lang-section">
-      <div class="lang-label">NGÔN NGỮ</div>
+      <div class="lang-label">Ngôn ngữ</div>
       <div class="lang-grid">
-        <button class="lb active" onclick="setLang('vi')">🇻🇳 VI</button>
-        <button class="lb" onclick="setLang('en')">🇺🇸 EN</button>
-        <button class="lb" onclick="setLang('zh')">🇨🇳 ZH</button>
-        <button class="lb" onclick="setLang('ja')">🇯🇵 JA</button>
+        <button class="lb active">🇻🇳 VI</button>
+        <button class="lb" onclick="alert('Đã chọn Tiếng Anh')">🇺🇸 EN</button>
       </div>
     </div>
   </aside>

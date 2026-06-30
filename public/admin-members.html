@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
 <link rel="stylesheet" href="css/main.css?v=2.1">
 <style>
-  /* Custom overrides for Admin Member Management Dark theme matching Image 5 */
+  /* Custom overrides for Admin Member Management Light theme matching Image 4 */
   .members-header {
     display: flex;
     justify-content: space-between;
@@ -18,7 +18,7 @@
     font-family: var(--font-title);
     font-weight: 700;
     font-size: 24px;
-    color: #FFFFFF;
+    color: var(--text-primary);
   }
   .members-stats-row {
     display: grid;
@@ -27,13 +27,14 @@
     margin-bottom: 1.5rem;
   }
   .members-stat-card {
-    background-color: #0A1128;
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background-color: var(--surface-2);
+    border: 1px solid var(--border);
     border-radius: 12px;
     padding: 1.25rem 1.5rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    box-shadow: var(--shadow);
   }
   .members-stat-info {
     display: flex;
@@ -42,7 +43,7 @@
   .members-stat-label {
     font-size: 11px;
     font-weight: 600;
-    color: var(--text-dark-secondary);
+    color: var(--text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
@@ -50,15 +51,15 @@
     font-family: var(--font-title);
     font-size: 28px;
     font-weight: 700;
-    color: #FFFFFF;
+    color: var(--text-primary);
     margin-top: 4px;
   }
   .members-stat-icon {
     width: 36px;
     height: 36px;
     border-radius: 8px;
-    background-color: rgba(255, 255, 255, 0.03);
-    color: var(--neon-cyan);
+    background-color: var(--surface-0);
+    color: var(--primary);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -67,14 +68,15 @@
 
   /* Filtering bar styles */
   .filter-bar {
-    background-color: #0A1128;
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background-color: var(--surface-2);
+    border: 1px solid var(--border);
     border-radius: 12px;
     padding: 1rem;
     margin-bottom: 1.5rem;
     display: flex;
     flex-direction: column;
     gap: 12px;
+    box-shadow: var(--shadow);
   }
   .filter-row-top {
     position: relative;
@@ -84,23 +86,23 @@
     width: 100%;
     padding: 10px 14px 10px 36px;
     border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background-color: rgba(255, 255, 255, 0.02);
-    color: #FFFFFF;
+    border: 1px solid var(--border);
+    background-color: var(--surface-0);
+    color: var(--text-primary);
     font-size: 13px;
     outline: none;
     transition: var(--transition);
   }
   .filter-row-top input:focus {
-    border-color: var(--neon-cyan);
-    box-shadow: 0 0 0 2px var(--neon-glow);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px var(--primary-glow);
   }
   .filter-row-top i {
     position: absolute;
     left: 12px;
     top: 50%;
     transform: translateY(-50%);
-    color: var(--text-dark-muted);
+    color: var(--text-muted);
     font-size: 15px;
   }
   .filter-selects-grid {
@@ -109,34 +111,35 @@
     gap: 12px;
   }
   .filter-selects-grid select {
-    background-color: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: var(--text-dark-secondary);
+    background-color: var(--surface-0);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
     border-radius: 8px;
     font-size: 12px;
     padding: 8px 12px;
     cursor: pointer;
   }
   .filter-selects-grid select:focus {
-    border-color: var(--neon-cyan);
-    color: #FFFFFF;
+    border-color: var(--primary);
+    color: var(--text-primary);
   }
 
   /* Table styling */
   .dark-table-card {
-    background-color: #0A1128;
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background-color: var(--surface-2);
+    border: 1px solid var(--border);
     border-radius: 12px;
     overflow: hidden;
+    box-shadow: var(--shadow);
   }
   .dark-table-card table {
     width: 100%;
     border-collapse: collapse;
   }
   .dark-table-card th {
-    background-color: rgba(255, 255, 255, 0.01);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    color: var(--text-dark-secondary);
+    background-color: var(--surface-0);
+    border-bottom: 1px solid var(--border);
+    color: var(--text-secondary);
     font-size: 11px;
     font-weight: 700;
     text-transform: uppercase;
@@ -145,13 +148,13 @@
   }
   .dark-table-card td {
     padding: 14px 1rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-    color: var(--text-dark-secondary);
+    border-bottom: 1px solid var(--border);
+    color: var(--text-secondary);
     vertical-align: middle;
     font-size: 12.5px;
   }
   .dark-table-card tbody tr:hover {
-    background-color: rgba(255, 255, 255, 0.01);
+    background-color: rgba(0, 0, 0, 0.01);
   }
   .dark-table-card tbody tr:last-child td {
     border-bottom: none;
@@ -166,14 +169,14 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    background-color: rgba(255, 255, 255, 0.03);
-    color: var(--text-dark-secondary);
+    border: 1px solid var(--border);
+    background-color: var(--surface-0);
+    color: var(--text-secondary);
     transition: var(--transition);
   }
   .act-btn:hover {
-    color: #ffffff;
-    border-color: var(--neon-cyan);
+    color: var(--primary);
+    border-color: var(--primary);
   }
   .act-btn-approve {
     color: var(--emerald);
@@ -202,9 +205,9 @@
     width: 28px;
     height: 28px;
     border-radius: 6px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    background-color: rgba(255, 255, 255, 0.02);
-    color: var(--text-dark-secondary);
+    border: 1px solid var(--border);
+    background-color: var(--surface-2);
+    color: var(--text-secondary);
     font-family: inherit;
     font-weight: 600;
     font-size: 12px;
@@ -215,8 +218,8 @@
     transition: var(--transition);
   }
   .page-btn:hover {
-    border-color: rgba(255, 255, 255, 0.15);
-    color: #FFFFFF;
+    border-color: var(--text-muted);
+    color: var(--text-primary);
   }
   .page-btn.active {
     background-color: var(--primary);
@@ -226,18 +229,18 @@
   }
 </style>
 </head>
-<body class="dark-theme">
+<body class="light-theme">
 
 <div class="shell">
   <!-- LEFT SIDEBAR -->
   <aside class="sidebar">
-    <div class="sb-logo">
+    <a href="admin-dashboard.html" class="sb-logo" style="text-decoration:none">
       <div class="sb-logo-icon"><i class="ti ti-building-community"></i></div>
       <div>
         <div class="sb-logo-name">BizHub</div>
         <div class="sb-logo-sub">Hội viên doanh nghiệp</div>
       </div>
-    </div>
+    </a>
     
     <div class="sb-search">
       <div class="sb-sw">
@@ -248,10 +251,10 @@
     
     <div class="sb-sec">Quản trị</div>
     <a href="admin-dashboard.html" class="sb-item"><i class="ti ti-layout-dashboard"></i> Dashboard</a>
-    <a href="admin-members.html" class="sb-item active"><i class="ti ti-users"></i> Hội viên <span class="sb-badge" id="sb-badge-members">0</span></a>
-    <a href="admin-posts.html" class="sb-item"><i class="ti ti-news"></i> Duyệt bài viết <span class="sb-badge" id="sb-badge-posts">0</span></a>
+    <a href="admin-members.html" class="sb-item active"><i class="ti ti-users"></i> Duyệt hội viên <span class="sb-badge" id="sb-badge-members">0</span></a>
+    <a href="admin-posts.html" class="sb-item"><i class="ti ti-clipboard-check"></i> Duyệt bài viết <span class="sb-badge" id="sb-badge-posts">0</span></a>
     <div class="sb-sec">Hệ thống</div>
-    <a href="admin-config.html" class="sb-item"><i class="ti ti-settings"></i> Cài đặt AI</a>
+    <a href="admin-config.html" class="sb-item"><i class="ti ti-settings"></i> Cấu hình AI</a>
     <a href="index.html" class="sb-item" target="_blank"><i class="ti ti-external-link"></i> Xem Trang chủ</a>
     
     <div class="lang-section">
@@ -626,9 +629,51 @@ async function bulkApproveMembers() {
 
 function viewMemberDetail(id) {
   const m = membersList.find(x => x.id === id);
-  if (m) {
-    alert(`CHI TIẾT DOANH NGHIỆP HỘI VIÊN\n---------------------------------\nTên: ${m.name}\nMST: ${m.tax_code || 'Không ghi nhận'}\nNgành nghề: ${m.industry || 'Chưa phân loại'}\nQuy mô: ${m.size || 'Chưa phân loại'}\nĐịa chỉ: ${m.address}\nWebsite: ${m.website || 'Không có'}\nNgười đại diện: ${m.contact_name} (Chức vụ: ${m.contact_pos})\nEmail: ${m.email} | SĐT: ${m.phone}\nMục tiêu: ${m.goal || 'Không ghi nhận'}`);
-  }
+  if (!m) return;
+  const content = document.getElementById('member-modal-content');
+  content.innerHTML = `
+    <div style="grid-column:1/-1; border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:8px">
+      <span style="font-size:10px; text-transform:uppercase; color:var(--text-muted)">Doanh nghiệp</span>
+      <div style="font-size:16px; font-weight:700; color:var(--text-primary); margin-top:2px">${m.name}</div>
+    </div>
+    <div>
+      <span style="font-size:10px; text-transform:uppercase; color:var(--text-muted)">Mã số thuế</span>
+      <div style="font-weight:600; color:var(--text-primary); margin-top:2px">${m.tax_code || 'Không ghi nhận'}</div>
+    </div>
+    <div>
+      <span style="font-size:10px; text-transform:uppercase; color:var(--text-muted)">Ngành nghề</span>
+      <div style="font-weight:600; color:var(--text-primary); margin-top:2px">${m.industry || 'Chưa phân loại'}</div>
+    </div>
+    <div>
+      <span style="font-size:10px; text-transform:uppercase; color:var(--text-muted)">Quy mô nhân sự</span>
+      <div style="font-weight:600; color:var(--text-primary); margin-top:2px">${m.size || 'Chưa phân loại'}</div>
+    </div>
+    <div>
+      <span style="font-size:10px; text-transform:uppercase; color:var(--text-muted)">Phân hạng hội viên</span>
+      <div style="font-weight:600; color:var(--text-primary); margin-top:2px">${m.tier}</div>
+    </div>
+    <div style="grid-column:1/-1">
+      <span style="font-size:10px; text-transform:uppercase; color:var(--text-muted)">Địa chỉ văn phòng</span>
+      <div style="color:var(--text-secondary); margin-top:2px">${m.address || 'Không ghi nhận'}</div>
+    </div>
+    <div>
+      <span style="font-size:10px; text-transform:uppercase; color:var(--text-muted)">Người đại diện</span>
+      <div style="font-weight:600; color:var(--text-primary); margin-top:2px">${m.contact_name} (${m.contact_pos})</div>
+    </div>
+    <div>
+      <span style="font-size:10px; text-transform:uppercase; color:var(--text-muted)">Thông tin liên hệ</span>
+      <div style="color:var(--text-secondary); margin-top:2px">Email: ${m.email}<br>SĐT: ${m.phone}</div>
+    </div>
+    <div style="grid-column:1/-1">
+      <span style="font-size:10px; text-transform:uppercase; color:var(--text-muted)">Mục tiêu giao thương</span>
+      <div style="font-style:italic; color:var(--text-secondary); margin-top:4px; line-height:1.5">${m.goal || 'Không ghi nhận'}</div>
+    </div>
+  `;
+  document.getElementById('member-modal').style.display = 'flex';
+}
+
+function closeMemberModal() {
+  document.getElementById('member-modal').style.display = 'none';
 }
 
 function handleFiltersChange() {
@@ -659,11 +704,30 @@ function handleFiltersChange() {
 }
 
 function prevPage() {
-  alert('Đang tải trang trước...');
+  alert('Trang kế tiếp');
 }
 function nextPage() {
-  alert('Đang tải trang tiếp theo...');
+  alert('Trang kế tiếp');
 }
 </script>
+
+<!-- Modal xem chi tiết doanh nghiệp hội viên -->
+<div id="member-modal" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.6); backdrop-filter:blur(4px); z-index:999; align-items:center; justify-content:center; padding:1.5rem">
+  <div class="card" style="width:100%; max-width:600px; background:var(--surface-2); border-color:var(--border-strong); box-shadow:var(--shadow-lg); animation:slideIn 0.3s ease; border-radius:14px; overflow:hidden">
+    <div class="card-header" style="border-bottom:1px solid var(--border); padding:.9rem 1.2rem; display:flex; align-items:center; justify-content:space-between">
+      <div class="card-title" style="font-size:14px; font-weight:600; color:var(--text-primary)"><i class="ti ti-building" style="color:var(--primary)"></i> Chi tiết doanh nghiệp hội viên</div>
+      <button onclick="closeMemberModal()" style="background:none; border:none; color:var(--text-muted); font-size:18px; cursor:pointer"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="card-body" style="padding:1.2rem; max-height:70vh; overflow-y:auto; color:var(--text-primary)">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px" id="member-modal-content">
+        <!-- Populated dynamically -->
+      </div>
+    </div>
+    <div style="padding:.85rem 1.2rem; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:8px">
+      <button class="btn btn-primary" onclick="closeMemberModal()">Đóng</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

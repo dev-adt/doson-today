@@ -143,13 +143,13 @@
 <div class="shell">
   <!-- LEFT SIDEBAR -->
   <aside class="sidebar">
-    <div class="sb-logo">
+    <a href="admin-dashboard.html" class="sb-logo" style="text-decoration:none">
       <div class="sb-logo-icon"><i class="ti ti-building-community"></i></div>
       <div>
         <div class="sb-logo-name">BizHub</div>
         <div class="sb-logo-sub">Hội viên doanh nghiệp</div>
       </div>
-    </div>
+    </a>
     
     <div class="sb-search">
       <div class="sb-sw">
@@ -162,34 +162,9 @@
     <div class="sb-sec">Quản trị</div>
     
     <a href="admin-dashboard.html" class="sb-item active"><i class="ti ti-layout-dashboard"></i> Dashboard</a>
-    <a href="admin-dashboard.html" class="sb-item"><i class="ti ti-chart-pie"></i> Tổng quan</a>
-    
-    <div>
-      <div class="sb-menu-parent"><i class="ti ti-users"></i> Hội viên <i class="ti ti-chevron-down" style="margin-left:auto; font-size:10px"></i></div>
-      <div class="sb-menu-sub">
-        <a href="admin-members.html" class="sb-menu-sub-link">Tất cả hội viên</a>
-        <a href="admin-members.html" class="sb-menu-sub-link">Hội viên chờ duyệt <span class="sb-badge" id="badge-side-members">0</span></a>
-      </div>
-    </div>
-
-    <div>
-      <div class="sb-menu-parent"><i class="ti ti-building"></i> Doanh nghiệp <i class="ti ti-chevron-down" style="margin-left:auto; font-size:10px"></i></div>
-      <div class="sb-menu-sub">
-        <a href="admin-members.html" class="sb-menu-sub-link">Tất cả doanh nghiệp</a>
-        <a href="admin-members.html" class="sb-menu-sub-link">Doanh nghiệp đã xác thực</a>
-      </div>
-    </div>
-
-    <div>
-      <div class="sb-menu-parent"><i class="ti ti-news"></i> Cơ hội B2B <i class="ti ti-chevron-down" style="margin-left:auto; font-size:10px"></i></div>
-      <div class="sb-menu-sub">
-        <a href="admin-posts.html" class="sb-menu-sub-link">Tất cả cơ hội</a>
-        <a href="admin-posts.html" class="sb-menu-sub-link">Cơ hội chờ duyệt <span class="sb-badge" id="badge-side-posts">0</span></a>
-      </div>
-    </div>
-
-    <a href="admin-posts.html" class="sb-item"><i class="ti ti-clipboard-check"></i> Duyệt bài viết</a>
-    <a href="admin-config.html" class="sb-item"><i class="ti ti-settings"></i> Cấu hình AI</a>
+    <a href="admin-members.html" class="sb-item"><i class="ti ti-users"></i> Duyệt hội viên <span class="sb-badge" id="sb-badge-members">0</span></a>
+    <a href="admin-posts.html" class="sb-item"><i class="ti ti-clipboard-check"></i> Duyệt bài viết <span class="sb-badge" id="sb-badge-posts">0</span></a>
+    <a href="admin-config.html" class="sb-item"><i class="ti ti-settings"></i> Cài đặt AI</a>
     <a href="index.html" class="sb-item" target="_blank"><i class="ti ti-external-link"></i> Xem Trang chủ</a>
     
     <div class="lang-section">
@@ -404,9 +379,9 @@ async function loadDashboardStats() {
       document.getElementById('stat-pending-a').textContent = (members.pending || 0) + (posts.pending || 0);
       
       // Update sidebar badges
-      const mBadge = document.getElementById('badge-side-members');
+      const mBadge = document.getElementById('sb-badge-members');
       if (mBadge) mBadge.textContent = members.pending || 0;
-      const pBadge = document.getElementById('badge-side-posts');
+      const pBadge = document.getElementById('sb-badge-posts');
       if (pBadge) pBadge.textContent = posts.pending || 0;
     }
   } catch (err) {
