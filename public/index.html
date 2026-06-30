@@ -477,6 +477,7 @@
   </div>
 </footer>
 
+<script src="js/app.js"></script>
 <script>
 // Smooth scroll for anchors
 document.querySelectorAll('a[href^="#"]').forEach(a=>{
@@ -489,29 +490,8 @@ document.querySelectorAll('a[href^="#"]').forEach(a=>{
   });
 });
 
-// Update navbar avatar dynamically if logged in
-function checkNavbarAuth() {
-  const token = localStorage.getItem('bizhub_admin_token');
-  const userStr = localStorage.getItem('bizhub_admin_user');
-  if (token && userStr) {
-    try {
-      const user = JSON.parse(userStr);
-      if (user && user.name) {
-        const initials = user.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
-        const av = document.getElementById('nav-av');
-        if (av) {
-          av.textContent = initials;
-          av.href = 'admin-dashboard.html';
-          av.title = 'Đến Trang quản trị (' + user.name + ')';
-        }
-      }
-    } catch (e) {}
-  }
-}
-
 // ── Tải dữ liệu động từ API ─────────────────────────────────
 async function initDynamicData() {
-  checkNavbarAuth();
   try {
     // 1. Tải thống kê số liệu công khai
     const statsRes = await fetch('/api/public-stats');
