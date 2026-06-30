@@ -97,9 +97,9 @@ export const AuthProvider = ({ children }) => {
       localStorage.removeItem('bizhub_member_token');
       localStorage.removeItem('bizhub_member_user');
     } else if (data.role === 'member') {
-      setUser(data.member);
+      setUser(data.user);
       localStorage.setItem('bizhub_member_token', data.token);
-      localStorage.setItem('bizhub_member_user', JSON.stringify(data.member));
+      localStorage.setItem('bizhub_member_user', JSON.stringify(data.user));
       // Dọn dẹp token admin nếu có
       localStorage.removeItem('bizhub_admin_token');
       localStorage.removeItem('bizhub_admin_user');

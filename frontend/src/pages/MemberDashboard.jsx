@@ -11,7 +11,8 @@ export const MemberDashboard = () => {
   const [profileData, setProfileData] = useState({
     name: '', tax_code: '', license: '', industry: '', size: '', address: '',
     website: '', social: '', description: '', contact_name: '', contact_pos: '',
-    phone: '', goal: '', password: ''
+    phone: '', goal: '', password: '',
+    status: '', tier: ''
   });
   
   const [dbStats, setDbStats] = useState({
@@ -57,7 +58,9 @@ export const MemberDashboard = () => {
             contact_pos: m.contact_pos || '',
             phone: m.phone || '',
             goal: m.goal || '',
-            password: ''
+            password: '',
+            status: m.status || 'pending',
+            tier: m.tier || 'Silver'
           });
           setDbStats(data.stats);
           setMemberPosts(data.posts || []);
@@ -168,8 +171,8 @@ export const MemberDashboard = () => {
     );
   }
 
-  const userStatus = user?.status || 'pending';
-  const userTier = user?.tier || 'Silver';
+  const userStatus = profileData.status || user?.status || 'pending';
+  const userTier = profileData.tier || user?.tier || 'Silver';
 
   return (
     <div className="public-body">
