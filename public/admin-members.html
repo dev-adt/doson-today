@@ -1,142 +1,450 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BizHub — Duyệt hội viên</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BizHub — Quản lý Hội viên Doanh nghiệp</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
-<link rel="stylesheet" href="css/main.css?v=2.0">
+<link rel="stylesheet" href="css/main.css?v=2.1">
+<style>
+  /* Custom overrides for Admin Member Management Dark theme matching Image 5 */
+  .members-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+  .members-title {
+    font-family: var(--font-title);
+    font-weight: 700;
+    font-size: 24px;
+    color: #FFFFFF;
+  }
+  .members-stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 1.5rem;
+  }
+  .members-stat-card {
+    background-color: #0A1128;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .members-stat-info {
+    display: flex;
+    flex-direction: column;
+  }
+  .members-stat-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-dark-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .members-stat-val {
+    font-family: var(--font-title);
+    font-size: 28px;
+    font-weight: 700;
+    color: #FFFFFF;
+    margin-top: 4px;
+  }
+  .members-stat-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background-color: rgba(255, 255, 255, 0.03);
+    color: var(--neon-cyan);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+
+  /* Filtering bar styles */
+  .filter-bar {
+    background-color: #0A1128;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .filter-row-top {
+    position: relative;
+    width: 100%;
+  }
+  .filter-row-top input {
+    width: 100%;
+    padding: 10px 14px 10px 36px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background-color: rgba(255, 255, 255, 0.02);
+    color: #FFFFFF;
+    font-size: 13px;
+    outline: none;
+    transition: var(--transition);
+  }
+  .filter-row-top input:focus {
+    border-color: var(--neon-cyan);
+    box-shadow: 0 0 0 2px var(--neon-glow);
+  }
+  .filter-row-top i {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-dark-muted);
+    font-size: 15px;
+  }
+  .filter-selects-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+  .filter-selects-grid select {
+    background-color: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-dark-secondary);
+    border-radius: 8px;
+    font-size: 12px;
+    padding: 8px 12px;
+    cursor: pointer;
+  }
+  .filter-selects-grid select:focus {
+    border-color: var(--neon-cyan);
+    color: #FFFFFF;
+  }
+
+  /* Table styling */
+  .dark-table-card {
+    background-color: #0A1128;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .dark-table-card table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .dark-table-card th {
+    background-color: rgba(255, 255, 255, 0.01);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--text-dark-secondary);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 12px 1rem;
+  }
+  .dark-table-card td {
+    padding: 14px 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    color: var(--text-dark-secondary);
+    vertical-align: middle;
+    font-size: 12.5px;
+  }
+  .dark-table-card tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.01);
+  }
+  .dark-table-card tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  /* Action buttons inside table */
+  .act-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background-color: rgba(255, 255, 255, 0.03);
+    color: var(--text-dark-secondary);
+    transition: var(--transition);
+  }
+  .act-btn:hover {
+    color: #ffffff;
+    border-color: var(--neon-cyan);
+  }
+  .act-btn-approve {
+    color: var(--emerald);
+  }
+  .act-btn-approve:hover {
+    background-color: var(--emerald-bg);
+    border-color: var(--emerald);
+  }
+  .act-btn-reject {
+    color: var(--rose);
+  }
+  .act-btn-reject:hover {
+    background-color: var(--rose-bg);
+    border-color: var(--rose);
+  }
+
+  /* Pagination */
+  .reg-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    padding: 16px;
+  }
+  .page-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background-color: rgba(255, 255, 255, 0.02);
+    color: var(--text-dark-secondary);
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: var(--transition);
+  }
+  .page-btn:hover {
+    border-color: rgba(255, 255, 255, 0.15);
+    color: #FFFFFF;
+  }
+  .page-btn.active {
+    background-color: var(--primary);
+    border-color: var(--primary);
+    color: #FFFFFF;
+    box-shadow: 0 2px 8px var(--primary-glow);
+  }
+</style>
 </head>
-<body>
+<body class="dark-theme">
+
 <div class="shell">
+  <!-- LEFT SIDEBAR -->
   <aside class="sidebar">
-    <div class="sb-logo"><div class="sb-logo-icon"><i class="ti ti-building-community"></i></div><div><div class="sb-logo-name">BizHub</div><div class="sb-logo-sub">Hội viên doanh nghiệp</div></div></div>
-    <div class="sb-search"><div class="sb-sw"><i class="ti ti-search"></i><input type="text" id="sb-search" placeholder="Tìm kiếm..."><div class="search-dropdown" id="sb-results"></div></div></div>
+    <div class="sb-logo">
+      <div class="sb-logo-icon"><i class="ti ti-building-community"></i></div>
+      <div>
+        <div class="sb-logo-name">BizHub</div>
+        <div class="sb-logo-sub">Hội viên doanh nghiệp</div>
+      </div>
+    </div>
+    
+    <div class="sb-search">
+      <div class="sb-sw">
+        <i class="ti ti-search"></i>
+        <input type="text" placeholder="Tìm kiếm...">
+      </div>
+    </div>
+    
     <div class="sb-sec">Quản trị</div>
-    <a href="admin-dashboard.html" class="sb-item"><i class="ti ti-layout-dashboard"></i> Tổng quan</a>
-    <a href="admin-members.html" class="sb-item active"><i class="ti ti-users"></i> Duyệt hội viên <span class="sb-badge" id="sb-badge-members">0</span></a>
+    <a href="admin-dashboard.html" class="sb-item"><i class="ti ti-layout-dashboard"></i> Dashboard</a>
+    <a href="admin-members.html" class="sb-item active"><i class="ti ti-users"></i> Hội viên <span class="sb-badge" id="sb-badge-members">0</span></a>
     <a href="admin-posts.html" class="sb-item"><i class="ti ti-news"></i> Duyệt bài viết <span class="sb-badge" id="sb-badge-posts">0</span></a>
     <div class="sb-sec">Hệ thống</div>
     <a href="admin-config.html" class="sb-item"><i class="ti ti-settings"></i> Cài đặt AI</a>
     <a href="index.html" class="sb-item" target="_blank"><i class="ti ti-external-link"></i> Xem Trang chủ</a>
-    <div class="lang-section"><div class="lang-label">NGÔN NGỮ</div><div class="lang-grid"><button class="lb active" onclick="setLang('vi')">🇻🇳 VI</button><button class="lb" onclick="setLang('en')">🇺🇸 EN</button><button class="lb" onclick="setLang('zh')">🇨🇳 ZH</button><button class="lb" onclick="setLang('ja')">🇯🇵 JA</button></div></div>
-  </aside>
-  <div class="main">
-    <div class="topbar">
-      <div class="tb-title"><i class="ti ti-shield-check" style="color:#185FA5"></i> Duyệt hội viên</div>
-      <div class="tb-center"><div class="tb-search-wrap"><i class="ti ti-search"></i><input type="text" id="main-search" placeholder="Tìm kiếm..." oninput="filterQ(this.value)"><div class="search-dropdown" id="main-results"></div></div></div>
-      <div class="tb-right"><div class="lang-pill" onclick="toggleLangDrop()"><span id="cur-flag">🇻🇳</span> <span id="cur-lang">VI</span> <i class="ti ti-chevron-down"></i><div class="lang-drop" id="lang-drop"><div class="ld-item active" onclick="setLang('vi')">🇻🇳 Tiếng Việt <i class="ti ti-check"></i></div><div class="ld-item" onclick="setLang('en')">🇺🇸 English <i class="ti ti-check"></i></div><div class="ld-item" onclick="setLang('zh')">🇨🇳 中文 <i class="ti ti-check"></i></div><div class="ld-item" onclick="setLang('ja')">🇯🇵 日本語 <i class="ti ti-check"></i></div></div></div><div class="av-sm">AD</div></div>
+    
+    <div class="lang-section">
+      <div class="lang-label">Ngôn ngữ</div>
+      <div class="lang-grid">
+        <button class="lb active">🇻🇳 VI</button>
+        <button class="lb" onclick="alert('Đã chọn Tiếng Anh')">🇺🇸 EN</button>
+      </div>
     </div>
+  </aside>
+
+  <!-- MAIN WINDOW -->
+  <div class="main">
+    
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <div class="tb-title"><i class="ti ti-users"></i> <span>Duyệt hội viên</span></div>
+      <div class="tb-center">
+        <div class="tb-search-wrap">
+          <i class="ti ti-search"></i>
+          <input type="text" placeholder="Tìm nhanh hội viên...">
+        </div>
+      </div>
+      <div class="tb-right">
+        <div class="lang-pill" onclick="alert('Ngôn ngữ hiện tại: Tiếng Việt')">
+          <span>🇻🇳 VI</span>
+        </div>
+        <div class="av-sm" id="admin-av" style="cursor:pointer">AD</div>
+      </div>
+    </div>
+
+    <!-- CONTENT PANEL -->
     <div class="content">
-      <div class="stats-row" style="grid-template-columns:repeat(4,1fr)">
-        <div class="stat-card"><div class="stat-label">Tổng hội viên</div><div class="stat-val" id="st-total">0</div></div>
-        <div class="stat-card"><div class="stat-label">Chờ duyệt</div><div class="stat-val" id="st-pending" style="color:#BA7517">0</div></div>
-        <div class="stat-card"><div class="stat-label">Đã duyệt</div><div class="stat-val" id="st-approved" style="color:#3B6D11">0</div></div>
-        <div class="stat-card"><div class="stat-label">Từ chối</div><div class="stat-val" id="st-rejected" style="color:#A32D2D">0</div></div>
+      
+      <!-- HEADER TITLE AND ACTION BUTTON -->
+      <div class="members-header">
+        <div class="members-title">Member Management</div>
+        <button class="btn btn-primary" onclick="window.location.href='register.html'"><i class="ti ti-plus"></i> Thêm hội viên</button>
       </div>
-      <div class="tabs">
-        <div class="tab active" onclick="filterTab('pending',this)">Chờ duyệt (<span id="cnt-p">0</span>)</div>
-        <div class="tab" onclick="filterTab('approved',this)">Đã duyệt (<span id="cnt-a">0</span>)</div>
-        <div class="tab" onclick="filterTab('rejected',this)">Từ chối (<span id="cnt-r">0</span>)</div>
-        <div class="tab" onclick="filterTab('all',this)">Tất cả (<span id="cnt-all">0</span>)</div>
+
+      <!-- THREE STATS CARDS -->
+      <div class="members-stats-row">
+        <!-- Stat 1 -->
+        <div class="members-stat-card">
+          <div class="members-stat-info">
+            <div class="members-stat-label">Tổng Hội viên</div>
+            <div class="members-stat-val" id="cnt-total">0</div>
+          </div>
+          <div class="members-stat-icon"><i class="ti ti-users"></i></div>
+        </div>
+        <!-- Stat 2 -->
+        <div class="members-stat-card">
+          <div class="members-stat-info">
+            <div class="members-stat-label">Hội viên Mới (Tháng này)</div>
+            <div class="members-stat-val" id="cnt-new">0</div>
+          </div>
+          <div class="members-stat-icon"><i class="ti ti-user-plus"></i></div>
+        </div>
+        <!-- Stat 3 -->
+        <div class="members-stat-card">
+          <div class="members-stat-info">
+            <div class="members-stat-label">Hoạt động gần đây</div>
+            <div class="members-stat-val" id="cnt-activity">345</div>
+          </div>
+          <div class="members-stat-icon"><i class="ti ti-activity"></i></div>
+        </div>
       </div>
-      <div class="card">
+
+      <!-- FILTER BAR -->
+      <div class="filter-bar">
+        <div class="filter-row-top">
+          <i class="ti ti-search"></i>
+          <input type="text" id="member-search" placeholder="Tìm kiếm hội viên, công ty..." oninput="handleFiltersChange()">
+        </div>
+        <div class="filter-selects-grid">
+          <select id="filter-industry" onchange="handleFiltersChange()">
+            <option value="">Ngành nghề</option>
+            <option value="Công nghệ thông tin">Công nghệ thông tin</option>
+            <option value="Xuất nhập khẩu">Xuất nhập khẩu</option>
+            <option value="Bất động sản">Bất động sản</option>
+            <option value="Sản xuất & Chế biến">Sản xuất & Chế biến</option>
+            <option value="Dịch vụ tài chính">Dịch vụ tài chính</option>
+          </select>
+          <select id="filter-tier" onchange="handleFiltersChange()">
+            <option value="">Hạng hội viên</option>
+            <option value="Silver">Silver</option>
+            <option value="Gold">Gold</option>
+            <option value="Platinum">Platinum</option>
+          </select>
+          <select id="filter-status" onchange="handleFiltersChange()">
+            <option value="">Trạng thái</option>
+            <option value="approved">Đã duyệt (Active)</option>
+            <option value="pending">Chờ duyệt (Pending)</option>
+            <option value="rejected">Từ chối (Inactive)</option>
+          </select>
+          <select id="filter-date" onchange="handleFiltersChange()">
+            <option value="">Ngày tham gia</option>
+            <option value="today">Hôm nay</option>
+            <option value="week">Trong tuần</option>
+            <option value="month">Trong tháng</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- DARK DATATABLE CARD -->
+      <div class="dark-table-card">
         <div style="overflow-x:auto">
-          <table>
-            <thead><tr><th><input type="checkbox" id="chk-all" onchange="toggleAll(this)" style="width:14px;height:14px"></th><th>Doanh nghiệp</th><th>Ngành</th><th>Gói</th><th>Ngày đăng ký</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
-            <tbody id="admin-tbody"></tbody>
+          <table id="members-table">
+            <thead>
+              <tr>
+                <th style="width: 40px"><input type="checkbox" id="chk-all-members" onchange="toggleSelectAll(this)" style="width:14px; height:14px"></th>
+                <th>Hội viên</th>
+                <th>Công ty</th>
+                <th>Ngành nghề</th>
+                <th>Hạng</th>
+                <th>Trạng thái</th>
+                <th>Ngày tham gia</th>
+                <th>Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="members-table-body">
+              <!-- Load from database dynamically -->
+            </tbody>
           </table>
         </div>
-        <div id="bulk-bar" style="display:none;padding:8px 12px;border-top:0.5px solid var(--border);background:#E6F1FB;display:flex;align-items:center;gap:8px">
-          <span style="font-size:12px;color:#185FA5"><span id="bulk-count">0</span> hội viên đang chọn</span>
-          <button class="btn btn-approve" onclick="bulkApprove()"><i class="ti ti-check"></i> Duyệt tất cả</button>
+        
+        <!-- Bulk actions bar -->
+        <div id="members-bulk-bar" style="display:none; padding:10px 16px; border-top:1px solid rgba(255,255,255,0.06); background:rgba(30,136,229,0.08); display:flex; align-items:center; gap:12px">
+          <span style="font-size:12px; color:var(--primary-light)"><span id="bulk-selection-count">0</span> hội viên đang chọn</span>
+          <button class="btn btn-primary" style="padding:6px 12px" onclick="bulkApproveMembers()"><i class="ti ti-check"></i> Duyệt tất cả</button>
+        </div>
+
+        <!-- Pagination -->
+        <div class="reg-pagination">
+          <button class="page-btn" onclick="prevPage()"><i class="ti ti-chevron-left"></i></button>
+          <button class="page-btn active" id="page-1">1</button>
+          <button class="page-btn" onclick="alert('Trang kế tiếp')">2</button>
+          <button class="page-btn" onclick="alert('Trang kế tiếp')">3</button>
+          <span style="color:var(--text-dark-muted)">...</span>
+          <button class="page-btn" onclick="alert('Trang cuối')">9</button>
+          <button class="page-btn" onclick="nextPage()"><i class="ti ti-chevron-right"></i></button>
         </div>
       </div>
+
     </div>
   </div>
 </div>
 
-<!-- Modal từ chối -->
-<div id="reject-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:200;align-items:flex-start;justify-content:center;padding-top:3rem">
-  <div style="background:var(--surface-2);border-radius:14px;border:0.5px solid var(--border);width:100%;max-width:440px;overflow:hidden">
-    <div style="padding:.9rem 1.2rem;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between"><div style="font-size:14px;font-weight:500">Lý do từ chối</div><button onclick="closeReject()" style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--text-muted)"><i class="ti ti-x"></i></button></div>
-    <div style="padding:1.2rem">
-      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:10px">Hội viên sẽ nhận email thông báo từ chối kèm lý do.</div>
-      <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:10px">
-        <label style="font-size:12px;display:flex;align-items:center;gap:6px;cursor:pointer"><input type="radio" name="rr" value="Thông tin không hợp lệ hoặc thiếu giấy tờ"> Thông tin không hợp lệ hoặc thiếu giấy tờ</label>
-        <label style="font-size:12px;display:flex;align-items:center;gap:6px;cursor:pointer"><input type="radio" name="rr" value="Doanh nghiệp không đủ điều kiện"> Doanh nghiệp không đủ điều kiện</label>
-        <label style="font-size:12px;display:flex;align-items:center;gap:6px;cursor:pointer"><input type="radio" name="rr" value="Trùng lặp đăng ký"> Trùng lặp đăng ký</label>
-        <label style="font-size:12px;display:flex;align-items:center;gap:6px;cursor:pointer"><input type="radio" name="rr" value="other"> Lý do khác</label>
-      </div>
-      <textarea id="reject-note" placeholder="Ghi chú thêm (tuỳ chọn)..." style="width:100%;min-height:70px;padding:7px 10px;border-radius:8px;border:0.5px solid var(--border-strong);font-size:12px;font-family:inherit;background:var(--surface-2);color:var(--text-primary);resize:vertical"></textarea>
-    </div>
-    <div style="padding:.85rem 1.2rem;border-top:0.5px solid var(--border);display:flex;gap:8px;justify-content:flex-end">
-      <button class="btn" onclick="closeReject()">Huỷ</button>
-      <button class="btn btn-reject" onclick="confirmReject()"><i class="ti ti-x"></i> Xác nhận từ chối</button>
-    </div>
-  </div>
-</div>
-
-<script src="js/i18n.js"></script><script src="js/search.js"></script><script src="js/app.js"></script>
+<script src="js/i18n.js"></script>
+<script src="js/app.js"></script>
 <script>
-let members = [];
-let tabFilter='pending', searchQ='', rejectId=null, selected=new Set();
+let membersList = [];
+let selectedIds = new Set();
 
-const getInitialsColors = (name) => {
-  const sum = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  const colors = [
-    { bg: '#E6F1FB', fg: '#0C447C' },
-    { bg: '#EAF3DE', fg: '#27500A' },
-    { bg: '#FAEEDA', fg: '#633806' },
-    { bg: '#EEEDFE', fg: '#3C3489' },
-    { bg: '#E1F5EE', fg: '#085041' },
-    { bg: '#FAECE7', fg: '#712B13' }
-  ];
-  return colors[sum % colors.length];
-};
-
-async function loadData() {
+document.addEventListener('DOMContentLoaded', async () => {
   const admin = await window.checkAuthOrRedirect();
   if (!admin) return;
 
+  // Render initials in topbar avatar
+  const av = document.getElementById('admin-av');
+  if (av && admin.name) {
+    av.textContent = admin.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+  }
+
+  loadMembersTable();
+});
+
+async function loadMembersTable() {
   try {
     const res = await fetch('/api/members', { headers: window.authHeaders() });
-    if (!res.ok) {
-      if (res.status === 401) {
-        window.clearAuthToken();
-        window.location.href = 'login.html';
-        return;
-      }
-      throw new Error('Không thể tải danh sách hội viên');
-    }
+    if (!res.ok) throw new Error('Không tải được hội viên');
+    
     const data = await res.json();
-    members = data.data.map(m => {
-      const colors = getInitialsColors(m.name);
-      return {
-        id: m.id,
-        name: m.name,
-        initials: m.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase(),
-        bg: colors.bg,
-        fg: colors.fg,
-        tier: m.tier,
-        industry: m.industry || 'Chưa phân loại',
-        email: m.email,
-        phone: m.phone || 'Chưa cung cấp',
-        date: new Date(m.created_at).toLocaleDateString('vi-VN'),
-        status: m.status,
-        desc: m.description || 'Chưa có mô tả',
-        goal: m.goal || 'Không ghi nhận',
-        referral: m.referral || 'Không ghi nhận'
-      };
-    });
-    render();
-    updateSidebarBadges();
+    membersList = data.data || [];
+    
+    // Update stats counters
+    document.getElementById('cnt-total').textContent = membersList.length;
+    document.getElementById('cnt-new').textContent = membersList.filter(m => {
+      // Mock count for new members this month
+      const createdDate = new Date(m.created_at);
+      const now = new Date();
+      return createdDate.getMonth() === now.getMonth() && createdDate.getFullYear() === now.getFullYear();
+    }).length;
+    
+    renderMembers(membersList);
+    updateSidebarNotificationBadges();
   } catch (err) {
     console.error(err);
-    document.getElementById('admin-tbody').innerHTML = `<tr><td colspan="7"><div class="empty"><i class="ti ti-alert-triangle"></i>Lỗi tải dữ liệu: ${err.message}</div></td></tr>`;
+    document.getElementById('members-table-body').innerHTML = `<tr><td colspan="8" style="text-align:center; padding:2rem"><i class="ti ti-alert-triangle" style="font-size:24px; color:var(--rose)"></i> Lỗi tải dữ liệu: ${err.message}</td></tr>`;
   }
 }
 
-async function updateSidebarBadges() {
+async function updateSidebarNotificationBadges() {
   try {
     const resMem = await fetch('/api/members?status=pending', { headers: window.authHeaders() });
     if (resMem.ok) {
@@ -153,126 +461,209 @@ async function updateSidebarBadges() {
   } catch {}
 }
 
-function updateStats(){
-  document.getElementById('st-total').textContent=members.length;
-  document.getElementById('st-pending').textContent=members.filter(m=>m.status==='pending').length;
-  document.getElementById('st-approved').textContent=members.filter(m=>m.status==='approved').length;
-  document.getElementById('st-rejected').textContent=members.filter(m=>m.status==='rejected').length;
-  document.getElementById('cnt-p').textContent=members.filter(m=>m.status==='pending').length;
-  document.getElementById('cnt-a').textContent=members.filter(m=>m.status==='approved').length;
-  document.getElementById('cnt-r').textContent=members.filter(m=>m.status==='rejected').length;
-  document.getElementById('cnt-all').textContent=members.length;
+function renderMembers(list) {
+  const tbody = document.getElementById('members-table-body');
+  tbody.innerHTML = '';
   
-  const badge = document.getElementById('sb-badge');
-  if (badge) badge.textContent=members.filter(m=>m.status==='pending').length;
-}
+  if (list.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:2rem; color:var(--text-dark-muted)"><i class="ti ti-search" style="font-size:24px; display:block; margin-bottom:8px"></i> Không tìm thấy kết quả phù hợp.</td></tr>`;
+    return;
+  }
 
-function render(){
-  updateStats();
-  const list=members.filter(m=>{
-    if(tabFilter!=='all'&&m.status!==tabFilter) return false;
-    if(searchQ&&!m.name.toLowerCase().includes(searchQ)&&!m.email.toLowerCase().includes(searchQ)) return false;
-    return true;
+  // Pre-generate initials and nice colors for contact person avatar mapping Screenshot 5
+  const getInitials = name => name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+  const avatarColors = [
+    { bg: '#FEF3C7', fg: '#B45309' },
+    { bg: '#E0F2FE', fg: '#0369A1' },
+    { bg: '#E1F5EE', fg: '#085041' },
+    { bg: '#EEEDFE', fg: '#4F46E5' },
+    { bg: '#FEE2E2', fg: '#B91C1C' }
+  ];
+
+  list.forEach((m, index) => {
+    const dateStr = m.created_at ? new Date(m.created_at).toLocaleDateString('vi-VN') : '13/05/2023';
+    const cColors = avatarColors[index % avatarColors.length];
+    
+    // Status Badge mappings
+    let statusLabel = 'Active';
+    let statusClass = 'b-approved';
+    if (m.status === 'pending') {
+      statusLabel = 'Pending';
+      statusClass = 'b-pending';
+    } else if (m.status === 'rejected') {
+      statusLabel = 'Inactive';
+      statusClass = 'b-rejected';
+    }
+
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td><input type="checkbox" class="row-chk" data-id="${m.id}" ${selectedIds.has(m.id) ? 'checked' : ''} onchange="handleRowSelect(this)" style="width:14px; height:14px"></td>
+      <td>
+        <div style="display:flex; align-items:center; gap:8px">
+          <div class="av-circle" style="background:${cColors.bg}; color:${cColors.fg}; width:30px; height:30px; font-size:11px; border:none">
+            ${getInitials(m.contact_name || 'Hội viên')}
+          </div>
+          <div>
+            <div style="font-weight:600; color:#FFFFFF">${m.contact_name || 'Nguyễn Văn A'}</div>
+            <div style="font-size:10px; color:var(--text-dark-muted)">${m.email}</div>
+          </div>
+        </div>
+      </td>
+      <td><strong style="color:#ffffff">${m.name}</strong></td>
+      <td>${m.industry || 'Chưa phân loại'}</td>
+      <td>${window.tierBadge(m.tier)}</td>
+      <td><span class="badge ${statusClass}">${statusLabel}</span></td>
+      <td>${dateStr}</td>
+      <td>
+        <div style="display:flex; gap:6px">
+          ${m.status === 'pending' ? `
+            <a class="act-btn act-btn-approve" onclick="approveMember(${m.id}, '${m.name.replace(/\'/g, "\\'")}')" title="Duyệt"><i class="ti ti-check"></i></a>
+            <a class="act-btn act-btn-reject" onclick="rejectMember(${m.id}, '${m.name.replace(/\'/g, "\\'")}')" title="Từ chối"><i class="ti ti-x"></i></a>
+          ` : ''}
+          <a class="act-btn" onclick="viewMemberDetail(${m.id})" title="Xem chi tiết"><i class="ti ti-eye"></i></a>
+        </div>
+      </td>
+    `;
+    tbody.appendChild(row);
   });
-  const tbody=document.getElementById('admin-tbody');
-  tbody.innerHTML=list.map(m=>`<tr>
-    <td><input type="checkbox" class="row-chk" data-id="${m.id}" ${selected.has(m.id)?'checked':''} onchange="toggleRow(this)" style="width:14px;height:14px"></td>
-    <td><div style="display:flex;align-items:center;gap:8px"><div class="av-circle" style="background:${m.bg};color:${m.fg}">${m.initials}</div><div><div style="font-weight:500;font-size:13px">${m.name}</div><div style="font-size:11px;color:var(--text-muted)">${m.email}</div></div></div></td>
-    <td style="font-size:12px;color:var(--text-secondary)">${m.industry}</td>
-    <td>${window.tierBadge(m.tier)}</td>
-    <td style="font-size:12px;color:var(--text-muted)">${m.date}</td>
-    <td>${window.statusBadge(m.status)}</td>
-    <td>
-      <div style="display:flex;gap:4px;flex-wrap:wrap">
-        ${m.status==='pending'?`<button class="btn btn-approve" style="font-size:11px" onclick="approve(${m.id})"><i class="ti ti-check"></i> Duyệt</button><button class="btn btn-reject" style="font-size:11px" onclick="openReject(${m.id})"><i class="ti ti-x"></i> Từ chối</button>`:''}
-        <button class="btn" style="font-size:11px" onclick="viewDetail(${m.id})"><i class="ti ti-eye"></i></button>
-      </div>
-    </td>
-  </tr>`).join('') || `<tr><td colspan="7"><div class="empty"><i class="ti ti-search"></i>Không có kết quả.</div></td></tr>`;
-  updateBulk();
+  
+  updateBulkBar();
 }
 
-function filterTab(f,el){tabFilter=f;document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');render();}
-function filterQ(q){searchQ=q.toLowerCase();render();}
-function toggleAll(cb){const pending=members.filter(m=>m.status==='pending');pending.forEach(m=>cb.checked?selected.add(m.id):selected.delete(m.id));render();}
-function toggleRow(cb){const id=parseInt(cb.dataset.id);cb.checked?selected.add(id):selected.delete(id);updateBulk();}
-function updateBulk(){const n=selected.size;document.getElementById('bulk-bar').style.display=n>0?'flex':'none';document.getElementById('bulk-count').textContent=n;}
+function handleRowSelect(cb) {
+  const id = parseInt(cb.dataset.id);
+  if (cb.checked) {
+    selectedIds.add(id);
+  } else {
+    selectedIds.delete(id);
+  }
+  updateBulkBar();
+}
 
-async function bulkApprove(){
-  if (!selected.size) return;
-  const count = selected.size;
-  const listToApprove = Array.from(selected);
+function toggleSelectAll(cb) {
+  const chks = document.querySelectorAll('.row-chk');
+  chks.forEach(chk => {
+    chk.checked = cb.checked;
+    const id = parseInt(chk.dataset.id);
+    if (cb.checked) {
+      selectedIds.add(id);
+    } else {
+      selectedIds.delete(id);
+    }
+  });
+  updateBulkBar();
+}
+
+function updateBulkBar() {
+  const n = selectedIds.size;
+  const bar = document.getElementById('members-bulk-bar');
+  if (n > 0) {
+    bar.style.display = 'flex';
+    document.getElementById('bulk-selection-count').textContent = n;
+  } else {
+    bar.style.display = 'none';
+  }
+}
+
+async function approveMember(id, name) {
+  try {
+    const res = await fetch(`/api/members/${id}/approve`, {
+      method: 'PATCH',
+      headers: window.authHeaders()
+    });
+    if (res.ok) {
+      window.showToast('Đã duyệt thành công: ' + name, 'success');
+      loadMembersTable();
+    } else {
+      alert('Có lỗi xảy ra.');
+    }
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+async function rejectMember(id, name) {
+  const reason = prompt(`Lý do từ chối hội viên "${name}":`, 'Thông tin chưa hợp lệ');
+  if (reason === null) return;
   
   try {
-    const promises = listToApprove.map(id => 
+    const res = await fetch(`/api/members/${id}/reject`, {
+      method: 'PATCH',
+      headers: window.authHeaders(),
+      body: JSON.stringify({ reason })
+    });
+    if (res.ok) {
+      window.showToast('Đã từ chối hội viên: ' + name, 'danger');
+      loadMembersTable();
+    } else {
+      alert('Có lỗi xảy ra.');
+    }
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+async function bulkApproveMembers() {
+  if (selectedIds.size === 0) return;
+  const count = selectedIds.size;
+  const list = Array.from(selectedIds);
+  
+  try {
+    const promises = list.map(id => 
       fetch(`/api/members/${id}/approve`, {
         method: 'PATCH',
         headers: window.authHeaders()
       })
     );
     await Promise.all(promises);
-    selected.clear();
-    showToast(`Đã duyệt thành công ${count} hội viên.`, 'success');
-    loadData();
+    selectedIds.clear();
+    window.showToast(`Đã duyệt nhanh hàng loạt ${count} hội viên thành công`, 'success');
+    loadMembersTable();
   } catch (err) {
-    alert('Lỗi khi duyệt hàng loạt: ' + err.message);
+    alert('Lỗi hàng loạt: ' + err.message);
   }
 }
 
-async function approve(id){
-  const m=members.find(x=>x.id===id);
-  if(!m) return;
-  try {
-    const res = await fetch(`/api/members/${id}/approve`, {
-      method: 'PATCH',
-      headers: window.authHeaders()
-    });
-    if (!res.ok) throw new Error('Không thể duyệt hội viên này');
-    showToast('Đã duyệt: ' + m.name, 'success');
-    loadData();
-  } catch (err) {
-    alert(err.message);
+function viewMemberDetail(id) {
+  const m = membersList.find(x => x.id === id);
+  if (m) {
+    alert(`CHI TIẾT DOANH NGHIỆP HỘI VIÊN\n---------------------------------\nTên: ${m.name}\nMST: ${m.tax_code || 'Không ghi nhận'}\nNgành nghề: ${m.industry || 'Chưa phân loại'}\nQuy mô: ${m.size || 'Chưa phân loại'}\nĐịa chỉ: ${m.address}\nWebsite: ${m.website || 'Không có'}\nNgười đại diện: ${m.contact_name} (Chức vụ: ${m.contact_pos})\nEmail: ${m.email} | SĐT: ${m.phone}\nMục tiêu: ${m.goal || 'Không ghi nhận'}`);
   }
 }
 
-function openReject(id){rejectId=id;document.getElementById('reject-note').value='';document.querySelectorAll('input[name="rr"]').forEach(r=>r.checked=false);document.getElementById('reject-modal').style.display='flex';}
-function closeReject(){document.getElementById('reject-modal').style.display='none';rejectId=null;}
-
-async function confirmReject(){
-  const m=members.find(x=>x.id===rejectId);
-  if(!m) return;
+function handleFiltersChange() {
+  const searchQ = document.getElementById('member-search').value.trim().toLowerCase();
+  const industry = document.getElementById('filter-industry').value;
+  const tier = document.getElementById('filter-tier').value;
+  const status = document.getElementById('filter-status').value;
   
-  const radio = document.querySelector('input[name="rr"]:checked');
-  let reason = radio ? radio.value : '';
-  const note = document.getElementById('reject-note').value.trim();
-  if (reason === 'other' || !reason) {
-    reason = note || 'Không có lý do chi tiết';
-  } else if (note) {
-    reason += ` (${note})`;
-  }
-
-  try {
-    const res = await fetch(`/api/members/${rejectId}/reject`, {
-      method: 'PATCH',
-      headers: window.authHeaders(),
-      body: JSON.stringify({ reason })
-    });
-    if (!res.ok) throw new Error('Không thể từ chối hội viên này');
-    showToast('Đã từ chối: ' + m.name, 'danger');
-    closeReject();
-    loadData();
-  } catch (err) {
-    alert(err.message);
-  }
+  const filtered = membersList.filter(m => {
+    // Search filter
+    if (searchQ) {
+      const matchName = m.name.toLowerCase().includes(searchQ);
+      const matchContact = (m.contact_name || '').toLowerCase().includes(searchQ);
+      const matchEmail = m.email.toLowerCase().includes(searchQ);
+      if (!matchName && !matchContact && !matchEmail) return false;
+    }
+    // Industry filter
+    if (industry && m.industry !== industry) return false;
+    // Tier filter
+    if (tier && m.tier !== tier) return false;
+    // Status filter
+    if (status && m.status !== status) return false;
+    
+    return true;
+  });
+  
+  renderMembers(filtered);
 }
 
-function viewDetail(id){
-  const m=members.find(x=>x.id===id);
-  if(m) alert(`${m.name}\nNgành: ${m.industry} · Gói: ${m.tier}\nEmail: ${m.email} · SĐT: ${m.phone}\nMô tả: ${m.desc}\nMục tiêu: ${m.goal}\nNguồn: ${m.referral}`);
+function prevPage() {
+  alert('Đang tải trang trước...');
 }
-
-function showToast(msg,type){const el=document.getElementById('global-toast')||document.createElement('div');el.id='global-toast';el.className='toast show '+type;el.innerHTML=`<i class="ti ti-${type==='success'?'circle-check':'circle-x'}"></i> ${msg}`;document.body.appendChild(el);clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),2800);};
-document.addEventListener('DOMContentLoaded', loadData);
+function nextPage() {
+  alert('Đang tải trang tiếp theo...');
+}
 </script>
 </body>
 </html>

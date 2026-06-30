@@ -3,484 +3,585 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BizHub — Nền tảng kết nối hội viên doanh nghiệp số</title>
+<title>BizHub — Kết nối doanh nghiệp, Cùng phát triển bền vững</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
-<link rel="stylesheet" href="css/main.css?v=2.0">
+<link rel="stylesheet" href="css/main.css?v=2.1">
+<style>
+  /* Custom layouts specifically for this redesigned index.html */
+  .hero-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 3rem;
+    margin-top: 3rem;
+    margin-bottom: 5rem;
+    flex-wrap: wrap;
+  }
+  .hero-left {
+    flex: 1.2;
+    min-width: 320px;
+  }
+  .hero-right {
+    flex: 1;
+    min-width: 320px;
+    display: flex;
+    justify-content: center;
+  }
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(30, 136, 229, 0.08);
+    color: var(--neon-cyan);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 99px;
+    margin-bottom: 1.5rem;
+    border: 0.5px solid rgba(0, 229, 255, 0.2);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .hero-title {
+    font-family: var(--font-title);
+    font-size: 46px;
+    font-weight: 700;
+    line-height: 1.15;
+    margin-bottom: 1.5rem;
+    letter-spacing: -0.02em;
+    color: #FFFFFF;
+  }
+  .hero-title span {
+    background: linear-gradient(135deg, var(--neon-cyan) 0%, var(--primary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .hero-desc {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 2.5rem;
+    max-width: 540px;
+  }
+  .hero-img-wrap {
+    position: relative;
+    width: 100%;
+    max-width: 440px;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    background: #080E1E;
+  }
+  .hero-img-wrap img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  
+  /* Navbar dropdown menu */
+  .nav-dropdown {
+    position: relative;
+  }
+  .nav-dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background-color: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    min-width: 200px;
+    padding: 8px 0;
+    margin-top: 8px;
+    display: none;
+    box-shadow: var(--shadow-lg);
+    z-index: 200;
+  }
+  /* Transparent bridge to prevent losing hover when mouse crosses the 8px margin gap */
+  .nav-dropdown-menu::before {
+    content: '';
+    position: absolute;
+    top: -12px;
+    left: 0;
+    right: 0;
+    height: 12px;
+    background: transparent;
+  }
+  .nav-dropdown:hover .nav-dropdown-menu {
+    display: block;
+    animation: slideIn 0.2s ease;
+  }
+  .nav-dropdown-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 16px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    transition: var(--transition);
+  }
+  .nav-dropdown-item:hover {
+    background-color: var(--surface-0);
+    color: #FFFFFF;
+  }
+  .nav-dropdown-sub {
+    margin-left: auto;
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+
+  /* Pricing Cards Premium (Image 1 Right Bottom) */
+  .pkg-card {
+    background: rgba(15, 27, 53, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: var(--radius-lg);
+    padding: 2.25rem 1.75rem;
+    display: flex;
+    flex-direction: column;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+  }
+  .pkg-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at top left, rgba(255, 255, 255, 0.015) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .pkg-card.silver {
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+  .pkg-card.gold {
+    border-color: rgba(217, 119, 6, 0.25);
+    background: linear-gradient(180deg, rgba(217, 119, 6, 0.04) 0%, var(--surface-2) 100%);
+  }
+  .pkg-card.platinum {
+    border-color: rgba(79, 70, 229, 0.25);
+    background: linear-gradient(180deg, rgba(79, 70, 229, 0.04) 0%, var(--surface-2) 100%);
+  }
+  
+  .pkg-card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-lg);
+  }
+  .pkg-card.silver:hover { border-color: rgba(255, 255, 255, 0.25); }
+  .pkg-card.gold:hover { border-color: #F59E0B; box-shadow: 0 10px 30px rgba(245, 158, 11, 0.1); }
+  .pkg-card.platinum:hover { border-color: #6366F1; box-shadow: 0 10px 30px rgba(99, 102, 241, 0.1); }
+
+  .pkg-header {
+    margin-bottom: 1.5rem;
+  }
+  .pkg-name {
+    font-family: var(--font-title);
+    font-size: 20px;
+    font-weight: 700;
+    color: #FFFFFF;
+    margin-bottom: 8px;
+  }
+  .pkg-price {
+    font-family: var(--font-title);
+    font-size: 32px;
+    font-weight: 700;
+    color: #FFFFFF;
+  }
+  .pkg-price span {
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--text-secondary);
+  }
+  .pkg-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 2rem;
+    flex: 1;
+  }
+  .pkg-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+  .pkg-item i {
+    color: var(--neon-cyan);
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+</style>
 </head>
 <body class="public-body">
 
-<!-- Decorative background gradient blobs -->
-<div style="position:fixed;top:-20%;left:-10%;width:50vw;height:50vw;background:radial-gradient(circle, rgba(79,70,229,0.07) 0%, rgba(79,70,229,0) 70%);z-index:-1;pointer-events:none;border-radius:50%"></div>
-<div style="position:fixed;bottom:-20%;right:-10%;width:60vw;height:60vw;background:radial-gradient(circle, rgba(16,185,129,0.05) 0%, rgba(16,185,129,0) 70%);z-index:-1;pointer-events:none;border-radius:50%"></div>
+<!-- Decor background blobs -->
+<div style="position:fixed;top:-10%;left:-5%;width:50vw;height:50vw;background:radial-gradient(circle, rgba(30,136,229,0.08) 0%, rgba(30,136,229,0) 70%);z-index:-1;pointer-events:none;border-radius:50%"></div>
+<div style="position:fixed;bottom:-10%;right:-5%;width:50vw;height:50vw;background:radial-gradient(circle, rgba(0,229,255,0.05) 0%, rgba(0,229,255,0) 70%);z-index:-1;pointer-events:none;border-radius:50%"></div>
 
-<!-- NAV -->
+<!-- HEADER NAVIGATION -->
 <nav>
   <div class="nav-logo">
-    <div class="nav-logo-icon"><i class="ti ti-building-community" aria-hidden="true"></i></div>
+    <div class="nav-logo-icon"><i class="ti ti-building-community"></i></div>
     BizHub
   </div>
   <div class="nav-links">
-    <a href="#features" class="nav-link">Tính năng</a>
-    <a href="#members" class="nav-link">Hội viên</a>
-    <a href="#posts" class="nav-link">Bài viết</a>
-    <a href="#events" class="nav-link">Sự kiện</a>
-    <a href="#tiers" class="nav-link">Gói hội viên</a>
-    <a href="#ai" class="nav-link">Trợ lý AI</a>
+    <div class="nav-link nav-dropdown">
+      Doanh nghiệp <i class="ti ti-chevron-down" style="font-size:10px"></i>
+      <div class="nav-dropdown-menu">
+        <a href="#members" class="nav-dropdown-item">Doanh nghiệp hội viên <span class="nav-dropdown-sub">&gt;</span></a>
+        <a href="members.html" class="nav-dropdown-item">Danh mục đầy đủ <span class="nav-dropdown-sub">&gt;</span></a>
+        <a href="#tiers" class="nav-dropdown-item">Quyền lợi gói dịch vụ <span class="nav-dropdown-sub">&gt;</span></a>
+      </div>
+    </div>
+    <div class="nav-link nav-dropdown">
+      Thị trường <i class="ti ti-chevron-down" style="font-size:10px"></i>
+      <div class="nav-dropdown-menu">
+        <a href="#posts" class="nav-dropdown-item">Cơ hội giao thương <span class="nav-dropdown-sub">&gt;</span></a>
+        <a href="posts.html" class="nav-dropdown-item">Bảng tin toàn quốc <span class="nav-dropdown-sub">&gt;</span></a>
+      </div>
+    </div>
+    <div class="nav-link nav-dropdown">
+      Hội viên <i class="ti ti-chevron-down" style="font-size:10px"></i>
+      <div class="nav-dropdown-menu">
+        <a href="register.html" class="nav-dropdown-item">Gia nhập BizHub <span class="nav-dropdown-sub">&gt;</span></a>
+        <a href="#tiers" class="nav-dropdown-item">Phân hạng hội viên <span class="nav-dropdown-sub">&gt;</span></a>
+      </div>
+    </div>
+    <a href="ai-chat.html" class="nav-link">Khám phá trợ lý AI</a>
   </div>
+  
   <div class="nav-right">
-    <a href="login.html" class="btn">Đăng nhập</a>
-    <a href="register.html" class="btn btn-primary"><i class="ti ti-user-plus" aria-hidden="true"></i> Đăng ký hội viên</a>
+    <a href="ai-chat.html" style="font-size: 18px; color: var(--text-dark-secondary); margin-right: 4px; padding: 4px"><i class="ti ti-search"></i></a>
+    <div style="position: relative; margin-right: 8px">
+      <a href="login.html" style="font-size: 18px; color: var(--text-dark-secondary); padding: 4px; display: block">
+        <i class="ti ti-bell"></i>
+        <span style="position: absolute; top: 1px; right: 1px; width: 6px; height: 6px; background-color: var(--rose); border-radius: 50%"></span>
+      </a>
+    </div>
+    <a href="login.html" class="av-sm" style="cursor: pointer; text-decoration: none" id="nav-av">BH</a>
   </div>
 </nav>
 
-<div class="public-container" style="max-width: 1100px; margin-top: 1.5rem">
+<div class="public-container">
   
   <!-- HERO SECTION -->
-  <div style="display:flex; align-items:center; justify-content:space-between; gap:3rem; margin-bottom:4rem; flex-wrap:wrap">
-    <div style="flex:1.2; min-width:320px">
-      <div style="display:inline-flex; align-items:center; gap:6px; background:var(--primary-bg); color:var(--primary); font-size:12px; font-weight:600; padding:5px 14px; border-radius:99px; margin-bottom:1.25rem; border:0.5px solid rgba(79,70,229,0.15)">
-        <i class="ti ti-sparkles" aria-hidden="true"></i> Nền tảng kết nối doanh nghiệp số 1 Việt Nam
+  <div class="hero-container">
+    <div class="hero-left">
+      <div class="hero-badge">
+        <i class="ti ti-sparkles"></i> Kết nối giao thương số 1 Việt Nam
       </div>
-      <h1 style="font-family:var(--font-title); font-size:42px; font-weight:700; line-height:1.15; margin-bottom:1.25rem; letter-spacing:-0.02em; color:var(--text-primary)">
-        Kết nối doanh nghiệp,<br><span style="background:linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent">Cùng phát triển bền vững</span>
+      <h1 class="hero-title">
+        Kết nối doanh nghiệp,<br><span>Cùng phát triển bền vững</span>
       </h1>
-      <p style="font-size:15px; color:var(--text-secondary); line-height:1.6; margin-bottom:2rem; max-width:540px">
+      <p class="hero-desc">
         BizHub là cầu nối tin cậy giữa các doanh nghiệp hàng đầu. Tìm kiếm đối tác kinh doanh nhanh chóng, chia sẻ cơ hội đầu tư hợp tác và tiếp cận trợ lý AI nghiệp vụ thông minh 24/7.
       </p>
-      <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap">
-        <a href="register.html" class="btn btn-primary" style="padding:10px 22px; font-size:14px"><i class="ti ti-arrow-up-right" aria-hidden="true"></i> Gia nhập ngay (Miễn phí)</a>
-        <a href="#members" class="btn" style="padding:10px 20px; font-size:14px"><i class="ti ti-search" aria-hidden="true"></i> Khám phá hội viên</a>
-      </div>
-      <div style="font-size:11px; color:var(--text-muted); margin-top:14px; display:flex; align-items:center; gap:5px">
-        <i class="ti ti-shield-check" style="color:var(--emerald)"></i> Đã xác thực trên 47+ doanh nghiệp hàng đầu Việt Nam
+      <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap">
+        <a href="register.html" class="btn btn-primary" style="padding:12px 24px; font-size:14px"><i class="ti ti-arrow-up-right"></i> Gia nhập ngay (Miễn phí)</a>
+        <a href="members.html" class="btn" style="padding:12px 24px; font-size:14px; background-color: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.1); color:#ffffff"><i class="ti ti-search"></i> Khám phá hội viên</a>
       </div>
     </div>
     
-    <div style="flex:1; min-width:320px; display:flex; justify-content:center" class="float-effect">
-      <div style="position:relative; width:100%; max-width:420px; border-radius:var(--radius-lg); overflow:hidden; border:1px solid var(--border); box-shadow:var(--shadow-lg); background:#ffffff">
-        <img src="images/hero_network.png" alt="BizHub Connection Network" style="width:100%; height:auto; display:block">
-        <div style="position:absolute; bottom:12px; left:12px; right:12px; background:rgba(255,255,255,0.85); backdrop-filter:blur(8px); padding:8px 12px; border-radius:var(--radius); border:0.5px solid rgba(255,255,255,0.5); display:flex; align-items:center; gap:10px">
+    <div class="hero-right float-effect">
+      <div class="hero-img-wrap">
+        <img src="images/hero_network.png" alt="Mạng lưới kết nối BizHub">
+        <div style="position:absolute; bottom:12px; left:12px; right:12px; background:rgba(8, 14, 30, 0.75); backdrop-filter:blur(8px); padding:10px 14px; border-radius:var(--radius); border:0.5px solid rgba(255,255,255,0.08); display:flex; align-items:center; gap:10px">
           <div style="width:8px; height:8px; border-radius:50%; background:var(--emerald); animation:pulse 2s infinite"></div>
-          <span style="font-size:11px; font-weight:600; color:var(--text-primary)">Thời gian thực kết nối 47 doanh nghiệp</span>
+          <span style="font-size:11px; font-weight:600; color:#FFFFFF">Thời gian thực kết nối doanh nghiệp Việt</span>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- STATS -->
-  <div class="stats-row" style="margin-bottom:4rem">
-    <div class="stat-card">
+  <!-- STATISTICS CARD GRID -->
+  <div class="stats-row" style="margin-bottom:5rem">
+    <div class="glass-card stat-card">
       <div class="stat-label">Hội viên hoạt động</div>
-      <div class="stat-val" id="stat-m">47+</div>
-      <div class="stat-sub">Doanh nghiệp đã xác thực</div>
+      <div class="stat-val" id="stat-m">2k+</div>
+      <div class="stat-sub" style="color:var(--text-dark-muted)">Doanh nghiệp đã xác thực</div>
     </div>
-    <div class="stat-card">
+    <div class="glass-card stat-card">
       <div class="stat-label">Cơ hội chia sẻ</div>
-      <div class="stat-val" id="stat-p">128</div>
-      <div class="stat-sub">Tin bài kết nối mới mỗi tháng</div>
+      <div class="stat-val" id="stat-p">1.5k</div>
+      <div class="stat-sub" style="color:var(--text-dark-muted)">Tin kết nối mới định kỳ</div>
     </div>
-    <div class="stat-card">
-      <div class="stat-label">Ngành nghề đa dạng</div>
-      <div class="stat-val">12+</div>
-      <div class="stat-sub">Công nghệ, Xuất khẩu, Tài chính...</div>
+    <div class="glass-card stat-card">
+      <div class="stat-label">Doanh nghiệp đa dạng</div>
+      <div class="stat-val">1.2k+</div>
+      <div class="stat-sub" style="color:var(--text-dark-muted)">Công nghệ, Sản xuất, Bán lẻ</div>
     </div>
-    <div class="stat-card">
+    <div class="glass-card stat-card">
       <div class="stat-label">Sự kiện giao thương</div>
-      <div class="stat-val" id="stat-e">5+</div>
-      <div class="stat-sub">Diễn đàn kết nối định kỳ</div>
+      <div class="stat-val" id="stat-e">50+</div>
+      <div class="stat-sub" style="color:var(--text-dark-muted)">Hội nghị xúc tiến hàng năm</div>
     </div>
   </div>
 
-  <!-- FEATURES -->
-  <section id="features" style="padding:2rem 0 4rem">
-    <div style="text-align:center; margin-bottom:2.5rem">
-      <div class="section-label">Tính năng cốt lõi</div>
-      <h2 class="section-title" style="font-family:var(--font-title); font-size:28px; font-weight:700">Mọi thứ bạn cần để phát triển doanh nghiệp</h2>
-      <p class="section-sub" style="margin:0 auto">Từ kết nối đối tác tin cậy đến tìm kiếm cơ hội đầu tư kinh doanh — BizHub cung cấp đầy đủ công cụ kỹ thuật số hàng đầu.</p>
+  <!-- MAIN SERVICES SECTION -->
+  <section id="features" style="margin-bottom:5rem">
+    <div style="text-align:center; margin-bottom:3.5rem">
+      <div style="font-size: 11px; font-weight: 700; color: var(--neon-cyan); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px">Các dịch vụ chính</div>
+      <h2 style="font-family:var(--font-title); font-size:32px; font-weight:700; color:#ffffff">Giải pháp số hoá kết nối doanh nghiệp</h2>
+      <p style="font-size:14px; color:var(--text-dark-secondary); max-width:600px; margin:8px auto 0">BizHub cung cấp hạ tầng chuyển đổi số toàn diện để bạn giao thương, tìm đối tác và sử dụng Trợ lý AI phân tích sâu.</p>
     </div>
     
-    <div class="features-grid">
-      <div class="feat-card" style="box-shadow:var(--shadow)">
-        <div class="feat-icon" style="background:var(--primary-bg); color:var(--primary)"><i class="ti ti-users" aria-hidden="true"></i></div>
-        <div class="feat-title" style="font-family:var(--font-title); font-weight:600">Kết nối hội viên</div>
-        <div class="feat-desc">Tiếp cận mạng lưới đối tác đã qua kiểm duyệt khắt khe. Lọc đối tác phù hợp nhất theo phân ngành, quy mô và nhu cầu.</div>
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:20px">
+      <div class="srv-card">
+        <div class="srv-icon"><i class="ti ti-users"></i></div>
+        <h3 class="srv-title">Kết nối Hội viên</h3>
+        <p class="srv-desc">Kết nối hội viên, tiếp cận các doanh nghiệp lớn đã xác thực hồ sơ pháp nhân an toàn.</p>
       </div>
-      <div class="feat-card" style="box-shadow:var(--shadow)">
-        <div class="feat-icon" style="background:var(--emerald-bg); color:var(--emerald-dark)"><i class="ti ti-news" aria-hidden="true"></i></div>
-        <div class="feat-title" style="font-family:var(--font-title); font-weight:600">Bảng tin Cơ hội</div>
-        <div class="feat-desc">Đăng tin bài chia sẻ dự án, tìm nhà cung cấp, tuyển dụng nhân sự cấp cao và hợp tác kinh doanh hiệu quả.</div>
+      <div class="srv-card">
+        <div class="srv-icon" style="background:rgba(16, 185, 129, 0.1); color:var(--emerald)"><i class="ti ti-list-details"></i></div>
+        <h3 class="srv-title">Bảng tin Cơ hội</h3>
+        <p class="srv-desc">Tìm kiếm đối tác tiềm năng, bảng tin hội hỗ trợ kết nối dự án và cơ hội đầu tư hiệu quả.</p>
       </div>
-      <div class="feat-card" style="box-shadow:var(--shadow)">
-        <div class="feat-icon" style="background:var(--amber-bg); color:var(--amber-dark)"><i class="ti ti-calendar-event" aria-hidden="true"></i></div>
-        <div class="feat-title" style="font-family:var(--font-title); font-weight:600">Sự kiện & Giao thương</div>
-        <div class="feat-desc">Tham dự trực tiếp hoặc trực tuyến các buổi hội thảo kết nối đầu tư, xúc tiến thương mại chuyên sâu do hội tổ chức.</div>
+      <div class="srv-card">
+        <div class="srv-icon" style="background:rgba(0, 229, 255, 0.1); color:var(--neon-cyan)"><i class="ti ti-robot"></i></div>
+        <h3 class="srv-title">Trợ lý AI thông minh</h3>
+        <p class="srv-desc">Trợ lý AI nghiệp vụ trả lời thông tin tức thời, hỗ trợ tìm kiếm đối tác và đề xuất tự động.</p>
       </div>
-      <div class="feat-card" style="box-shadow:var(--shadow)">
-        <div class="feat-icon" style="background:#EEEDFE; color:#3C3489"><i class="ti ti-robot" aria-hidden="true"></i></div>
-        <div class="feat-title" style="font-family:var(--font-title); font-weight:600">Trợ lý AI thông minh</div>
-        <div class="feat-desc">Được huấn luyện riêng trên cơ sở dữ liệu hội viên BizHub giúp tìm đối tác, tư vấn quyền lợi và cơ hội hợp tác 24/7.</div>
-      </div>
-      <div class="feat-card" style="box-shadow:var(--shadow)">
-        <div class="feat-icon" style="background:var(--primary-bg); color:var(--primary-dark)"><i class="ti ti-chart-bar" aria-hidden="true"></i></div>
-        <div class="feat-title" style="font-family:var(--font-title); font-weight:600">Phân tích thị trường</div>
-        <div class="feat-desc">Nhận báo cáo tổng quan phân tích dữ liệu ngành hàng, dự báo xu hướng định kỳ hàng tháng (cho Gold & Platinum).</div>
-      </div>
-      <div class="feat-card" style="box-shadow:var(--shadow)">
-        <div class="feat-icon" style="background:var(--emerald-bg); color:var(--emerald)"><i class="ti ti-shield-check" aria-hidden="true"></i></div>
-        <div class="feat-title" style="font-family:var(--font-title); font-weight:600">An toàn & Xác thực</div>
-        <div class="feat-desc">Tất cả thông tin đăng ký pháp lý của doanh nghiệp đều được thẩm định cẩn thận nhằm giảm thiểu tối đa rủi ro giao dịch.</div>
+      <div class="srv-card">
+        <div class="srv-icon" style="background:rgba(245, 158, 11, 0.1); color:var(--amber)"><i class="ti ti-chart-dots"></i></div>
+        <h3 class="srv-title">Phân tích Thị trường</h3>
+        <p class="srv-desc">Trợ lý AI thông minh phân tích xu hướng thị trường, tổng hợp dữ liệu giao dịch ngành.</p>
       </div>
     </div>
   </section>
 
-  <!-- MEMBERS -->
-  <section id="members" style="padding:3rem 2rem; background:rgba(255,255,255,0.7); border:1px solid var(--border); border-radius:var(--radius-lg); backdrop-filter:blur(8px); margin-bottom:4rem">
-    <div style="margin-bottom:2.5rem; display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:1rem">
+  <!-- LATEST OPPORTUNITIES SECTION -->
+  <section id="posts" style="margin-bottom:5rem">
+    <div style="margin-bottom:3rem; display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:1.5rem">
       <div>
-        <div class="section-label">Hội viên nổi bật</div>
-        <h2 class="section-title" style="font-family:var(--font-title); font-size:28px; font-weight:700; margin-bottom:0">Doanh nghiệp đang kết nối</h2>
+        <div style="font-size: 11px; font-weight: 700; color: var(--neon-cyan); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px">Cơ hội giao thương mới nhất</div>
+        <h2 style="font-family:var(--font-title); font-size:32px; font-weight:700; color:#ffffff; margin-bottom:0">Dự án kết nối nổi bật</h2>
       </div>
-      <a href="members.html" class="btn" style="font-size:12px; padding:6px 14px">Xem toàn bộ hội viên <i class="ti ti-arrow-right"></i></a>
-    </div>
-    
-    <div class="members-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:16px">
-      <!-- Loading state -->
-      <div style="grid-column:1/-1; text-align:center; padding:3rem; color:var(--text-muted)">
-        <i class="ti ti-loader animate-spin" style="font-size:24px; display:block; margin:0 auto 10px"></i> Đang tải dữ liệu hội viên...
-      </div>
-    </div>
-  </section>
-
-  <!-- POSTS -->
-  <section id="posts" style="padding:2rem 0 4rem">
-    <div style="margin-bottom:2.5rem; display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:1rem">
-      <div>
-        <div class="section-label">Bảng tin & Cơ hội</div>
-        <h2 class="section-title" style="font-family:var(--font-title); font-size:28px; font-weight:700; margin-bottom:0">Cơ hội giao thương mới nhất</h2>
-      </div>
-      <a href="posts.html" class="btn" style="font-size:12px; padding:6px 14px">Đọc tất cả tin bài <i class="ti ti-arrow-right"></i></a>
+      <a href="posts.html" class="btn" style="font-size:12px; padding:8px 16px; background-color:rgba(255,255,255,0.03); border-color:rgba(255,255,255,0.1); color:#FFFFFF">Xem tất cả cơ hội <i class="ti ti-arrow-right"></i></a>
     </div>
 
-    <div class="posts-list" style="display:flex; flex-direction:column; gap:12px">
-      <!-- Loading state -->
-      <div style="text-align:center; padding:2rem; color:var(--text-muted)">Đang tải tin bài mới nhất...</div>
-    </div>
-  </section>
-
-  <!-- EVENTS -->
-  <section id="events" style="padding:3rem 2rem; background:rgba(255,255,255,0.7); border:1px solid var(--border); border-radius:var(--radius-lg); backdrop-filter:blur(8px); margin-bottom:4rem">
-    <div style="margin-bottom:2.5rem">
-      <div class="section-label">Sự kiện giao lưu</div>
-      <h2 class="section-title" style="font-family:var(--font-title); font-size:28px; font-weight:700">Các chương trình sắp diễn ra</h2>
-      <p class="section-sub" style="margin-bottom:0">Hội thảo, kết nối trực tiếp giúp các doanh nghiệp thắt chặt quan hệ hợp tác đầu tư.</p>
-    </div>
-
-    <div class="events-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:16px">
-      <div class="card" style="box-shadow:var(--shadow)">
-        <div class="card-body" style="padding:1.25rem">
-          <div style="background:var(--primary-bg); color:var(--primary); font-size:11px; font-weight:600; padding:4px 10px; border-radius:6px; display:inline-flex; align-items:center; gap:5px; margin-bottom:12px">
-            <i class="ti ti-calendar"></i> 15/07/2026
-          </div>
-          <h3 style="font-family:var(--font-title); font-size:14px; font-weight:600; color:var(--text-primary); margin-bottom:8px; line-height:1.4">Hội nghị Giao thương Xuất khẩu Nông sản ASEAN</h3>
-          <div style="font-size:12px; color:var(--text-secondary); display:flex; align-items:center; gap:6px; margin-top:4px"><i class="ti ti-map-pin" style="color:var(--primary)"></i> Tòa nhà Hội nghị Quốc gia, Hà Nội</div>
-          <div style="font-size:12px; color:var(--text-secondary); display:flex; align-items:center; gap:6px; margin-top:4px"><i class="ti ti-users" style="color:var(--primary)"></i> 500+ doanh nghiệp tham dự</div>
-        </div>
-      </div>
-      
-      <div class="card" style="box-shadow:var(--shadow)">
-        <div class="card-body" style="padding:1.25rem">
-          <div style="background:var(--primary-bg); color:var(--primary); font-size:11px; font-weight:600; padding:4px 10px; border-radius:6px; display:inline-flex; align-items:center; gap:5px; margin-bottom:12px">
-            <i class="ti ti-calendar"></i> 22/07/2026
-          </div>
-          <h3 style="font-family:var(--font-title); font-size:14px; font-weight:600; color:var(--text-primary); margin-bottom:8px; line-height:1.4">Vietnam Tech Expo 2026 — Triển lãm Giải pháp Số</h3>
-          <div style="font-size:12px; color:var(--text-secondary); display:flex; align-items:center; gap:6px; margin-top:4px"><i class="ti ti-map-pin" style="color:var(--primary)"></i> Trung tâm Sự kiện GEM Center, TP. HCM</div>
-          <div style="font-size:12px; color:var(--text-secondary); display:flex; align-items:center; gap:6px; margin-top:4px"><i class="ti ti-users" style="color:var(--primary)"></i> 200+ gian hàng trưng bày</div>
-        </div>
-      </div>
-
-      <div class="card" style="box-shadow:var(--shadow)">
-        <div class="card-body" style="padding:1.25rem">
-          <div style="background:var(--primary-bg); color:var(--primary); font-size:11px; font-weight:600; padding:4px 10px; border-radius:6px; display:inline-flex; align-items:center; gap:5px; margin-bottom:12px">
-            <i class="ti ti-calendar"></i> 05/08/2026
-          </div>
-          <h3 style="font-family:var(--font-title); font-size:14px; font-weight:600; color:var(--text-primary); margin-bottom:8px; line-height:1.4">Diễn đàn Doanh nhân BizHub Quý 3/2026</h3>
-          <div style="font-size:12px; color:var(--text-secondary); display:flex; align-items:center; gap:6px; margin-top:4px"><i class="ti ti-map-pin" style="color:var(--primary)"></i> Khách sạn Novotel Premier Han River, Đà Nẵng</div>
-          <div style="font-size:12px; color:var(--text-secondary); display:flex; align-items:center; gap:6px; margin-top:4px"><i class="ti ti-users" style="color:var(--primary)"></i> 150+ CEOs tham gia bàn tròn</div>
-        </div>
+    <div class="opp-grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:24px" id="opp-list-container">
+      <!-- Dynamic list loaded from API -->
+      <div style="grid-column:1/-1; text-align:center; padding:3rem; color:var(--text-dark-secondary)">
+        <i class="ti ti-loader animate-spin" style="font-size:24px; display:block; margin:0 auto 10px"></i> Đang tải danh sách cơ hội giao thương mới nhất...
       </div>
     </div>
   </section>
 
-  <!-- TIERS -->
-  <section id="tiers" style="padding:2rem 0 4rem">
-    <div style="text-align:center; margin-bottom:2.5rem">
-      <div class="section-label">Gói hội viên</div>
-      <h2 class="section-title" style="font-family:var(--font-title); font-size:28px; font-weight:700">Lựa chọn gói hội viên phù hợp</h2>
-      <p class="section-sub" style="margin:0 auto">Hỗ trợ đầy đủ tính năng kết nối số. Chọn gói Premium để mở rộng quyền lợi và vị thế thương hiệu.</p>
+  <!-- MEMBERSHIP TIERS -->
+  <section id="tiers" style="margin-bottom:5rem">
+    <div style="text-align:center; margin-bottom:3.5rem">
+      <div style="font-size: 11px; font-weight: 700; color: var(--neon-cyan); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px">Các gói hội viên</div>
+      <h2 style="font-family:var(--font-title); font-size:32px; font-weight:700; color:#ffffff">Lựa chọn gói hội viên phù hợp</h2>
+      <p style="font-size:14px; color:var(--text-dark-secondary); max-width:600px; margin:8px auto 0">Tham gia định vị thương hiệu, gia tăng quyền lợi giao thương và kết nối với các đối tác VIP.</p>
     </div>
 
-    <div class="tiers-grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:18px">
+    <div class="tiers-grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:24px">
       <!-- Silver -->
-      <div class="card" style="box-shadow:var(--shadow); display:flex; flex-direction:column; padding:1.5rem">
-        <h3 style="font-family:var(--font-title); font-size:16px; font-weight:600; color:var(--text-primary); margin-bottom:6px">🪙 Silver</h3>
-        <div style="font-family:var(--font-title); font-size:24px; font-weight:700; color:var(--text-primary); margin-bottom:8px">Miễn phí <span style="font-size:12px; font-weight:400; color:var(--text-muted)">/ năm</span></div>
-        <p style="font-size:12px; color:var(--text-secondary); margin-bottom:1.25rem; line-height:1.5">Dành cho doanh nghiệp mới muốn tham gia kết nối cơ bản với mạng lưới BizHub.</p>
-        <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:1.5rem">
-          <div style="font-size:12px; display:flex; align-items:center; gap:6px"><i class="ti ti-check" style="color:var(--emerald)"></i> Hồ sơ doanh nghiệp cơ bản</div>
-          <div style="font-size:12px; display:flex; align-items:center; gap:6px"><i class="ti ti-check" style="color:var(--emerald)"></i> Đăng 3 tin bài kết nối/tháng</div>
-          <div style="font-size:12px; display:flex; align-items:center; gap:6px"><i class="ti ti-check" style="color:var(--emerald)"></i> Truy cập Trợ lý AI hỏi đáp cơ bản</div>
+      <div class="pkg-card silver">
+        <div class="pkg-header">
+          <div class="pkg-name" style="color:var(--text-dark-secondary)">Silver</div>
+          <div class="pkg-price">1.600đ <span>/ ngày</span></div>
         </div>
-        <a href="register.html" class="btn" style="width:100%; justify-content:center; margin-top:auto">Đăng ký ngay</a>
+        <div class="pkg-list">
+          <div class="pkg-item"><i class="ti ti-check"></i> Hội viên hoạt động cơ bản</div>
+          <div class="pkg-item"><i class="ti ti-check"></i> Hiển thị doanh nghiệp tại trang danh sách</div>
+          <div class="pkg-item"><i class="ti ti-check"></i> Đăng tối đa 3 tin bài kết nối/tháng</div>
+          <div class="pkg-item"><i class="ti ti-check"></i> Hỏi đáp Trợ lý AI cơ bản</div>
+        </div>
+        <a href="register.html" class="btn" style="width:100%; justify-content:center; padding:10px; background-color:rgba(255,255,255,0.04); border-color:rgba(255,255,255,0.1); color:#ffffff; font-weight:600">Đăng ký ngay</a>
       </div>
 
       <!-- Gold -->
-      <div class="card" style="box-shadow:var(--shadow-lg); display:flex; flex-direction:column; padding:1.5rem; border-color:var(--primary); position:relative">
-        <div style="position:absolute; top:-12px; left:50%; transform:translateX(-50%); background:var(--primary); color:#ffffff; font-size:10px; font-weight:600; padding:2px 14px; border-radius:99px; text-transform:uppercase; letter-spacing:0.04em">Phổ biến nhất</div>
-        <h3 style="font-family:var(--font-title); font-size:16px; font-weight:600; color:var(--primary); margin-bottom:6px">🏅 Gold</h3>
-        <div style="font-family:var(--font-title); font-size:24px; font-weight:700; color:var(--text-primary); margin-bottom:8px">5.000.000 <span style="font-size:12px; font-weight:400; color:var(--text-muted)">đ / năm</span></div>
-        <p style="font-size:12px; color:var(--text-secondary); margin-bottom:1.25rem; line-height:1.5">Dành cho doanh nghiệp vừa muốn đẩy mạnh quảng bá hình ảnh và cơ hội kinh doanh.</p>
-        <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:1.5rem">
-          <div style="font-size:12px; display:flex; align-items:center; gap:6px"><i class="ti ti-check" style="color:var(--emerald)"></i> Tất cả quyền lợi gói Silver</div>
-          <div style="font-size:12px; display:flex; align-items:center; gap:6px"><i class="ti ti-check" style="color:var(--emerald)"></i> Đăng 15 tin bài kết nối/tháng</div>
-          <div style="font-size:12px; display:flex; align-items:center; gap:6px"><i class="ti ti-check" style="color:var(--emerald)"></i> Huy hiệu nổi bật trên danh sách</div>
-          <div style="font-size:12px; display:flex; align-items:center; gap:6px"><i class="ti ti-check" style="color:var(--emerald)"></i> Thư mời VIP tham dự sự kiện trực tiếp</div>
-          <div style="font-size:12px; display:flex; align-items:center; gap:6px"><i class="ti ti-check" style="color:var(--emerald)"></i> Nhận báo cáo thị trường hàng quý</div>
+      <div class="pkg-card gold">
+        <div style="position:absolute; top:12px; right:12px; background:var(--amber); color:#000; font-size:10px; font-weight:700; padding:2px 8px; border-radius:99px; text-transform:uppercase">Phổ biến</div>
+        <div class="pkg-header">
+          <div class="pkg-name" style="color:var(--amber)">Gold</div>
+          <div class="pkg-price">25.000đ <span>/ ngày</span></div>
         </div>
-        <a href="register.html" class="btn btn-primary" style="width:100%; justify-content:center; margin-top:auto">Đăng ký gói Gold</a>
+        <div class="pkg-list">
+          <div class="pkg-item"><i class="ti ti-check"></i> Đầy đủ quyền lợi gói Silver</div>
+          <div class="pkg-item"><i class="ti ti-check"></i> Ưu tiên hiển thị doanh nghiệp nổi bật</div>
+          <div class="pkg-item"><i class="ti ti-check"></i> Đăng 15 tin bài kết nối/tháng</div>
+          <div class="pkg-item"><i class="ti ti-check"></i> Mở rộng tương tác AI tự động kết nối</div>
+          <div class="pkg-item"><i class="ti ti-check"></i> Nhận cơ hội giao thương đặc quyền</div>
+        </div>
+        <a href="register.html" class="btn btn-primary" style="width:100%; justify-content:center; padding:10px; font-weight:600">Đăng ký ngay</a>
       </div>
 
       <!-- Platinum -->
-      <div class="card" style="box-shadow:var(--shadow); display:flex; flex-direction:column; padding:1.5rem">
-        <h3 style="font-family:var(--font-title); font-size:16px; font-weight:600; color:var(--text-primary); margin-bottom:6px">💎 Platinum</h3>
-        <div style="font-family:var(--font-title); font-size:24px; font-weight:700; color:var(--text-primary); margin-bottom:8px">15.000.000 <span style="font-size:12px; font-weight:400; color:var(--text-muted)">đ / năm</span></div>
-        <p style="font-size:12px; color:var(--text-secondary); margin-bottom:1.25rem; line-height:1.5">Dành cho tập đoàn muốn xác lập vị thế lãnh đạo, tối đa quyền hạn trong cộng đồng.</p>
-        <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:1.5rem">
-          <div style="font-size:12px; display:flex; align-items:center; gap:6px"><i class="ti ti-check" style="color:var(--emerald)"></i> Tất cả quyền lợi gói Gold</div>
-          <div style="font-size:12px; display:flex; align-items:center; gap:6px"><i class="ti ti-check" style="color:var(--emerald)"></i> Đăng tin bài không giới hạn số lượng</div>
-          <div style="font-size:12px; display:flex; align-items:center; gap:6px"><i class="ti ti-check" style="color:var(--emerald)"></i> Nhãn Premium đặc quyền hàng đầu</div>
-          <div style="font-size:12px; display:flex; align-items:center; gap:6px"><i class="ti ti-check" style="color:var(--emerald)"></i> Tư vấn kết nối đối tác trực tiếp (B2B)</div>
-          <div style="font-size:12px; display:flex; align-items:center; gap:6px"><i class="ti ti-check" style="color:var(--emerald)"></i> Nhận báo cáo thị trường hàng tháng</div>
+      <div class="pkg-card platinum">
+        <div style="position:absolute; top:12px; right:12px; background:var(--primary); color:#fff; font-size:10px; font-weight:700; padding:2px 8px; border-radius:99px; text-transform:uppercase">Thượng lưu</div>
+        <div class="pkg-header">
+          <div class="pkg-name" style="color:var(--primary-light)">Platinum</div>
+          <div class="pkg-price">75.000đ <span>/ ngày</span></div>
         </div>
-        <a href="register.html" class="btn" style="width:100%; justify-content:center; margin-top:auto">Đăng ký Platinum</a>
+        <div class="pkg-list">
+          <div class="pkg-item"><i class="ti ti-check"></i> Quyền lợi cao cấp nhất hệ thống</div>
+          <div class="pkg-item"><i class="ti ti-check"></i> Đăng tin giao thương không giới hạn</div>
+          <div class="pkg-item"><i class="ti ti-check"></i> Tư vấn kết nối đối tác riêng biệt</div>
+          <div class="pkg-item"><i class="ti ti-check"></i> Báo cáo phân tích thị trường chuyên sâu</div>
+          <div class="pkg-item"><i class="ti ti-check"></i> Trợ lý AI riêng tùy biến cho thương hiệu</div>
+        </div>
+        <a href="register.html" class="btn" style="width:100%; justify-content:center; padding:10px; background-color:rgba(30, 136, 229, 0.1); border-color:var(--primary); color:#ffffff; font-weight:600">Đăng ký ngay</a>
       </div>
     </div>
   </section>
-
-  <!-- AI SECTION -->
-  <section id="ai" style="padding:3rem 0; margin-bottom:4rem">
-    <div style="background:linear-gradient(135deg, #ffffff 0%, var(--primary-bg) 100%); border:1px solid var(--border); border-radius:var(--radius-lg); padding:2.5rem; display:flex; gap:3rem; align-items:center; flex-wrap:wrap; box-shadow:var(--shadow-lg)">
-      <div style="flex:1.2; min-width:300px">
-        <div class="section-label" style="margin-bottom:0.5rem">Trợ lý AI Doanh nghiệp</div>
-        <h2 style="font-family:var(--font-title); font-size:26px; font-weight:700; color:var(--text-primary); margin-bottom:1rem; line-height:1.25">AI tích hợp sâu dữ liệu hội viên thời gian thực</h2>
-        <p style="font-size:13px; color:var(--text-secondary); line-height:1.6; margin-bottom:1.5rem">
-          Trợ lý AI BizHub có khả năng truy xuất tức thì hồ sơ năng lực, các tin bài kết nối giao thương và thông tin sự kiện để đưa ra gợi ý đối tác phù hợp nhất cho doanh nghiệp của bạn.
-        </p>
-        <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:1.75rem">
-          <div style="font-size:12px; display:flex; align-items:center; gap:6px; color:var(--text-secondary)"><i class="ti ti-circle-check" style="color:var(--emerald); font-size:15px"></i> Tìm kiếm đối tác theo lĩnh vực kinh doanh cụ thể</div>
-          <div style="font-size:12px; display:flex; align-items:center; gap:6px; color:var(--text-secondary)"><i class="ti ti-circle-check" style="color:var(--emerald); font-size:15px"></i> So sánh năng lực cung ứng giữa các hội viên</div>
-          <div style="font-size:12px; display:flex; align-items:center; gap:6px; color:var(--text-secondary)"><i class="ti ti-circle-check" style="color:var(--emerald); font-size:15px"></i> Hỗ trợ đa ngôn ngữ Anh, Trung, Nhật, Việt</div>
-        </div>
-        <a href="ai-chat.html" class="btn btn-primary" style="padding:10px 22px; font-size:13px">Hỏi đáp với AI ngay <i class="ti ti-robot"></i></a>
-      </div>
-      
-      <div style="flex:1; min-width:300px">
-        <div class="card" style="box-shadow:var(--shadow-lg); overflow:hidden; border-color:var(--border)">
-          <div style="padding:10px 14px; background:var(--surface-2); border-bottom:1px solid var(--border); display:flex; align-items:center; gap:8px">
-            <div style="width:24px; height:24px; border-radius:50%; background:var(--primary-bg); color:var(--primary); display:flex; align-items:center; justify-content:center; font-size:12px"><i class="ti ti-robot"></i></div>
-            <div style="font-size:12px; font-weight:600; color:var(--text-primary)">BizHub AI Assistant</div>
-            <div style="width:6px; height:6px; border-radius:50%; background:var(--emerald); animation:pulse 2s infinite; margin-left:auto"></div>
-          </div>
-          <div style="padding:12px; background:var(--bg-base); display:flex; flex-direction:column; gap:10px; font-size:11px">
-            <div class="msg" style="max-width:100%"><div class="bubble bub-ai" style="padding:8px 12px">Xin chào! Bạn muốn kết nối với hội viên hoạt động trong lĩnh vực nào?</div></div>
-            <div class="msg user" style="max-width:100%"><div class="bubble bub-user" style="padding:8px 12px">Tìm các công ty làm về xuất nhập khẩu nông sản</div></div>
-            <div class="msg" style="max-width:100%"><div class="bubble bub-ai" style="padding:8px 12px">Tôi tìm thấy <strong>Hoàng Long Export</strong> [Gold] - chuyên xuất khẩu nông thủy sản sang EU, Nhật Bản. Đại diện: Nguyễn Văn A. Email: contact@hoanglong.com.</div></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- CTA -->
-  <div style="background:linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); border-radius:var(--radius-lg); padding:3rem 2rem; text-align:center; color:#ffffff; margin-bottom:4rem; box-shadow:var(--shadow-lg)">
-    <h2 style="font-family:var(--font-title); font-size:28px; font-weight:600; margin-bottom:8px">Sẵn sàng đưa doanh nghiệp kết nối rộng khắp?</h2>
-    <p style="font-size:14px; opacity:0.85; max-width:480px; margin:0 auto 1.75rem; line-height:1.6">Hơn 47 doanh nghiệp hàng đầu đã tin tưởng lựa chọn BizHub. Thiết lập hồ sơ của bạn hôm nay và bắt đầu chia sẻ cơ hội.</p>
-    <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap">
-      <a href="register.html" class="btn" style="background:#ffffff; color:var(--primary); border:none; padding:10px 22px"><i class="ti ti-user-plus"></i> Đăng ký miễn phí</a>
-      <a href="ai-chat.html" class="btn" style="background:transparent; color:#ffffff; border:1px solid rgba(255,255,255,0.4); padding:10px 22px"><i class="ti ti-robot"></i> Dùng thử trợ lý AI</a>
-    </div>
-  </div>
 
 </div>
 
 <!-- FOOTER -->
-<footer style="background-color:#0F172A; color:#94A3B8; padding:3.5rem 0 2rem; font-size:12px; border-top:1px solid rgba(255,255,255,0.05)">
-  <div class="public-container" style="max-width:1100px; margin:0 auto">
-    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:2.5rem; margin-bottom:2.5rem">
+<footer style="background-color:#030813; color:#64748B; padding:5rem 0 3rem; font-size:12.5px; border-top:1px solid rgba(255,255,255,0.06)">
+  <div class="public-container" style="margin:0 auto">
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:3rem; margin-bottom:4rem">
       <div>
-        <div style="display:flex; align-items:center; gap:8px; font-family:var(--font-title); font-size:18px; font-weight:600; color:#ffffff; margin-bottom:12px">
-          <div style="width:30px; height:30px; border-radius:8px; background:var(--primary); display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:15px"><i class="ti ti-building-community"></i></div>
+        <div style="display:flex; align-items:center; gap:10px; font-family:var(--font-title); font-size:20px; font-weight:700; color:#ffffff; margin-bottom:1.5rem">
+          <div style="width:34px; height:34px; border-radius:8px; background:linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:16px"><i class="ti ti-building-community"></i></div>
           BizHub
         </div>
-        <p style="line-height:1.6; margin-bottom:12px; font-size:12px">Nền tảng mạng lưới liên kết số và xúc tiến thương mại cho cộng đồng doanh nghiệp Việt Nam.</p>
-        <div style="display:flex; gap:8px">
-          <a href="#" style="width:28px; height:28px; border-radius:6px; background:rgba(255,255,255,0.04); display:flex; align-items:center; justify-content:center; color:#94A3B8; font-size:14px"><i class="ti ti-brand-facebook"></i></a>
-          <a href="#" style="width:28px; height:28px; border-radius:6px; background:rgba(255,255,255,0.04); display:flex; align-items:center; justify-content:center; color:#94A3B8; font-size:14px"><i class="ti ti-brand-linkedin"></i></a>
-          <a href="#" style="width:28px; height:28px; border-radius:6px; background:rgba(255,255,255,0.04); display:flex; align-items:center; justify-content:center; color:#94A3B8; font-size:14px"><i class="ti ti-brand-youtube"></i></a>
+        <p style="line-height:1.7; margin-bottom:1.5rem">BizHub là cầu nối tin cậy giữa các doanh nghiệp hàng đầu. Tìm kiếm đối tác kinh doanh nhanh chóng, chia sẻ cơ hội đầu tư, tự động kết nối doanh nghiệp Việt Nam 24/7.</p>
+        <div style="display:flex; gap:10px">
+          <a href="#" style="width:32px; height:32px; border-radius:8px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; justify-content:center; color:#94A3B8; font-size:16px"><i class="ti ti-brand-facebook"></i></a>
+          <a href="#" style="width:32px; height:32px; border-radius:8px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; justify-content:center; color:#94A3B8; font-size:16px"><i class="ti ti-brand-twitter"></i></a>
+          <a href="#" style="width:32px; height:32px; border-radius:8px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; justify-content:center; color:#94A3B8; font-size:16px"><i class="ti ti-brand-youtube"></i></a>
+          <a href="#" style="width:32px; height:32px; border-radius:8px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; justify-content:center; color:#94A3B8; font-size:16px"><i class="ti ti-brand-linkedin"></i></a>
+          <a href="#" style="width:32px; height:32px; border-radius:8px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; justify-content:center; color:#94A3B8; font-size:16px"><i class="ti ti-brand-instagram"></i></a>
         </div>
       </div>
       <div>
-        <h4 style="color:#ffffff; font-family:var(--font-title); font-size:13px; font-weight:600; margin-bottom:12px; text-transform:uppercase; letter-spacing:0.04em">Hội viên</h4>
-        <a href="register.html" style="display:block; padding:4px 0; color:#94A3B8">Đăng ký thành viên</a>
-        <a href="#members" style="display:block; padding:4px 0; color:#94A3B8">Thư mục doanh nghiệp</a>
-        <a href="#tiers" style="display:block; padding:4px 0; color:#94A3B8">Các gói thành viên</a>
-        <a href="login.html" style="display:block; padding:4px 0; color:#94A3B8">Đăng nhập tài khoản</a>
+        <h4 style="color:#ffffff; font-family:var(--font-title); font-size:14px; font-weight:600; margin-bottom:1.5rem; text-transform:uppercase; letter-spacing:0.05em">Dịch vụ</h4>
+        <a href="members.html" style="display:block; padding:6px 0; color:#94A3B8; transition:color 0.2s">Doanh nghiệp hội viên</a>
+        <a href="posts.html" style="display:block; padding:6px 0; color:#94A3B8; transition:color 0.2s">Thị trường giao thương</a>
+        <a href="ai-chat.html" style="display:block; padding:6px 0; color:#94A3B8; transition:color 0.2s">Khám phá hội viên</a>
       </div>
       <div>
-        <h4 style="color:#ffffff; font-family:var(--font-title); font-size:13px; font-weight:600; margin-bottom:12px; text-transform:uppercase; letter-spacing:0.04em">Hệ thống</h4>
-        <a href="#posts" style="display:block; padding:4px 0; color:#94A3B8">Bảng tin bài viết</a>
-        <a href="#events" style="display:block; padding:4px 0; color:#94A3B8">Sự kiện giao thương</a>
-        <a href="ai-chat.html" style="display:block; padding:4px 0; color:#94A3B8">Trợ lý AI BizHub</a>
-        <a href="login.html" style="display:block; padding:4px 0; color:#94A3B8">Cổng quản trị admin</a>
+        <h4 style="color:#ffffff; font-family:var(--font-title); font-size:14px; font-weight:600; margin-bottom:1.5rem; text-transform:uppercase; letter-spacing:0.05em">Hỗ trợ</h4>
+        <a href="#posts" style="display:block; padding:6px 0; color:#94A3B8; transition:color 0.2s">Bản tin Cơ hội</a>
+        <a href="register.html" style="display:block; padding:6px 0; color:#94A3B8; transition:color 0.2s">Hướng dẫn đăng ký</a>
+        <a href="#tiers" style="display:block; padding:6px 0; color:#94A3B8; transition:color 0.2s">Quyền lợi hội viên</a>
       </div>
       <div>
-        <h4 style="color:#ffffff; font-family:var(--font-title); font-size:13px; font-weight:600; margin-bottom:12px; text-transform:uppercase; letter-spacing:0.04em">Thông tin liên hệ</h4>
-        <div style="padding:4px 0; display:flex; align-items:center; gap:6px"><i class="ti ti-mail"></i> admin@bizhub.vn</div>
-        <div style="padding:4px 0; display:flex; align-items:center; gap:6px"><i class="ti ti-phone"></i> 1900 xxxx</div>
-        <div style="padding:4px 0; display:flex; align-items:center; gap:6px"><i class="ti ti-map-pin"></i> Hà Nội, Việt Nam</div>
+        <h4 style="color:#ffffff; font-family:var(--font-title); font-size:14px; font-weight:600; margin-bottom:1.5rem; text-transform:uppercase; letter-spacing:0.05em">Liên hệ</h4>
+        <div style="padding:6px 0; display:flex; align-items:center; gap:8px"><i class="ti ti-mail"></i> support@bizhub.vn</div>
+        <div style="padding:6px 0; display:flex; align-items:center; gap:8px"><i class="ti ti-phone"></i> 1900 xxxx</div>
+        <div style="padding:6px 0; display:flex; align-items:center; gap:8px"><i class="ti ti-map-pin"></i> Hà Nội, Việt Nam</div>
       </div>
     </div>
     
-    <div style="border-top:1px solid rgba(255,255,255,0.05); padding-top:1.5rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem">
-      <div>© 2026 BizHub Corp. All rights reserved. Bản quyền được bảo lưu.</div>
-      <div style="display:flex; gap:4px">
-        <button style="padding:3px 8px; border-radius:4px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.05); color:#ffffff; font-size:10px; cursor:pointer">🇻🇳 VI</button>
-        <button style="padding:3px 8px; border-radius:4px; border:1px solid rgba(255,255,255,0.1); background:transparent; color:#94A3B8; font-size:10px; cursor:pointer">🇺🇸 EN</button>
+    <div style="border-top:1px solid rgba(255,255,255,0.06); padding-top:2rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1.5rem; font-size:12px">
+      <div>© Copyright All rights reserved</div>
+      <div style="display:flex; gap:20px">
+        <a href="members.html" style="color:#64748B; hover:color:#fff">Doanh viên</a>
+        <a href="posts.html" style="color:#64748B; hover:color:#fff">Bảng tin</a>
+        <a href="register.html" style="color:#64748B; hover:color:#fff">Thành viên</a>
+        <a href="ai-chat.html" style="color:#64748B; hover:color:#fff">Hội viên</a>
       </div>
     </div>
   </div>
 </footer>
 
 <script>
+// Smooth scroll for anchors
 document.querySelectorAll('a[href^="#"]').forEach(a=>{
   a.addEventListener('click',e=>{
     e.preventDefault();
-    const el=document.querySelector(a.getAttribute('href'));
+    const targetId = a.getAttribute('href');
+    if (targetId === '#') return;
+    const el=document.querySelector(targetId);
     if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
   });
 });
 
+// Update navbar avatar dynamically if logged in
+function checkNavbarAuth() {
+  const token = localStorage.getItem('bizhub_admin_token');
+  const userStr = localStorage.getItem('bizhub_admin_user');
+  if (token && userStr) {
+    try {
+      const user = JSON.parse(userStr);
+      if (user && user.name) {
+        const initials = user.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+        const av = document.getElementById('nav-av');
+        if (av) {
+          av.textContent = initials;
+          av.href = 'admin-dashboard.html';
+          av.title = 'Đến Trang quản trị (' + user.name + ')';
+        }
+      }
+    } catch (e) {}
+  }
+}
+
 // ── Tải dữ liệu động từ API ─────────────────────────────────
 async function initDynamicData() {
+  checkNavbarAuth();
   try {
-    // 1. Tải thống kê số liệu
+    // 1. Tải thống kê số liệu công khai
     const statsRes = await fetch('/api/public-stats');
     if (statsRes.ok) {
       const stats = await statsRes.json();
       document.getElementById('stat-m').textContent = (stats.members || 47) + '+';
-      document.getElementById('stat-p').textContent = stats.posts || 128;
+      document.getElementById('stat-p').textContent = stats.posts ? (stats.posts >= 1000 ? (stats.posts/1000).toFixed(1) + 'k' : stats.posts) : '1.5k';
       document.getElementById('stat-e').textContent = (stats.events || 5) + '+';
     }
 
-    // Helpers
-    const getInitials = name => name.split(' ').filter(Boolean).map(x => x[0]).slice(0, 2).join('').toUpperCase();
-    const getBgColor = name => {
-      const colors = ['#E6F1FB', '#EAF3DE', '#EEEDFE', '#E1F5EE', '#FAECE7'];
-      let hash = 0;
-      for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
-      return colors[Math.abs(hash) % colors.length];
-    };
-    const getFgColor = bg => {
-      const mapping = { '#E6F1FB': '#0C447C', '#EAF3DE': '#27500A', '#EEEDFE': '#3C3489', '#E1F5EE': '#085041', '#FAECE7': '#712B13' };
-      return mapping[bg] || '#10b981';
-    };
-
-    // 2. Tải Hội viên nổi bật (Chỉ hiển thị Approved)
-    const membersRes = await fetch('/api/members?status=approved');
-    if (membersRes.ok) {
-      const resData = await membersRes.json();
-      const members = resData.data || [];
-      const grid = document.querySelector('.members-grid');
-      if (grid && members.length > 0) {
-        const topFive = members.slice(0, 5);
-        let html = '';
-        topFive.forEach(m => {
-          const initials = getInitials(m.name);
-          const bg = getBgColor(m.name);
-          const fg = getFgColor(bg);
-          const tierBadge = m.tier === 'platinum' ? '💎 Platinum' : m.tier === 'gold' ? '🏅 Gold' : '🪙 Silver';
-          const tierClass = m.tier === 'platinum' ? 'b-platinum' : m.tier === 'gold' ? 'b-gold' : 'b-silver';
-
-          html += `
-            <div class="card" style="box-shadow:var(--shadow); transition:var(--transition); border-radius:var(--radius-lg)">
-              <div style="padding:1.25rem; display:flex; flex-direction:column; height:100%">
-                <div class="mc-top" style="display:flex; align-items:center; gap:10px; margin-bottom:10px">
-                  <div class="av-circle" style="background:${bg}; color:${fg}">${initials}</div>
-                  <div>
-                    <div class="mc-name" style="font-family:var(--font-title); font-weight:600; color:var(--text-primary)">${m.name}</div>
-                    <div class="mc-industry" style="font-size:11px; color:var(--text-muted)">${m.industry || 'Chưa phân ngành'}</div>
-                  </div>
-                </div>
-                <div class="mc-desc" style="font-size:12px; color:var(--text-secondary); line-height:1.6; margin-bottom:15px; flex:1">${m.description || 'Chưa có mô tả hoạt động.'}</div>
-                <div class="mc-foot" style="display:flex; align-items:center; justify-content:space-between; margin-top:auto">
-                  <span class="badge ${tierClass}">${tierBadge}</span>
-                  <a href="members.html" style="font-size:12px; color:var(--primary); font-weight:500">Chi tiết →</a>
-                </div>
-              </div>
-            </div>
-          `;
-        });
-        
-        // Thêm thẻ Đăng ký của bạn
-        html += `
-          <div class="card" style="border-style:dashed; border-color:var(--border-strong); background:rgba(255,255,255,0.4); display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:1.5rem; min-height:180px">
-            <div style="font-size:24px; margin-bottom:8px">🏢</div>
-            <div style="font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:4px">Doanh nghiệp của bạn?</div>
-            <div style="font-size:11px; color:var(--text-secondary); margin-bottom:12px; max-width:200px">Tham gia ngay mạng lưới BizHub để mở rộng quảng bá đối tác.</div>
-            <a href="register.html" class="btn btn-primary" style="font-size:12px; padding:6px 14px">Đăng ký ngay</a>
-          </div>
-        `;
-        grid.innerHTML = html;
-      }
-    }
-
-    // 3. Tải Bài viết mới nhất (Approved)
+    // 2. Tải bài viết (approved posts) dạng Grid sang trọng
     const postsRes = await fetch('/api/posts?status=approved');
     if (postsRes.ok) {
       const resData = await postsRes.json();
       const posts = resData.data || [];
-      const list = document.querySelector('.posts-list');
-      if (list && posts.length > 0) {
-        const topFour = posts.slice(0, 4);
-        let html = '';
-        topFour.forEach(p => {
-          const initials = getInitials(p.company || 'HV');
-          const bg = getBgColor(p.company || 'HV');
-          const fg = getFgColor(bg);
-          const dateStr = p.date ? new Date(p.date).toLocaleDateString('vi-VN') : new Date().toLocaleDateString('vi-VN');
+      const container = document.getElementById('opp-list-container');
+      
+      if (container && posts.length > 0) {
+        // Lấy 3 bài viết mới nhất để hiển thị
+        const topThree = posts.slice(0, 3);
+        
+        // Cung cấp một số ảnh demo đẹp cho card (như ảnh hội nghị, gạo, phong cảnh du lịch của screenshot)
+        const demoImages = [
+          'https://images.unsplash.com/photo-1542744173-8e08562744ad?w=600&auto=format&fit=crop&q=60', // meeting
+          'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=600&auto=format&fit=crop&q=60', // rice/agriculture
+          'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&auto=format&fit=crop&q=60'  // landscape/tourism
+        ];
 
+        let html = '';
+        topThree.forEach((p, index) => {
+          const dateStr = p.created_at ? new Date(p.created_at).toLocaleDateString('vi-VN', {day: '2-digit', month: '2-digit', year: 'numeric'}) : '11/06/2026';
+          const imgUrl = demoImages[index % demoImages.length];
+          const companyName = p.company_name || 'Hội viên ẩn danh';
+          
           html += `
-            <div class="card" style="box-shadow:var(--shadow); transition:var(--transition); border-color:var(--border)">
-              <div style="padding:1rem 1.25rem; display:flex; align-items:center; gap:14px; flex-wrap:wrap">
-                <div class="av-circle" style="background:${bg}; color:${fg}">${initials}</div>
-                <div style="flex:1; min-width:240px">
-                  <div style="font-size:11px; font-weight:600; color:var(--text-primary)">
-                    ${p.company || 'Hội viên ẩn danh'} 
-                    <span style="font-weight:400; color:var(--text-muted)">· ${dateStr}</span>
+            <div class="opp-card">
+              <img src="${imgUrl}" class="opp-img" alt="${p.title}">
+              <div class="opp-content">
+                <h3 class="opp-title">${p.title}</h3>
+                <div class="opp-meta">
+                  <div class="av-circle" style="width:20px; height:20px; font-size:9px; border:none; background:var(--primary-glow); color:var(--primary-light)">
+                    ${companyName.substring(0,2).toUpperCase()}
                   </div>
-                  <h4 style="font-family:var(--font-title); font-size:13px; font-weight:600; color:var(--text-primary); margin:3px 0">${p.title}</h4>
-                  <p style="font-size:12px; color:var(--text-secondary); line-height:1.5">${p.body.substring(0, 110)}${p.body.length > 110 ? '...' : ''}</p>
+                  <span style="font-weight:600; color:#FFFFFF">${companyName}</span>
                 </div>
-                <span class="badge b-pending" style="font-size:9px; background:var(--primary-bg); color:var(--primary); border:none">${p.type || 'Hợp tác'}</span>
+                <div class="opp-foot">
+                  <span>${dateStr}</span>
+                  <button class="opp-btn" onclick="viewOppDetail(${p.id}, '${escapeHtml(p.title)}', '${escapeHtml(companyName)}', '${escapeHtml(p.body)}')">Xem chi tiết</button>
+                </div>
               </div>
             </div>
           `;
         });
-        list.innerHTML = html;
+        container.innerHTML = html;
+      } else if (container) {
+        container.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:3rem; color:var(--text-dark-muted)"><i class="ti ti-news" style="font-size:24px; display:block; margin:0 auto 10px"></i> Hiện chưa có cơ hội giao thương nào được duyệt.</div>';
       }
     }
   } catch (err) {
     console.error('Lỗi tải dữ liệu động trang chủ:', err);
   }
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;").replace(/\n/g, "\\n");
+}
+
+function viewOppDetail(id, title, company, body) {
+  alert(`CƠ HỘI GIAO THƯƠNG\n-----------------------------\nDoanh nghiệp: ${company}\nTiêu đề: ${title}\n\nNội dung chi tiết:\n${body.replace(/\\n/g, '\n')}`);
 }
 
 document.addEventListener('DOMContentLoaded', initDynamicData);
