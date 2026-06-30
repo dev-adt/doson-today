@@ -39,7 +39,7 @@ export const Navbar = () => {
   return (
     <nav style={{ zIndex: 1000 }}>
       <Link to="/" className="nav-logo" style={{ textDecoration: 'none' }}>
-        <div className="nav-logo-icon"><i className="ti ti-building-community"></i></div>
+        <div className="nav-logo-icon"><img src="/favicon.png" alt="Logo" style={{ width: '20px', height: '20px', objectFit: 'contain' }} /></div>
         BizHub
       </Link>
 

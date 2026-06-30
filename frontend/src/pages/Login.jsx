@@ -51,7 +51,7 @@ export const Login = () => {
         <div className="glass-card" style={{ padding: '2.5rem 2.25rem', borderRadius: '16px', position: 'relative', overflow: 'hidden' }}>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', marginBottom: '2rem', textAlign: 'center' }}>
             <div className="logo-icon" style={{ width: '50px', height: '50px', borderRadius: '12px', background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', boxShadow: '0 8px 20px var(--primary-glow)' }}>
-              <i className="ti ti-building-community"></i>
+              <img src="/favicon.png" alt="Logo" style={{ width: '32px', height: '32px', objectFit: 'contain' }} />
             </div>
             <div>
               <div className="logo-name" style={{ fontFamily: 'var(--font-title)', fontSize: '22px', fontWeight: 700, color: '#FFFFFF' }}>BizHub AI</div>

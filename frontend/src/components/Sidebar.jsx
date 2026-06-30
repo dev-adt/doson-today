@@ -82,7 +82,7 @@ export const Sidebar = () => {
   return (
     <aside className="sidebar">
       <Link to="/admin-dashboard" className="sb-logo" style={{ textDecoration: 'none' }}>
-        <div className="sb-logo-icon"><i className="ti ti-building-community"></i></div>
+        <div className="sb-logo-icon"><img src="/favicon.png" alt="Logo" style={{ width: '20px', height: '20px', objectFit: 'contain' }} /></div>
         <div>
           <div className="sb-logo-name">BizHub</div>
           <div className="sb-logo-sub">Hội viên doanh nghiệp</div>
