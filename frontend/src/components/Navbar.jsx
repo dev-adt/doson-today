@@ -61,7 +61,7 @@ export const Navbar = () => {
         </div>
 
         <div className="nav-link nav-dropdown">
-          Hội viên <i className="ti ti-chevron-down" style={{ fontSize: '10px' }}></i>
+          Đăng ký <i className="ti ti-chevron-down" style={{ fontSize: '10px' }}></i>
           <div className="nav-dropdown-menu">
             <Link to="/register" className="nav-dropdown-item">Gia nhập AVG <span className="nav-dropdown-sub">&gt;</span></Link>
             <a href="#tiers" onClick={(e) => handleAnchorClick(e, '#tiers')} className="nav-dropdown-item">Phân hạng hội viên <span className="nav-dropdown-sub">&gt;</span></a>
