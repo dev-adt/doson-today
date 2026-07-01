@@ -1615,6 +1615,18 @@ app.delete('/api/admin/events/:id', authMiddleware, async (req, res) => {
   }
 });
 
+// Debug environment info to resolve directory pathing
+app.get('/api/debug-env', (req, res) => {
+  res.json({
+    success: true,
+    directory: __dirname,
+    port: PORT,
+    database: process.env.DB_NAME || 'bizhub',
+    timezone: process.env.TZ || 'N/A',
+    time: new Date().toISOString()
+  });
+});
+
 // ════════════════════════════════════════════
 // SPA Fallback
 // ════════════════════════════════════════════
