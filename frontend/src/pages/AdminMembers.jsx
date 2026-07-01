@@ -120,6 +120,66 @@ export const AdminMembers = () => {
     }
   };
 
+  const handleLock = async (id, name) => {
+    if (!confirm(`Tạm khóa tài khoản hội viên: "${name}"?`)) return;
+
+    try {
+      const res = await fetch(`/api/admin/members/${id}/lock`, {
+        method: 'PATCH',
+        headers: getAuthHeaders()
+      });
+      if (res.ok) {
+        alert('Đã tạm khóa tài khoản thành công!');
+        loadMembers();
+      } else {
+        const err = await res.json();
+        alert(err.error || 'Thao tác thất bại.');
+      }
+    } catch (err) {
+      alert('Lỗi: ' + err.message);
+    }
+  };
+
+  const handleUnlock = async (id, name) => {
+    if (!confirm(`Mở khóa tài khoản hội viên: "${name}"?`)) return;
+
+    try {
+      const res = await fetch(`/api/admin/members/${id}/unlock`, {
+        method: 'PATCH',
+        headers: getAuthHeaders()
+      });
+      if (res.ok) {
+        alert('Đã mở khóa tài khoản thành công!');
+        loadMembers();
+      } else {
+        const err = await res.json();
+        alert(err.error || 'Thao tác thất bại.');
+      }
+    } catch (err) {
+      alert('Lỗi: ' + err.message);
+    }
+  };
+
+  const handleDelete = async (id, name) => {
+    if (!confirm(`CẢNH BÁO: Bạn có chắc chắn muốn XÓA VĨNH VIỄN tài khoản hội viên "${name}" cùng toàn bộ bài viết và lịch sử của họ? Thao tác này không thể hoàn tác!`)) return;
+
+    try {
+      const res = await fetch(`/api/admin/members/${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      });
+      if (res.ok) {
+        alert('Đã xóa vĩnh viễn hội viên thành công!');
+        loadMembers();
+      } else {
+        const err = await res.json();
+        alert(err.error || 'Thao tác thất bại.');
+      }
+    } catch (err) {
+      alert('Lỗi: ' + err.message);
+    }
+  };
+
   const getInitialsColors = (name) => {
     const sum = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
     const colors = [
@@ -147,10 +207,11 @@ export const AdminMembers = () => {
       <div className="card" style={{ textAlign: 'left' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '1rem' }}>
           {/* Tabs bộ lọc */}
-          <div style={{ display: 'flex', gap: '4px' }}>
+          <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
             <button className={`btn ${statusFilter === 'all' ? 'btn-primary' : ''}`} onClick={() => setStatusFilter('all')} style={{ fontSize: '12px', padding: '6px 12px' }}>Tất cả</button>
             <button className={`btn ${statusFilter === 'pending' ? 'btn-primary' : ''}`} onClick={() => setStatusFilter('pending')} style={{ fontSize: '12px', padding: '6px 12px' }}>Chờ duyệt</button>
             <button className={`btn ${statusFilter === 'approved' ? 'btn-primary' : ''}`} onClick={() => setStatusFilter('approved')} style={{ fontSize: '12px', padding: '6px 12px' }}>Đã duyệt</button>
+            <button className={`btn ${statusFilter === 'suspended' ? 'btn-primary' : ''}`} onClick={() => setStatusFilter('suspended')} style={{ fontSize: '12px', padding: '6px 12px' }}>Tạm khóa</button>
             <button className={`btn ${statusFilter === 'rejected' ? 'btn-primary' : ''}`} onClick={() => setStatusFilter('rejected')} style={{ fontSize: '12px', padding: '6px 12px' }}>Từ chối</button>
           </div>
 
@@ -247,21 +308,31 @@ export const AdminMembers = () => {
                         )}
                       </td>
                       <td style={{ padding: '12px 16px' }}>
-                        <span className={`badge ${m.status === 'approved' ? 'approved' : m.status === 'rejected' ? 'rejected' : 'pending'}`}>
-                          {m.status === 'approved' ? 'Đã duyệt' : m.status === 'rejected' ? 'Từ chối' : 'Chờ duyệt'}
+                        <span className={`badge ${m.status === 'approved' ? 'approved' : (m.status === 'rejected' || m.status === 'suspended') ? 'rejected' : 'pending'}`}>
+                          {m.status === 'approved' ? 'Đã duyệt' : m.status === 'rejected' ? 'Từ chối' : m.status === 'suspended' ? 'Tạm khóa' : 'Chờ duyệt'}
                         </span>
                         {m.status === 'rejected' && m.reject_reason && (
                           <div style={{ fontSize: '10px', color: '#EF4444', marginTop: '4px', maxWidth: '150px', whiteSpace: 'normal' }}>Lý do: {m.reject_reason}</div>
                         )}
                       </td>
                       <td style={{ padding: '12px 16px' }}>
-                        <div style={{ display: 'flex', gap: '6px' }}>
-                          {m.status !== 'approved' && (
-                            <button className="quick-btn quick-btn-approve" onClick={() => handleApprove(m.id, m.name)} style={{ padding: '4px 8px', fontSize: '11px' }}>Duyệt</button>
+                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                          {m.status === 'pending' && (
+                            <button className="quick-btn quick-btn-approve" onClick={() => handleApprove(m.id, m.name)} style={{ padding: '4px 8px', fontSize: '11px', cursor: 'pointer' }}>Duyệt</button>
                           )}
-                          {m.status !== 'rejected' && (
-                            <button className="quick-btn quick-btn-reject" onClick={() => handleReject(m.id, m.name)} style={{ padding: '4px 8px', fontSize: '11px' }}>Từ chối</button>
+                          {m.status === 'rejected' && (
+                            <button className="quick-btn quick-btn-approve" onClick={() => handleApprove(m.id, m.name)} style={{ padding: '4px 8px', fontSize: '11px', cursor: 'pointer' }}>Duyệt lại</button>
                           )}
+                          {m.status === 'approved' && (
+                            <button className="quick-btn" onClick={() => handleLock(m.id, m.name)} style={{ padding: '4px 8px', fontSize: '11px', background: '#F59E0B', color: '#fff', border: '1px solid #F59E0B', borderRadius: '4px', cursor: 'pointer' }}>Khóa</button>
+                          )}
+                          {m.status === 'suspended' && (
+                            <button className="quick-btn quick-btn-approve" onClick={() => handleUnlock(m.id, m.name)} style={{ padding: '4px 8px', fontSize: '11px', cursor: 'pointer' }}>Mở khóa</button>
+                          )}
+                          {m.status === 'pending' && (
+                            <button className="quick-btn quick-btn-reject" onClick={() => handleReject(m.id, m.name)} style={{ padding: '4px 8px', fontSize: '11px', cursor: 'pointer' }}>Từ chối</button>
+                          )}
+                          <button className="quick-btn" onClick={() => handleDelete(m.id, m.name)} style={{ padding: '4px 8px', fontSize: '11px', background: '#EF4444', color: '#fff', border: '1px solid #EF4444', borderRadius: '4px', cursor: 'pointer' }}>Xóa</button>
                         </div>
                       </td>
                     </tr>

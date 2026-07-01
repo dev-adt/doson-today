@@ -108,6 +108,10 @@ db.query(`
       await db.query("ALTER TABLE members ADD COLUMN pending_tier_upgrade ENUM('Silver','Gold','Platinum') DEFAULT NULL AFTER tier_expires_at");
       console.log('✅ Đã thêm cột pending_tier_upgrade vào bảng members');
     }
+
+    // Cập nhật ENUM cho status cột của bảng members để hỗ trợ 'suspended'
+    await db.query("ALTER TABLE members MODIFY COLUMN status ENUM('pending','approved','rejected','suspended') DEFAULT 'pending'");
+    console.log("✅ Cập nhật ENUM cột status bảng members thành công");
   } catch (err) {
     console.error('❌ Lỗi khởi tạo DB hội viên:', err.message);
   }
@@ -192,6 +196,10 @@ async function memberAuthMiddleware(req, res, next) {
 
     if (!sessions.length) {
       return res.status(401).json({ success: false, error: 'Phiên đăng nhập hội viên không hợp lệ hoặc đã hết hạn.' });
+    }
+
+    if (sessions[0].status !== 'approved') {
+      return res.status(403).json({ success: false, error: 'Tài khoản của bạn đã bị tạm khóa hoặc chưa được phê duyệt.' });
     }
 
     req.member = {
@@ -427,6 +435,9 @@ app.post('/api/member/login', async (req, res) => {
     }
     if (member.status === 'rejected') {
       return res.status(403).json({ success: false, error: 'Tài khoản của bạn đã bị từ chối phê duyệt. Lý do: ' + (member.reject_reason || 'Không rõ') });
+    }
+    if (member.status === 'suspended') {
+      return res.status(403).json({ success: false, error: 'Tài khoản của bạn đã bị tạm khóa. Vui lòng liên hệ Ban quản trị để biết thêm chi tiết.' });
     }
     
     if (!member.password_hash) {
@@ -849,6 +860,42 @@ app.patch('/api/admin/members/:id/reject-upgrade', authMiddleware, async (req, r
     const memberId = req.params.id;
     await db.query('UPDATE members SET pending_tier_upgrade = NULL WHERE id = ?', [memberId]);
     res.json({ success: true, message: 'Đã từ chối và hủy bỏ yêu cầu nâng cấp gói.' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Khóa tài khoản hội viên
+app.patch('/api/admin/members/:id/lock', authMiddleware, async (req, res) => {
+  try {
+    const memberId = req.params.id;
+    await db.query("UPDATE members SET status='suspended' WHERE id=?", [memberId]);
+    res.json({ success: true, message: 'Đã tạm khóa tài khoản hội viên.' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Mở khóa tài khoản hội viên
+app.patch('/api/admin/members/:id/unlock', authMiddleware, async (req, res) => {
+  try {
+    const memberId = req.params.id;
+    await db.query("UPDATE members SET status='approved' WHERE id=?", [memberId]);
+    res.json({ success: true, message: 'Đã mở khóa tài khoản hội viên.' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Xóa vĩnh viễn tài khoản hội viên
+app.delete('/api/admin/members/:id', authMiddleware, async (req, res) => {
+  try {
+    const memberId = req.params.id;
+    // Xóa chat logs liên quan
+    await db.query("DELETE FROM chat_logs WHERE member_id=?", [memberId]);
+    // Xóa hội viên (các bảng posts, member_sessions tự động CASCADE)
+    await db.query("DELETE FROM members WHERE id=?", [memberId]);
+    res.json({ success: true, message: 'Đã xóa vĩnh viễn tài khoản hội viên.' });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
