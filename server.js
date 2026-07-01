@@ -1419,8 +1419,16 @@ ${events.map(e => `• ${e.title} — ${new Date(e.event_date).toLocaleDateStrin
 // Lấy danh sách sự kiện
 app.get('/api/events', async (req, res) => {
   try {
-    const limit = req.query.limit ? parseInt(req.query.limit, 10) : null;
-    const upcomingOnly = req.query.upcoming === 'true';
+    let limit = req.query.limit ? parseInt(req.query.limit, 10) : null;
+    let upcomingOnly = req.query.upcoming === 'true';
+
+    // Fallback tự động nếu client gọi không có tham số (do cache JS cũ trên trình duyệt/CDN)
+    const referer = req.headers.referer || '';
+    if (!req.query.limit && (referer.endsWith('/') || referer.endsWith('/index.html') || (!referer.includes('/events') && !referer.includes('/admin')))) {
+      limit = 3;
+      upcomingOnly = true;
+      console.log(`[Events GET Fallback] Detected homepage referer: "${referer}". Enforcing limit=3 and upcoming=true`);
+    }
 
     // Tự động cập nhật trạng thái sự kiện dựa trên ngày hiện tại
     try {
