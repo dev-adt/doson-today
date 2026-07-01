@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import Navbar from '../components/Navbar';
 
 export const AIChat = () => {
-  const { role, token, getAuthHeaders } = useAuth();
+  const { role, token, user, getAuthHeaders } = useAuth();
   const navigate = useNavigate();
 
   // State
@@ -17,6 +17,14 @@ export const AIChat = () => {
   const [sending, setSending] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [aiConfig, setAiConfig] = useState({ provider: 'Gemini', model: 'gemini-1.5-flash' });
+  const [selectedModelOverride, setSelectedModelOverride] = useState(() => {
+    return localStorage.getItem('avg_chat_model_override') || '';
+  });
+
+  const handleModelOverrideChange = (val) => {
+    setSelectedModelOverride(val);
+    localStorage.setItem('avg_chat_model_override', val);
+  };
 
   const messagesEndRef = useRef(null);
 
@@ -153,6 +161,16 @@ export const AIChat = () => {
         content: m.content
       }));
 
+      // Xác định provider và model dựa trên override của Gold/Platinum
+      let requestProvider = aiConfig.provider.toLowerCase();
+      let requestModel = aiConfig.model;
+      
+      const isPremiumTier = user && (user.tier === 'Gold' || user.tier === 'Platinum');
+      if (isPremiumTier && selectedModelOverride) {
+        requestProvider = 'openrouter';
+        requestModel = selectedModelOverride;
+      }
+
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: {
@@ -160,8 +178,8 @@ export const AIChat = () => {
           'X-Session-Id': currentSessionId
         },
         body: JSON.stringify({
-          provider: aiConfig.provider.toLowerCase(),
-          model: aiConfig.model,
+          provider: requestProvider,
+          model: requestModel,
           messages: messagesPayload
         })
       });
@@ -202,15 +220,72 @@ export const AIChat = () => {
   const formatAIResponse = (text) => {
     if (!text) return '';
     
-    // Format markdown cơ bản
-    let formatted = text
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/^- (.+)$/gm, '<li>$1</li>')
-      .replace(/(<li>.*<\/li>\n?)+/g, m => `<ul style="margin: 6px 0; padding-left: 20px">${m}</ul>`)
-      .replace(/\n\n/g, '<br/><br/>')
-      .replace(/\n/g, '<br/>');
+    // Split lines
+    const lines = text.split('\n');
+    let inList = false;
+    const formattedLines = [];
+    
+    for (let i = 0; i < lines.length; i++) {
+      let line = lines[i];
+      let trimmed = line.trim();
       
-    return <span dangerouslySetInnerHTML={{ __html: formatted }} />;
+      // Escape HTML to prevent XSS
+      trimmed = trimmed
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+      
+      // Inline formatting (bold)
+      trimmed = trimmed.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      trimmed = trimmed.replace(/__(.*?)__/g, '<strong>$1</strong>');
+      
+      // Headings
+      if (trimmed.startsWith('### ')) {
+        if (inList) { formattedLines.push('</ul>'); inList = false; }
+        formattedLines.push(`<h4 style="font-size: 14.5px; font-weight: 700; margin: 12px 0 6px; color: #ffffff;">${trimmed.substring(4)}</h4>`);
+      } else if (trimmed.startsWith('## ')) {
+        if (inList) { formattedLines.push('</ul>'); inList = false; }
+        formattedLines.push(`<h3 style="font-size: 16px; font-weight: 700; margin: 14px 0 8px; color: #ffffff;">${trimmed.substring(3)}</h3>`);
+      } else if (trimmed.startsWith('# ')) {
+        if (inList) { formattedLines.push('</ul>'); inList = false; }
+        formattedLines.push(`<h2 style="font-size: 18px; font-weight: 700; margin: 16px 0 10px; color: #ffffff;">${trimmed.substring(2)}</h2>`);
+      } 
+      // Horizontal Rule
+      else if (trimmed === '---' || trimmed === '***') {
+        if (inList) { formattedLines.push('</ul>'); inList = false; }
+        formattedLines.push('<hr style="border: none; border-top: 1px solid rgba(255,255,255,0.08); margin: 14px 0;" />');
+      }
+      // List items
+      else if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+        if (!inList) {
+          formattedLines.push('<ul style="margin: 6px 0; padding-left: 20px; list-style-type: disc;">');
+          inList = true;
+        }
+        formattedLines.push(`<li style="margin: 4px 0;">${trimmed.substring(2)}</li>`);
+      }
+      // Empty line
+      else if (trimmed === '') {
+        if (inList) {
+          formattedLines.push('</ul>');
+          inList = false;
+        }
+        formattedLines.push('<div style="height: 6px;"></div>');
+      }
+      // Plain text line
+      else {
+        if (inList) {
+          formattedLines.push('</ul>');
+          inList = false;
+        }
+        formattedLines.push(`<p style="margin: 4px 0; line-height: 1.6; font-size: 13px; color: rgba(255,255,255,0.9);">${trimmed}</p>`);
+      }
+    }
+    
+    if (inList) {
+      formattedLines.push('</ul>');
+    }
+    
+    return <div style={{ fontSize: '13px', textAlign: 'left' }} dangerouslySetInnerHTML={{ __html: formattedLines.join('') }} />;
   };
 
   // Bộ lọc lịch sử chat
@@ -327,7 +402,11 @@ export const AIChat = () => {
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#10B981', background: 'rgba(16,185,129,0.08)', border: '0.5px solid rgba(16,185,129,0.2)', padding: '4px 12px', borderRadius: '99px' }}>
               <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10B981', animation: 'pulse 2s infinite' }}></span>
-              <span>{aiConfig.provider} ({aiConfig.model})</span>
+              <span>
+                {user && (user.tier === 'Gold' || user.tier === 'Platinum') && selectedModelOverride 
+                  ? `OpenRouter (${selectedModelOverride.split('/').pop()})` 
+                  : `${aiConfig.provider} (${aiConfig.model})`}
+              </span>
             </div>
           </div>
 
@@ -423,9 +502,48 @@ export const AIChat = () => {
               <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10B981' }}></span>
               <span>Trạng thái: <strong style={{ color: '#ffffff' }}>Online</strong></span>
             </div>
-            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '8px', lineHeight: '1.5' }}>
-              Mô hình hiện hành có khả năng tìm kiếm chéo hồ sơ doanh nghiệp và cơ hội giao thương B2B toàn hệ thống.
-            </div>
+            
+            {user && (user.tier === 'Gold' || user.tier === 'Platinum') ? (
+              <div style={{ marginTop: '12px', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '10px' }}>
+                <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px', fontWeight: 600 }}>
+                  <i className="ti ti-crown" style={{ color: 'var(--amber)', marginRight: '4px' }}></i>
+                  Mô hình cao cấp (Gói {user.tier})
+                </label>
+                <select
+                  value={selectedModelOverride}
+                  onChange={(e) => handleModelOverrideChange(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '6px 10px',
+                    borderRadius: '6px',
+                    background: 'var(--surface-3)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: '#ffffff',
+                    fontSize: '11.5px',
+                    outline: 'none',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <option value="">[Mặc định hệ thống]</option>
+                  <option value="deepseek/deepseek-chat">DeepSeek V3 (Chat)</option>
+                  <option value="deepseek/deepseek-reasoner">DeepSeek R1 (Suy luận)</option>
+                  <option value="openai/gpt-4o">OpenAI GPT-4o (Mới nhất)</option>
+                  <option value="anthropic/claude-3.5-sonnet">Claude 3.5 Sonnet</option>
+                  <option value="google/gemini-2.0-flash-001">Gemini 2.0 Flash</option>
+                  <option value="google/gemini-1.5-pro">Gemini 1.5 Pro</option>
+                  <option value="x-ai/grok-2">xAI Grok 2</option>
+                </select>
+              </div>
+            ) : (
+              <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '8px', lineHeight: '1.5' }}>
+                Mô hình hiện hành có khả năng tìm kiếm chéo hồ sơ doanh nghiệp và cơ hội giao thương B2B toàn hệ thống.
+                {user && (
+                  <div style={{ marginTop: '6px', color: 'var(--amber)', fontWeight: 500 }}>
+                    <i className="ti ti-crown"></i> Nâng cấp gói Gold/Platinum để tự do đổi mô hình AI khác (OpenAI, Claude, Grok, DeepSeek...)
+                  </div>
+                )}
+              </div>
+            )}
           </div>
           
           {/* Suggested Actions Card */}
