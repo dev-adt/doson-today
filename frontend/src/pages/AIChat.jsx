@@ -529,6 +529,7 @@ export const AIChat = () => {
                   <option value="deepseek/deepseek-r1">DeepSeek R1 (Suy luận)</option>
                   <option value="openai/gpt-4o">OpenAI GPT-4o</option>
                   <option value="anthropic/claude-3.5-sonnet">Claude 3.5 Sonnet</option>
+                  <option value="google/gemini-3-flash-preview">Gemini 3 Flash</option>
                 </select>
               </div>
             ) : (
