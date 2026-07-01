@@ -147,6 +147,14 @@ export const Sidebar = () => {
         <i className="ti ti-clipboard-check"></i> Duyệt bài viết 
         {pendingPosts > 0 && <span className="sb-badge">{pendingPosts}</span>}
       </NavLink>
+
+      <NavLink 
+        to="/admin-events" 
+        className={({ isActive }) => `sb-item ${isActive ? 'active' : ''}`}
+        style={{ textDecoration: 'none' }}
+      >
+        <i className="ti ti-calendar-event"></i> Quản lý sự kiện
+      </NavLink>
       
       <NavLink 
         to="/admin-config" 

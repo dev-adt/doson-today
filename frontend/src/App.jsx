@@ -16,6 +16,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import AdminMembers from './pages/AdminMembers';
 import AdminPosts from './pages/AdminPosts';
 import AdminConfig from './pages/AdminConfig';
+import AdminEvents from './pages/AdminEvents';
 
 function App() {
   return (
@@ -63,6 +64,14 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={['admin']}>
                   <AdminPosts />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin-events" 
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <AdminEvents />
                 </ProtectedRoute>
               } 
             />

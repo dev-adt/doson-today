@@ -14,6 +14,10 @@ export const Home = () => {
   const [stats, setStats] = useState({ members: 0, posts: 0, events: 0 });
   const [latestPosts, setLatestPosts] = useState([]);
   const [loadingPosts, setLoadingPosts] = useState(true);
+  const [events, setEvents] = useState([]);
+  const [loadingEvents, setLoadingEvents] = useState(true);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [eventModalOpen, setEventModalOpen] = useState(false);
   
   // Modal State
   const [selectedPost, setSelectedPost] = useState(null);
@@ -54,6 +58,26 @@ export const Home = () => {
     fetchLatestPosts();
   }, [token]);
 
+  // Fetch Upcoming Events
+  useEffect(() => {
+    const fetchEvents = async () => {
+      setLoadingEvents(true);
+      try {
+        const headers = token ? { 'Authorization': 'Bearer ' + token } : {};
+        const res = await fetch('/api/events', { headers });
+        if (res.ok) {
+          const data = await res.json();
+          setEvents(data.data || []);
+        }
+      } catch (err) {
+        console.error('Error fetching events:', err);
+      } finally {
+        setLoadingEvents(false);
+      }
+    };
+    fetchEvents();
+  }, [token]);
+
   const openPostDetail = (post) => {
     setSelectedPost(post);
     setModalOpen(true);
@@ -62,6 +86,64 @@ export const Home = () => {
   const closePostDetail = () => {
     setSelectedPost(null);
     setModalOpen(false);
+  };
+
+  const openEventDetail = (event) => {
+    if (!token) {
+      if (confirm('Vui lòng đăng nhập để xem chi tiết địa điểm và thông tin mô tả sự kiện. Đến trang đăng nhập?')) {
+        navigate('/login');
+      }
+      return;
+    }
+    setSelectedEvent(event);
+    setEventModalOpen(true);
+  };
+
+  const handleToggleEventInterest = async (eventId) => {
+    if (!token) {
+      alert('Vui lòng đăng nhập để thực hiện tính năng này.');
+      navigate('/login');
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/events/${eventId}/interest`, {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + token,
+          'Content-Type': 'application/json'
+        }
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setEvents(prev => prev.map(e => {
+          if (e.id === eventId) {
+            const diff = data.is_interested ? 1 : -1;
+            return {
+              ...e,
+              is_interested: data.is_interested,
+              interest_count: Math.max(0, (e.interest_count || 0) + diff)
+            };
+          }
+          return e;
+        }));
+
+        if (selectedEvent && selectedEvent.id === eventId) {
+          setSelectedEvent(prev => {
+            const diff = data.is_interested ? 1 : -1;
+            return {
+              ...prev,
+              is_interested: data.is_interested,
+              interest_count: Math.max(0, (prev.interest_count || 0) + diff)
+            };
+          });
+        }
+      } else {
+        alert(data.error || 'Có lỗi xảy ra.');
+      }
+    } catch (err) {
+      alert('Lỗi: ' + err.message);
+    }
   };
 
   const getTiersLink = () => {
@@ -229,6 +311,64 @@ export const Home = () => {
           </div>
         </section>
 
+        {/* UPCOMING EVENTS SECTION */}
+        <section id="events" style={{ marginBottom: '5rem' }}>
+          <div style={{ marginBottom: '3rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1.5rem' }}>
+            <div>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--amber)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '6px' }}>Sự kiện giao thương sắp tới</div>
+              <h2 style={{ fontFamily: 'var(--font-title)', fontSize: '32px', fontWeight: 700, color: '#ffffff', marginBottom: 0 }}>Giao lưu & Kết nối doanh nghiệp</h2>
+            </div>
+          </div>
+
+          <div className="opp-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
+            {loadingEvents ? (
+              <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '3rem', color: 'var(--text-dark-secondary)' }}>
+                <i className="ti ti-loader animate-spin" style={{ fontSize: '24px', display: 'block', margin: '0 auto 10px' }}></i> Đang tải danh sách sự kiện...
+              </div>
+            ) : events.length > 0 ? (
+              events.map((e) => {
+                const dateStr = e.event_date ? new Date(e.event_date).toLocaleDateString('vi-VN') : '15/07/2026';
+                const statusLabel = e.status === 'upcoming' ? 'Sắp diễn ra' : e.status === 'ongoing' ? 'Đang diễn ra' : e.status === 'completed' ? 'Đã kết thúc' : 'Đã hủy';
+                return (
+                  <div className="opp-card" key={e.id} style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '1.5rem', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.05)', borderRadius: '12px' }}>
+                    <div style={{ textAlign: 'left' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                        <span style={{ fontSize: '10px', background: e.status === 'upcoming' ? 'rgba(245,158,11,0.1)' : 'rgba(16,185,129,0.1)', color: e.status === 'upcoming' ? 'var(--amber)' : '#10B981', border: `1px solid ${e.status === 'upcoming' ? 'rgba(245,158,11,0.2)' : 'rgba(16,185,129,0.2)'}`, padding: '2px 8px', borderRadius: '4px', textTransform: 'uppercase', fontWeight: 600 }}>{statusLabel}</span>
+                        <button 
+                          onClick={(evt) => {
+                            evt.stopPropagation();
+                            handleToggleEventInterest(e.id);
+                          }}
+                          style={{ background: 'none', border: 'none', color: e.is_interested ? 'var(--amber)' : 'rgba(255,255,255,0.3)', cursor: 'pointer', fontSize: '16px', outline: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                          title={e.is_interested ? "Bỏ quan tâm" : "Quan tâm sự kiện"}
+                        >
+                          <i className={e.is_interested ? "ti ti-star-filled" : "ti ti-star"}></i>
+                          <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>{e.interest_count || 0}</span>
+                        </button>
+                      </div>
+                      <h3 className="opp-title" style={{ minHeight: 'unset', marginBottom: '8px' }}>{e.title}</h3>
+                      <div style={{ fontSize: '11.5px', color: 'var(--text-muted)', marginBottom: '4px' }}><i className="ti ti-calendar"></i> Ngày: {dateStr}</div>
+                      <div style={{ fontSize: '11.5px', color: 'var(--text-muted)', marginBottom: '4px' }}><i className="ti ti-users"></i> Tổ chức: {e.organizer || 'AVG'}</div>
+                      {!token && (
+                        <div style={{ fontSize: '11px', color: 'var(--rose)', marginTop: '8px', background: 'rgba(244,63,94,0.05)', padding: '6px', borderRadius: '4px', border: '1px dashed rgba(244,63,94,0.15)' }}>
+                          <i className="ti ti-lock"></i> Đăng nhập để xem chi tiết địa điểm.
+                        </div>
+                      )}
+                    </div>
+                    <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '12px', marginTop: '16px', display: 'flex', justifyContent: 'flex-end' }}>
+                      <button className="opp-btn" onClick={() => openEventDetail(e)}>Xem chi tiết</button>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '3rem', color: 'var(--text-dark-muted)' }}>
+                <i className="ti ti-calendar" style={{ fontSize: '24px', display: 'block', margin: '0 auto 10px' }}></i> Hiện chưa có sự kiện giao thương nào sắp tới.
+              </div>
+            )}
+          </div>
+        </section>
+
         {/* MEMBERSHIP TIERS */}
         <section id="tiers" style={{ marginBottom: '5rem' }}>
           <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
@@ -339,6 +479,61 @@ export const Home = () => {
             
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
               <button className="btn btn-primary" onClick={closePostDetail}>Đóng</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal xem chi tiết sự kiện */}
+      {eventModalOpen && selectedEvent && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(8,14,30,0.85)', backdropFilter: 'blur(8px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem' }}>
+          <div className="glass-card" style={{ width: '100%', maxWidth: '550px', padding: '2rem', borderColor: 'var(--border-strong)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '12px' }}>
+              <h3 style={{ fontFamily: 'var(--font-title)', fontSize: '16px', color: '#FFFFFF', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+                <i className="ti ti-calendar-event" style={{ color: 'var(--amber)' }}></i> Chi tiết sự kiện giao thương
+              </h3>
+              <button onClick={() => setEventModalOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '18px', cursor: 'pointer' }}><i className="ti ti-x"></i></button>
+            </div>
+            
+            <div style={{ marginBottom: '1.5rem', maxHeight: '50vh', overflowY: 'auto', textAlign: 'left' }}>
+              <div style={{ marginBottom: '14px' }}>
+                <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--amber)', fontWeight: 700 }}>Tên Sự Kiện</span>
+                <div style={{ fontSize: '15px', fontWeight: 600, color: '#FFFFFF', marginTop: '2px' }}>{selectedEvent.title}</div>
+              </div>
+              <div style={{ marginBottom: '14px' }}>
+                <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--amber)', fontWeight: 700 }}>Đơn vị tổ chức</span>
+                <div style={{ fontSize: '13px', color: '#FFFFFF', marginTop: '2px' }}>{selectedEvent.organizer || 'AVG'}</div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
+                <div>
+                  <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--amber)', fontWeight: 700 }}>Ngày Tổ chức</span>
+                  <div style={{ fontSize: '13px', color: '#FFFFFF', marginTop: '2px' }}>{new Date(selectedEvent.event_date).toLocaleDateString('vi-VN')}</div>
+                </div>
+                <div>
+                  <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--amber)', fontWeight: 700 }}>Sức chứa tối đa</span>
+                  <div style={{ fontSize: '13px', color: '#FFFFFF', marginTop: '2px' }}>{selectedEvent.capacity ? `${selectedEvent.capacity} người` : 'Không giới hạn'}</div>
+                </div>
+              </div>
+              <div style={{ marginBottom: '14px' }}>
+                <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--amber)', fontWeight: 700 }}>Địa điểm tổ chức</span>
+                <div style={{ fontSize: '13px', color: '#FFFFFF', marginTop: '2px' }}>{selectedEvent.location || 'Chưa cập nhật'}</div>
+              </div>
+              <div style={{ marginBottom: '14px' }}>
+                <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--amber)', fontWeight: 700 }}>Mô tả chi tiết</span>
+                <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '6px', whiteSpace: 'pre-line', lineHeight: '1.6' }}>{selectedEvent.description || 'Không có mô tả chi tiết cho sự kiện này.'}</div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <button 
+                onClick={() => handleToggleEventInterest(selectedEvent.id)}
+                className="btn"
+                style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12.5px', background: selectedEvent.is_interested ? 'var(--amber)' : 'rgba(255,255,255,0.05)', color: selectedEvent.is_interested ? '#000' : '#fff', borderColor: selectedEvent.is_interested ? 'var(--amber)' : 'rgba(255,255,255,0.1)', padding: '6px 16px', fontWeight: 600, cursor: 'pointer' }}
+              >
+                <i className={selectedEvent.is_interested ? "ti ti-star-filled" : "ti ti-star"}></i>
+                {selectedEvent.is_interested ? 'Đã quan tâm' : 'Quan tâm sự kiện'} ({selectedEvent.interest_count || 0})
+              </button>
+              <button className="btn btn-primary" onClick={() => setEventModalOpen(false)}>Đóng</button>
             </div>
           </div>
         </div>

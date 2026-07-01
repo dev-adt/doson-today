@@ -112,6 +112,36 @@ db.query(`
     // Cập nhật ENUM cho status cột của bảng members để hỗ trợ 'suspended'
     await db.query("ALTER TABLE members MODIFY COLUMN status ENUM('pending','approved','rejected','suspended') DEFAULT 'pending'");
     console.log("✅ Cập nhật ENUM cột status bảng members thành công");
+
+    // Tạo bảng events nếu chưa có
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS events (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        title VARCHAR(500) NOT NULL,
+        description TEXT DEFAULT NULL,
+        event_date DATE NOT NULL,
+        location VARCHAR(255) DEFAULT NULL,
+        organizer VARCHAR(255) DEFAULT NULL,
+        capacity INT DEFAULT NULL,
+        status ENUM('upcoming','ongoing','completed','cancelled') DEFAULT 'upcoming',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB COMMENT='Sự kiện của hội'
+    `);
+    console.log("✅ Bảng events đã sẵn sàng");
+
+    // Tạo bảng event_interests nếu chưa có
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS event_interests (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        event_id INT NOT NULL,
+        member_id INT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY idx_event_member (event_id, member_id),
+        FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE,
+        FOREIGN KEY (member_id) REFERENCES members(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB COMMENT='Thành viên quan tâm sự kiện'
+    `);
+    console.log("✅ Bảng event_interests đã sẵn sàng");
   } catch (err) {
     console.error('❌ Lỗi khởi tạo DB hội viên:', err.message);
   }
@@ -1379,6 +1409,144 @@ ${events.map(e => `• ${e.title} — ${new Date(e.event_date).toLocaleDateStrin
   } catch (err) {
     console.error(`[${provider}] Error:`, err.message);
     res.status(500).json({ error: err.message });
+  }
+});
+
+// ════════════════════════════════════════════
+// EVENTS API
+// ════════════════════════════════════════════
+
+// Lấy danh sách sự kiện
+app.get('/api/events', async (req, res) => {
+  try {
+    let memberId = null;
+    const authHeader = req.headers['authorization'];
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.substring(7);
+      const [sessions] = await db.query(
+        `SELECT member_id FROM member_sessions WHERE token = ? AND expires_at > NOW()`, 
+        [token]
+      );
+      if (sessions.length) {
+        memberId = sessions[0].member_id;
+      }
+    }
+
+    let sql = '';
+    let params = [];
+    if (memberId) {
+      // Đã đăng nhập -> Lấy đầy đủ thông tin sự kiện và trạng thái quan tâm
+      sql = `
+        SELECT e.*, 
+               COUNT(ei.id) AS interest_count,
+               SUM(CASE WHEN ei.member_id = ? THEN 1 ELSE 0 END) > 0 AS is_interested
+        FROM events e
+        LEFT JOIN event_interests ei ON e.id = ei.event_id
+        GROUP BY e.id
+        ORDER BY e.event_date ASC
+      `;
+      params.push(memberId);
+    } else {
+      // Khách vãng lai -> Chỉ trả về thông tin hạn chế (mô tả, địa điểm bị ẩn/mã hóa)
+      sql = `
+        SELECT e.id, e.title, e.event_date, e.organizer, e.status, e.created_at, e.capacity,
+               COUNT(ei.id) AS interest_count,
+               0 AS is_interested
+        FROM events e
+        LEFT JOIN event_interests ei ON e.id = ei.event_id
+        GROUP BY e.id
+        ORDER BY e.event_date ASC
+      `;
+    }
+
+    const [rows] = await db.query(sql, params);
+    res.json({ success: true, data: rows });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Lấy chi tiết sự kiện
+app.get('/api/events/:id', async (req, res) => {
+  try {
+    const [rows] = await db.query('SELECT * FROM events WHERE id = ?', [req.params.id]);
+    if (!rows.length) return res.status(404).json({ success: false, error: 'Không tìm thấy sự kiện.' });
+    res.json({ success: true, data: rows[0] });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Đăng ký quan tâm sự kiện (Toggle)
+app.post('/api/events/:id/interest', memberAuthMiddleware, async (req, res) => {
+  try {
+    const eventId = req.params.id;
+    const memberId = req.member.id;
+
+    // Kiểm tra sự kiện
+    const [events] = await db.query('SELECT id FROM events WHERE id = ?', [eventId]);
+    if (!events.length) {
+      return res.status(404).json({ success: false, error: 'Không tìm thấy sự kiện.' });
+    }
+
+    const [existing] = await db.query('SELECT id FROM event_interests WHERE event_id = ? AND member_id = ?', [eventId, memberId]);
+    if (existing.length) {
+      await db.query('DELETE FROM event_interests WHERE event_id = ? AND member_id = ?', [eventId, memberId]);
+      res.json({ success: true, is_interested: false, message: 'Đã hủy quan tâm sự kiện.' });
+    } else {
+      await db.query('INSERT INTO event_interests (event_id, member_id) VALUES (?, ?)', [eventId, memberId]);
+      res.json({ success: true, is_interested: true, message: 'Đã đăng ký quan tâm sự kiện.' });
+    }
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Admin: Thêm sự kiện
+app.post('/api/admin/events', authMiddleware, async (req, res) => {
+  const { title, description, event_date, location, organizer, capacity, status } = req.body;
+  if (!title || !event_date) {
+    return res.status(400).json({ success: false, error: 'Thiếu tiêu đề hoặc ngày tổ chức.' });
+  }
+  try {
+    const [result] = await db.query(
+      `INSERT INTO events (title, description, event_date, location, organizer, capacity, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [title, description || null, event_date, location || null, organizer || null, capacity || null, status || 'upcoming']
+    );
+    res.json({ success: true, id: result.insertId, message: 'Thêm sự kiện thành công.' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Admin: Sửa sự kiện
+app.put('/api/admin/events/:id', authMiddleware, async (req, res) => {
+  const { title, description, event_date, location, organizer, capacity, status } = req.body;
+  if (!title || !event_date) {
+    return res.status(400).json({ success: false, error: 'Thiếu tiêu đề hoặc ngày tổ chức.' });
+  }
+  try {
+    const eventId = req.params.id;
+    await db.query(
+      `UPDATE events SET title = ?, description = ?, event_date = ?, location = ?, organizer = ?, capacity = ?, status = ?
+       WHERE id = ?`,
+      [title, description || null, event_date, location || null, organizer || null, capacity || null, status || 'upcoming', eventId]
+    );
+    res.json({ success: true, message: 'Cập nhật sự kiện thành công.' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Admin: Xóa sự kiện
+app.delete('/api/admin/events/:id', authMiddleware, async (req, res) => {
+  try {
+    const eventId = req.params.id;
+    await db.query('DELETE FROM events WHERE id = ?', [eventId]);
+    res.json({ success: true, message: 'Đã xóa sự kiện thành công.' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
