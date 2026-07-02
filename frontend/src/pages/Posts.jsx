@@ -141,9 +141,10 @@ export const Posts = () => {
                   pointerEvents: isActive ? 'auto' : 'none',
                   transition: 'opacity 0.8s ease-in-out',
                   display: 'flex',
-                  background: 'linear-gradient(90deg, rgba(8,14,30,0.95) 0%, rgba(8,14,30,0.4) 100%)',
+                  alignItems: 'center',
+                  background: 'none'
                 }}>
-                  {/* Backdrop Cover image */}
+                  {/* Backdrop Cover image (Layer 1) */}
                   <div style={{
                     position: 'absolute',
                     right: 0,
@@ -153,12 +154,21 @@ export const Posts = () => {
                     backgroundImage: `url(${postImg})`,
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',
-                    zIndex: -1,
+                    zIndex: 1,
                     maskImage: 'linear-gradient(to left, rgba(0,0,0,1) 15%, rgba(0,0,0,0) 100%)',
                     WebkitMaskImage: 'linear-gradient(to left, rgba(0,0,0,1) 15%, rgba(0,0,0,0) 100%)'
                   }} />
+
+                  {/* Gradient overlay (Layer 2) */}
+                  <div style={{
+                    position: 'absolute',
+                    inset: 0,
+                    background: 'linear-gradient(90deg, rgba(8,14,30,0.98) 0%, rgba(8,14,30,0.85) 45%, rgba(8,14,30,0.1) 100%)',
+                    zIndex: 2
+                  }} />
                   
-                  <div style={{ flex: 1, padding: '2.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-start', textAlign: 'left', zIndex: 2, maxWidth: '600px' }}>
+                  {/* Content (Layer 3) */}
+                  <div style={{ flex: 1, padding: '2.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-start', textAlign: 'left', zIndex: 3, maxWidth: '600px' }}>
                     <span style={{ fontSize: '10px', background: 'linear-gradient(135deg, #FFD700, #FFA500)', color: '#000', padding: '3px 8px', borderRadius: '4px', textTransform: 'uppercase', fontWeight: 800, marginBottom: '10px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                       <i className="ti ti-crown"></i> Đối tác Platinum
                     </span>
