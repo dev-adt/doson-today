@@ -1,5 +1,5 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -19,11 +19,23 @@ import AdminPosts from './pages/AdminPosts';
 import AdminConfig from './pages/AdminConfig';
 import AdminEvents from './pages/AdminEvents';
 
+// Tự động cuộn lên đầu trang khi chuyển tuyến đường
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+}
+
 function App() {
   return (
     <LanguageProvider>
       <AuthProvider>
         <Router>
+          <ScrollToTop />
           <Routes>
             {/* Tuyến đường công khai */}
             <Route path="/" element={<Home />} />
