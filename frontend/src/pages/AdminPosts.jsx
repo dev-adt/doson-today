@@ -12,6 +12,10 @@ export const AdminPosts = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [error, setError] = useState('');
 
+  // States for viewing full post
+  const [viewPostModalOpen, setViewPostModalOpen] = useState(false);
+  const [selectedPostToView, setSelectedPostToView] = useState(null);
+
   const loadPosts = async () => {
     setLoading(true);
     try {
@@ -85,6 +89,45 @@ export const AdminPosts = () => {
       });
       if (res.ok) {
         alert(currentFeatured ? 'Đã bỏ ghim bài viết nổi bật.' : 'Đã ghim bài viết nổi bật thành công!');
+        loadPosts();
+      } else {
+        const err = await res.json();
+        alert(err.error || 'Thao tác thất bại.');
+      }
+    } catch (err) {
+      alert('Lỗi: ' + err.message);
+    }
+  };
+
+  const handleHide = async (id, title) => {
+    if (!confirm(`Tạm ẩn bài viết: "${title}"? Bài viết sẽ không hiển thị trên website nữa.`)) return;
+    try {
+      const res = await fetch(`/api/posts/${id}/reject`, {
+        method: 'PATCH',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ reason: 'Admin tạm ẩn bài viết' })
+      });
+      if (res.ok) {
+        alert('Đã ẩn bài viết thành công!');
+        loadPosts();
+      } else {
+        const err = await res.json();
+        alert(err.error || 'Thao tác thất bại.');
+      }
+    } catch (err) {
+      alert('Lỗi: ' + err.message);
+    }
+  };
+
+  const handleDelete = async (id, title) => {
+    if (!confirm(`CẢNH BÁO: Bạn có chắc chắn muốn XÓA VĨNH VIỄN bài viết "${title}"? Hành động này không thể hoàn tác!`)) return;
+    try {
+      const res = await fetch(`/api/admin/posts/${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      });
+      if (res.ok) {
+        alert('Đã xóa vĩnh viễn bài viết thành công!');
         loadPosts();
       } else {
         const err = await res.json();
@@ -208,23 +251,107 @@ export const AdminPosts = () => {
                         <div style={{ fontSize: '10px', color: '#EF4444', marginTop: '4px', maxWidth: '150px', whiteSpace: 'normal' }}>Lý do: {p.reject_reason}</div>
                       )}
                     </td>
-                    <td style={{ padding: '12px 16px' }}>
+                     <td style={{ padding: '12px 16px' }}>
                       <div style={{ display: 'flex', gap: '6px' }}>
+                        <button className="quick-btn" onClick={() => { setSelectedPostToView(p); setViewPostModalOpen(true); }} style={{ padding: '4px 8px', fontSize: '11px', background: '#3B82F6', color: '#fff', border: '1px solid #3B82F6', borderRadius: '4px', cursor: 'pointer' }}>Xem</button>
                         {p.status !== 'approved' && (
                           <button className="quick-btn quick-btn-approve" onClick={() => handleApprove(p.id, p.title)} style={{ padding: '4px 8px', fontSize: '11px' }}>Duyệt</button>
                         )}
-                        {p.status !== 'rejected' && (
+                        {p.status === 'approved' && (
+                          <button className="quick-btn" onClick={() => handleHide(p.id, p.title)} style={{ padding: '4px 8px', fontSize: '11px', background: '#F59E0B', color: '#fff', border: '1px solid #F59E0B', borderRadius: '4px', cursor: 'pointer' }}>Ẩn bài</button>
+                        )}
+                        {p.status !== 'approved' && p.status !== 'rejected' && (
                           <button className="quick-btn quick-btn-reject" onClick={() => handleReject(p.id, p.title)} style={{ padding: '4px 8px', fontSize: '11px' }}>Từ chối</button>
                         )}
+                        <button className="quick-btn" onClick={() => handleDelete(p.id, p.title)} style={{ padding: '4px 8px', fontSize: '11px', background: '#EF4444', color: '#fff', border: '1px solid #EF4444', borderRadius: '4px', cursor: 'pointer' }}>Xóa</button>
                       </div>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </div>
+           </div>
         )}
       </div>
+
+      {/* VIEW POST DETAIL MODAL */}
+      {viewPostModalOpen && selectedPostToView && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}>
+          <div className="card" style={{ width: '800px', maxWidth: '100%', maxHeight: '90vh', overflowY: 'auto', padding: '2rem', background: '#fff', borderRadius: '12px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid #F1F5F9', paddingBottom: '12px', marginBottom: '1.5rem' }}>
+              <div style={{ textAlign: 'left' }}>
+                <span className={`badge ${selectedPostToView.company_tier === 'Platinum' ? 'b-platinum' : selectedPostToView.company_tier === 'Gold' ? 'b-gold' : 'b-silver'}`} style={{ fontSize: '10px', padding: '2px 6px', textTransform: 'uppercase', fontWeight: 700, marginBottom: '6px', display: 'inline-block' }}>
+                  {selectedPostToView.company_tier}
+                </span>
+                <h3 style={{ margin: 0, fontSize: '18px', color: '#0F172A', fontWeight: 700 }}>{selectedPostToView.title}</h3>
+                <div style={{ fontSize: '11px', color: '#64748B', marginTop: '4px' }}>
+                  Đăng bởi: <strong>{selectedPostToView.company_name}</strong> | Phân loại: <strong>{selectedPostToView.type}</strong>
+                </div>
+              </div>
+              <button 
+                onClick={() => setViewPostModalOpen(false)}
+                style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#64748B', lineHeight: '20px', padding: 0 }}
+              >
+                &times;
+              </button>
+            </div>
+
+            <div style={{ textAlign: 'left', fontSize: '13.5px', color: '#334155', lineHeight: 1.6 }}>
+              {selectedPostToView.image_url && (
+                <div style={{ width: '100%', maxHeight: '300px', borderRadius: '8px', overflow: 'hidden', marginBottom: '1.5rem' }}>
+                  <img src={selectedPostToView.image_url} alt={selectedPostToView.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
+              )}
+
+              {selectedPostToView.summary && (
+                <div style={{ background: '#F8FAFC', padding: '12px', borderRadius: '8px', borderLeft: '4px solid #3B82F6', marginBottom: '1.5rem', fontWeight: '500' }}>
+                  Tóm tắt: {selectedPostToView.summary}
+                </div>
+              )}
+
+              <div style={{ marginBottom: '1.5rem' }}>
+                <div style={{ fontWeight: '600', color: '#0F172A', marginBottom: '8px', fontSize: '14px', borderBottom: '1px solid #E2E8F0', paddingBottom: '4px' }}>Nội dung chi tiết</div>
+                <div dangerouslySetInnerHTML={{ __html: selectedPostToView.body }} style={{ padding: '4px 0' }} className="rich-content-view" />
+              </div>
+
+              <div style={{ gridTemplateColumns: '1fr 1fr', display: 'grid', gap: '15px', background: '#F8FAFC', padding: '12px 16px', borderRadius: '8px', marginBottom: '1.5rem' }}>
+                <div>
+                  <div style={{ fontSize: '11px', color: '#64748B' }}>Thông tin liên hệ trực tiếp</div>
+                  <div style={{ fontWeight: '600', color: '#0F172A', marginTop: '2px' }}>{selectedPostToView.contact_info}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '11px', color: '#64748B' }}>Hạn đăng tin</div>
+                  <div style={{ fontWeight: '600', color: '#0F172A', marginTop: '2px' }}>
+                    {selectedPostToView.deadline ? new Date(selectedPostToView.deadline).toLocaleDateString('vi-VN') : 'Không giới hạn'}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', borderTop: '1px solid #F1F5F9', paddingTop: '12px' }}>
+              <button 
+                className="btn" 
+                onClick={() => setViewPostModalOpen(false)}
+                style={{ fontSize: '12px', padding: '6px 14px', background: '#F1F5F9', color: '#475569', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+              >
+                Đóng
+              </button>
+              {selectedPostToView.status !== 'approved' && (
+                <button 
+                  className="btn btn-primary" 
+                  onClick={() => {
+                    handleApprove(selectedPostToView.id, selectedPostToView.title);
+                    setViewPostModalOpen(false);
+                  }}
+                  style={{ fontSize: '12px', padding: '6px 14px', borderRadius: '6px', cursor: 'pointer' }}
+                >
+                  Duyệt bài đăng này
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </AdminLayout>
   );
 };

@@ -1214,6 +1214,17 @@ app.patch('/api/posts/:id/featured', authMiddleware, async (req, res) => {
   }
 });
 
+// Xóa bài viết vĩnh viễn (Admin)
+app.delete('/api/admin/posts/:id', authMiddleware, async (req, res) => {
+  try {
+    const postId = req.params.id;
+    await db.query("DELETE FROM posts WHERE id = ?", [postId]);
+    res.json({ success: true, message: 'Đã xóa bài viết vĩnh viễn.' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 
 
 // Lấy số liệu công khai cho trang chủ
