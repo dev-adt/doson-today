@@ -19,7 +19,7 @@ export const Posts = () => {
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const postsPerPage = 8;
+  const [postsPerPage, setPostsPerPage] = useState(10);
 
   // Platinum slider index state
   const [activeSlide, setActiveSlide] = useState(0);
@@ -138,8 +138,8 @@ export const Posts = () => {
                   position: 'absolute',
                   inset: 0,
                   opacity: isActive ? 1 : 0,
-                  visibility: isActive ? 'visible' : 'hidden',
-                  transition: 'opacity 0.8s ease-in-out, visibility 0.8s ease-in-out',
+                  pointerEvents: isActive ? 'auto' : 'none',
+                  transition: 'opacity 0.8s ease-in-out',
                   display: 'flex',
                   background: 'linear-gradient(90deg, rgba(8,14,30,0.95) 0%, rgba(8,14,30,0.4) 100%)',
                 }}>
@@ -238,8 +238,34 @@ export const Posts = () => {
             </select>
           </div>
 
-          <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-            Tìm thấy <strong>{sortedPosts.length}</strong> bài viết
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--text-secondary)' }}>
+              <span>Hiển thị:</span>
+              <select
+                value={postsPerPage}
+                onChange={(e) => {
+                  setPostsPerPage(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                style={{
+                  padding: '4px 8px',
+                  borderRadius: '6px',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  background: 'var(--surface-3)',
+                  color: '#fff',
+                  fontSize: '11.5px',
+                  cursor: 'pointer',
+                  outline: 'none'
+                }}
+              >
+                <option value="5">5 bài/trang</option>
+                <option value="10">10 bài/trang</option>
+                <option value="25">25 bài/trang</option>
+              </select>
+            </div>
+            <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+              Tìm thấy <strong>{sortedPosts.length}</strong> bài viết
+            </div>
           </div>
         </div>
 

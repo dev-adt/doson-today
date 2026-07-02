@@ -163,7 +163,14 @@ export const AdminPosts = () => {
                       </span>
                     </td>
                     <td style={{ padding: '12px 16px' }}>
-                      <div style={{ fontWeight: 600, color: '#1E293B', textAlign: 'left' }}>{p.title}</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                        <div style={{ fontWeight: 600, color: '#1E293B', textAlign: 'left' }}>{p.title}</div>
+                        {p.featured_requested === 1 && p.is_featured === 0 && (
+                          <span style={{ fontSize: '9px', background: 'rgba(245, 158, 11, 0.15)', color: '#D97706', border: '1px solid rgba(245,158,11,0.3)', padding: '1px 5px', borderRadius: '3px', fontWeight: 700 }}>
+                            Yêu cầu ghim <i className="ti ti-star-filled"></i>
+                          </span>
+                        )}
+                      </div>
                       <div style={{ fontSize: '11px', color: '#64748B', marginTop: '4px', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: '300px', textAlign: 'left' }}>
                         {p.summary}
                       </div>

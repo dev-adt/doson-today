@@ -35,7 +35,7 @@ export const MemberDashboard = () => {
   const [newPostData, setNewPostData] = useState({
     title: '', summary: '', body: '', type: 'Tìm kiếm đối tác',
     category: '', tags: '', contact_info: '', deadline: '',
-    image_url: ''
+    image_url: '', featured_requested: 0
   });
   const [creatingPost, setCreatingPost] = useState(false);
 
@@ -213,7 +213,8 @@ export const MemberDashboard = () => {
             tags: parsedTags,
             contact_info: p.contact_info || '',
             deadline: formattedDeadline,
-            image_url: p.image_url || ''
+            image_url: p.image_url || '',
+            featured_requested: p.featured_requested || 0
           });
           setEditingPostId(id);
           setModalOpen(true);
@@ -272,7 +273,8 @@ export const MemberDashboard = () => {
       setEditingPostId(null);
       setNewPostData({
         title: '', summary: '', body: '', type: 'Tìm kiếm đối tác',
-        category: '', tags: '', contact_info: '', deadline: '', image_url: ''
+        category: '', tags: '', contact_info: '', deadline: '', image_url: '',
+        featured_requested: 0
       });
       loadDashboardData();
     } catch (err) {
@@ -665,6 +667,21 @@ export const MemberDashboard = () => {
                   </div>
                   {uploadingImage && <div style={{ fontSize: '11px', color: 'var(--primary-light)', marginTop: '2px' }}><i className="ti ti-loader animate-spin"></i> Đang tải ảnh lên...</div>}
                 </div>
+
+                {profileData.tier === 'Platinum' && (
+                  <div className="fg" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '15px', background: 'rgba(245, 158, 11, 0.05)', padding: '10px 12px', borderRadius: '8px', border: '1px solid rgba(245,158,11,0.15)' }}>
+                    <input 
+                      type="checkbox" 
+                      id="featured_requested" 
+                      checked={newPostData.featured_requested === 1}
+                      onChange={(e) => setNewPostData(prev => ({ ...prev, featured_requested: e.target.checked ? 1 : 0 }))} 
+                      style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                    />
+                    <label htmlFor="featured_requested" style={{ margin: 0, cursor: 'pointer', fontSize: '13px', fontWeight: 650, color: 'var(--amber)' }}>
+                      <i className="ti ti-star-filled"></i> Yêu cầu ghim nổi bật bài đăng này ngoài trang chủ (Quyền lợi Platinum)
+                    </label>
+                  </div>
+                )}
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '1.5rem', borderTop: '1px solid var(--border)', paddingTop: '12px' }}>

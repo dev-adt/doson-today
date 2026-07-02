@@ -77,6 +77,54 @@ export const RichTextEditor = ({ value, onChange, placeholder }) => {
         <button type="button" onClick={() => execCommand('underline')} title="Gạch chân" style={btnStyle} className="hover-highlight">
           <i className="ti ti-underline" style={{ fontSize: '14px' }}></i>
         </button>
+
+        <div style={{ width: '1px', height: '18px', background: 'rgba(255,255,255,0.1)', margin: '0 4px' }} />
+
+        {/* Font Size & Color controls */}
+        <select
+          onChange={(e) => execCommand('fontSize', e.target.value)}
+          style={{
+            background: 'none',
+            border: '1px solid rgba(255,255,255,0.15)',
+            color: '#fff',
+            padding: '2px 4px',
+            borderRadius: '4px',
+            fontSize: '11px',
+            cursor: 'pointer',
+            outline: 'none',
+            backgroundColor: 'rgba(25,32,56,0.95)',
+            margin: '0 4px',
+            height: '24px'
+          }}
+          title="Cỡ chữ"
+        >
+          <option value="3">Cỡ chữ</option>
+          <option value="1">Rất nhỏ</option>
+          <option value="2">Nhỏ</option>
+          <option value="3">Bình thường</option>
+          <option value="4">Lớn</option>
+          <option value="5">Rất lớn</option>
+          <option value="6">Cực lớn</option>
+          <option value="7">Khổng lồ</option>
+        </select>
+
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', margin: '0 6px', position: 'relative' }} title="Màu chữ">
+          <i className="ti ti-palette" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.8)' }}></i>
+          <input 
+            type="color" 
+            onChange={(e) => execCommand('foreColor', e.target.value)}
+            defaultValue="#ffffff"
+            style={{
+              width: '18px',
+              height: '18px',
+              border: 'none',
+              padding: 0,
+              background: 'none',
+              cursor: 'pointer',
+              outline: 'none'
+            }}
+          />
+        </div>
         
         <div style={{ width: '1px', height: '18px', background: 'rgba(255,255,255,0.1)', margin: '0 4px' }} />
 
