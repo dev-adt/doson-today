@@ -7,6 +7,7 @@ export const Navbar = () => {
   const { role, user, logout } = useAuth();
   const { currentLang, changeLang, t, getLangDetails, LANGS } = useTranslation();
   const [langOpen, setLangOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -37,7 +38,8 @@ export const Navbar = () => {
   const currentLangDetails = getLangDetails();
 
   return (
-    <nav style={{ zIndex: 1000 }}>
+    <>
+      <nav style={{ zIndex: 1000 }}>
       <Link to="/" className="nav-logo" style={{ textDecoration: 'none' }}>
         <div className="nav-logo-icon"><img src="/avg_logo.png" alt="Logo" style={{ width: '20px', height: '20px', objectFit: 'contain' }} /></div>
         AVG
@@ -197,8 +199,83 @@ export const Navbar = () => {
             </button>
           </div>
         )}
+        
+        {/* Mobile Menu Button */}
+        <button 
+          className="mobile-menu-btn"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: '#fff',
+            fontSize: '22px',
+            cursor: 'pointer',
+            padding: '4px',
+            display: 'none',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginLeft: '8px'
+          }}
+        >
+          <i className={mobileMenuOpen ? "ti ti-x" : "ti ti-menu-2"}></i>
+        </button>
       </div>
     </nav>
-  );
+
+    {/* Mobile Links Dropdown */}
+    {mobileMenuOpen && (
+      <div className="mobile-nav-menu" style={{
+        position: 'fixed',
+        top: '64px',
+        left: 0,
+        right: 0,
+        backgroundColor: 'rgba(8, 14, 30, 0.96)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        borderBottom: '1px solid var(--border)',
+        padding: '1.5rem',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '1rem',
+        zIndex: 999,
+        boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
+        boxSizing: 'border-box'
+      }}>
+        {/* Members dropdown items list inline */}
+        <div style={{ fontWeight: 600, color: '#fff', fontSize: '13.5px', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '6px' }}>
+          {t('menu_members')}
+        </div>
+        <Link to="/members" onClick={() => setMobileMenuOpen(false)} style={{ color: 'var(--text-secondary)', textDecoration: 'none', paddingLeft: '12px', fontSize: '13px' }}>
+          {t('menu_directory')}
+        </Link>
+        <a href="#tiers" onClick={(e) => { handleAnchorClick(e, '#tiers'); setMobileMenuOpen(false); }} style={{ color: 'var(--text-secondary)', textDecoration: 'none', paddingLeft: '12px', fontSize: '13px' }}>
+          {t('menu_tiers')}
+        </a>
+
+        {/* Marketplace inline list */}
+        <div style={{ fontWeight: 600, color: '#fff', fontSize: '13.5px', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '6px', marginTop: '8px' }}>
+          {t('menu_marketplace')}
+        </div>
+        <a href="#posts" onClick={(e) => { handleAnchorClick(e, '#posts'); setMobileMenuOpen(false); }} style={{ color: 'var(--text-secondary)', textDecoration: 'none', paddingLeft: '12px', fontSize: '13px' }}>
+          {t('menu_opportunities')}
+        </a>
+        <Link to="/posts" onClick={() => setMobileMenuOpen(false)} style={{ color: 'var(--text-secondary)', textDecoration: 'none', paddingLeft: '12px', fontSize: '13px' }}>
+          {t('menu_national_feeds')}
+        </Link>
+
+        {/* Simple Link items */}
+        <Link to="/events" onClick={() => setMobileMenuOpen(false)} style={{ fontWeight: 600, color: '#fff', fontSize: '13.5px', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '8px', textDecoration: 'none', marginTop: '8px' }}>
+          {t('menu_events')}
+        </Link>
+        <Link to="/ai-chat" onClick={() => setMobileMenuOpen(false)} style={{ fontWeight: 600, color: '#fff', fontSize: '13.5px', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '8px', textDecoration: 'none' }}>
+          {t('menu_ai')}
+        </Link>
+        <Link to="/guide" onClick={() => setMobileMenuOpen(false)} style={{ fontWeight: 600, color: '#fff', fontSize: '13.5px', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '8px', textDecoration: 'none' }}>
+          {t('menu_guide')}
+        </Link>
+      </div>
+    )}
+  </>
+);
 };
 export default Navbar;

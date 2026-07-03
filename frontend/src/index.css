@@ -1395,6 +1395,7 @@ nav {
   .stats-row{grid-template-columns: 1fr 1fr}
   .grid2{grid-template-columns: 1fr}
   .nav-links{display:none}
+  .mobile-menu-btn{display:flex !important}
   .form-row{grid-template-columns: 1fr}
   .tier-sel-grid{grid-template-columns: 1fr}
   .features-grid, .members-grid, .events-grid, .tiers-grid, .provider-grid {
