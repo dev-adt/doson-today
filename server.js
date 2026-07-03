@@ -126,6 +126,10 @@ db.query(`
       await db.query("ALTER TABLE members ADD COLUMN is_featured TINYINT(1) DEFAULT 0");
       console.log('✅ Đã thêm cột is_featured vào bảng members');
     }
+    if (!memberColNames.includes('city')) {
+      await db.query("ALTER TABLE members ADD COLUMN city VARCHAR(100) DEFAULT NULL AFTER address");
+      console.log('✅ Đã thêm cột city vào bảng members');
+    }
 
     // Cập nhật ENUM cho status cột của bảng members để hỗ trợ 'suspended'
     await db.query("ALTER TABLE members MODIFY COLUMN status ENUM('pending','approved','rejected','suspended') DEFAULT 'pending'");
@@ -553,17 +557,17 @@ app.get('/api/member/profile', memberAuthMiddleware, async (req, res) => {
 app.put('/api/member/profile', memberAuthMiddleware, async (req, res) => {
   try {
     const {
-      name, tax_code, license, industry, size, address, website, social,
+      name, tax_code, license, industry, size, address, city, website, social,
       description, contact_name, contact_pos, phone, goal, password
     } = req.body;
 
     if (!name) return res.status(400).json({ success: false, error: 'Tên doanh nghiệp không được trống.' });
 
     let sql = `UPDATE members SET 
-      name=?, tax_code=?, license=?, industry=?, size=?, address=?, website=?, social=?, 
+      name=?, tax_code=?, license=?, industry=?, size=?, address=?, city=?, website=?, social=?, 
       description=?, contact_name=?, contact_pos=?, phone=?, goal=?`;
     const params = [
-      name, tax_code || '', license || '', industry || '', size || '', address || '', website || '', social || '',
+      name, tax_code || '', license || '', industry || '', size || '', address || '', city || null, website || '', social || '',
       description || '', contact_name || '', contact_pos || '', phone || '', goal || ''
     ];
 
@@ -812,7 +816,7 @@ app.get('/api/members/:id', async (req, res) => {
 app.post('/api/members', async (req, res) => {
   try {
     const {
-      name, tax_code, license, industry, size, address, website, social,
+      name, tax_code, license, industry, size, address, city, website, social,
       description, tier, contact_name, contact_pos, email, phone, goal, referral, password
     } = req.body;
 
@@ -827,10 +831,10 @@ app.post('/api/members', async (req, res) => {
     }
 
     const [result] = await db.query(
-      `INSERT INTO members (name, tax_code, license, industry, size, address, website, social,
+      `INSERT INTO members (name, tax_code, license, industry, size, address, city, website, social,
         description, tier, status, contact_name, contact_pos, email, username, password_hash, phone, goal, referral)
-       VALUES (?,?,?,?,?,?,?,?,?,?,'pending',?,?,?,?,?,?,?,?)`,
-      [name, tax_code, license, industry, size, address, website, social,
+       VALUES (?,?,?,?,?,?,?,?,?,?,?,'pending',?,?,?,?,?,?,?,?)`,
+      [name, tax_code, license, industry, size, address, city || null, website, social,
        description, tier || 'Silver', contact_name, contact_pos, email, email, hash, phone, goal, referral]
     );
     res.json({ success: true, id: result.insertId, message: 'Đăng ký thành công! Chờ admin xét duyệt.' });
