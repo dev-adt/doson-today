@@ -1270,14 +1270,22 @@ app.get('/api/public-search', async (req, res) => {
     );
 
     // 2. Tìm doanh nghiệp hội viên (Approved)
-    const authHeader = req.headers.authorization;
+    const authHeader = req.headers['authorization'];
     let isAuthenticated = false;
     if (authHeader && authHeader.startsWith('Bearer ')) {
-      const token = authHeader.split(' ')[1];
+      const token = authHeader.substring(7);
       try {
-        const decoded = jwt.verify(token, JWT_SECRET);
-        if (decoded && decoded.id) {
+        const [adminSess] = await db.query('SELECT id FROM admin_sessions WHERE token = ? AND expires_at > NOW()', [token]);
+        if (adminSess.length) {
           isAuthenticated = true;
+        } else {
+          const [memberSess] = await db.query(
+            `SELECT s.id FROM member_sessions s JOIN members m ON s.member_id = m.id WHERE s.token = ? AND s.expires_at > NOW() AND m.status = 'approved'`,
+            [token]
+          );
+          if (memberSess.length) {
+            isAuthenticated = true;
+          }
         }
       } catch (e) {}
     }
@@ -1304,7 +1312,7 @@ app.get('/api/public-search', async (req, res) => {
     const [events] = await db.query(
       `SELECT * FROM events 
        WHERE title LIKE ? OR organizer LIKE ? OR description LIKE ? OR location LIKE ?
-       ORDER BY date DESC LIMIT 15`,
+       ORDER BY event_date DESC LIMIT 15`,
       [searchPattern, searchPattern, searchPattern, searchPattern]
     );
 

@@ -39,8 +39,8 @@ export const Search = () => {
     try {
       const headers = token ? { 'Authorization': 'Bearer ' + token } : {};
       const res = await fetch(`/api/public-search?q=${encodeURIComponent(searchQuery)}`, { headers });
-      if (!res.ok) throw new Error('Không thể tìm kiếm thông tin');
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Không thể tìm kiếm thông tin');
       if (data.success) {
         setResults({
           posts: data.posts || [],
