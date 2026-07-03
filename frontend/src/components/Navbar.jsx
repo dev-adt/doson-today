@@ -61,7 +61,7 @@ export const Navbar = () => {
         </div>
 
         <Link to="/events" className="nav-link">Sự kiện</Link>
-
+        <Link to="/guide" className="nav-link">Hướng dẫn</Link>
         <Link to="/ai-chat" className="nav-link">Khám phá trợ lý AI</Link>
       </div>
 
