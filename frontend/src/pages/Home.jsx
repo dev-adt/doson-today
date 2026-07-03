@@ -505,44 +505,44 @@ export const Home = () => {
                 <div className="pkg-price">{t('price_free')}</div>
               </div>
               <div className="pkg-list">
-                <div className="pkg-item"><i className="ti ti-check"></i> Hội viên hoạt động cơ bản</div>
-                <div className="pkg-item"><i className="ti ti-check"></i> Hiển thị doanh nghiệp tại trang danh sách</div>
-                <div className="pkg-item"><i className="ti ti-check"></i> Đăng tối đa 3 tin bài kết nối/tháng</div>
-                <div className="pkg-item"><i className="ti ti-check"></i> Hỏi đáp Trợ lý AI cơ bản</div>
+                <div className="pkg-item"><i className="ti ti-check"></i> {t('silver_feat_1')}</div>
+                <div className="pkg-item"><i className="ti ti-check"></i> {t('silver_feat_2')}</div>
+                <div className="pkg-item"><i className="ti ti-check"></i> {t('silver_feat_3')}</div>
+                <div className="pkg-item"><i className="ti ti-check"></i> {t('silver_feat_4')}</div>
               </div>
               <Link to={getTiersLink()} className="btn" style={{ width: '100%', justifyContent: 'center', padding: '10px', backgroundColor: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.1)', color: '#ffffff', fontWeight: 600, textDecoration: 'none' }}>{getTiersButtonText()}</Link>
             </div>
 
             {/* Gold */}
             <div className="pkg-card gold">
-              <div style={{ position: 'absolute', top: '12px', right: '12px', background: 'var(--amber)', color: '#000', fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '99px', textTransform: 'uppercase' }}>Phổ biến</div>
+              <div style={{ position: 'absolute', top: '12px', right: '12px', background: 'var(--amber)', color: '#000', fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '99px', textTransform: 'uppercase' }}>{t('label_popular')}</div>
               <div className="pkg-header">
                 <div className="pkg-name" style={{ color: 'var(--amber)' }}>Gold</div>
-                <div className="pkg-price" style={{ fontSize: '24px' }}>5.000.000đ <span>/ năm</span></div>
+                <div className="pkg-price" style={{ fontSize: '24px' }}>{t('price_gold_val')} <span>/ {t('pricing_per_year')}</span></div>
               </div>
               <div className="pkg-list">
-                <div className="pkg-item"><i className="ti ti-check"></i> Đầy đủ quyền lợi gói Silver</div>
-                <div className="pkg-item"><i className="ti ti-check"></i> Ưu tiên hiển thị doanh nghiệp nổi bật</div>
-                <div className="pkg-item"><i className="ti ti-check"></i> Đăng 15 tin bài kết nối/tháng</div>
-                <div className="pkg-item"><i className="ti ti-check"></i> Mở rộng tương tác AI tự động kết nối</div>
-                <div className="pkg-item"><i className="ti ti-check"></i> Nhận cơ hội giao thương đặc quyền</div>
+                <div className="pkg-item"><i className="ti ti-check"></i> {t('gold_feat_1')}</div>
+                <div className="pkg-item"><i className="ti ti-check"></i> {t('gold_feat_2')}</div>
+                <div className="pkg-item"><i className="ti ti-check"></i> {t('gold_feat_3')}</div>
+                <div className="pkg-item"><i className="ti ti-check"></i> {t('gold_feat_4')}</div>
+                <div className="pkg-item"><i className="ti ti-check"></i> {t('gold_feat_5')}</div>
               </div>
               <Link to={getTiersLink()} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '10px', fontWeight: 600, textDecoration: 'none' }}>{getTiersButtonText()}</Link>
             </div>
 
             {/* Platinum */}
             <div className="pkg-card platinum">
-              <div style={{ position: 'absolute', top: '12px', right: '12px', background: 'var(--primary)', color: '#fff', fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '99px', textTransform: 'uppercase' }}>Thượng lưu</div>
+              <div style={{ position: 'absolute', top: '12px', right: '12px', background: 'var(--primary)', color: '#fff', fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '99px', textTransform: 'uppercase' }}>{t('label_elite')}</div>
               <div className="pkg-header">
                 <div className="pkg-name" style={{ color: 'var(--primary-light)' }}>Platinum</div>
-                <div className="pkg-price" style={{ fontSize: '24px' }}>15.000.000đ <span>/ năm</span></div>
+                <div className="pkg-price" style={{ fontSize: '24px' }}>{t('price_platinum_val')} <span>/ {t('pricing_per_year')}</span></div>
               </div>
               <div className="pkg-list">
-                <div className="pkg-item"><i className="ti ti-check"></i> Quyền lợi cao cấp nhất hệ thống</div>
-                <div className="pkg-item"><i className="ti ti-check"></i> Đăng tin giao thương không giới hạn</div>
-                <div className="pkg-item"><i className="ti ti-check"></i> Tư vấn kết nối đối tác riêng biệt</div>
-                <div className="pkg-item"><i className="ti ti-check"></i> Báo cáo phân tích thị trường chuyên sâu</div>
-                <div className="pkg-item"><i className="ti ti-check"></i> Trợ lý AI riêng tùy biến cho thương hiệu</div>
+                <div className="pkg-item"><i className="ti ti-check"></i> {t('plat_feat_1')}</div>
+                <div className="pkg-item"><i className="ti ti-check"></i> {t('plat_feat_2')}</div>
+                <div className="pkg-item"><i className="ti ti-check"></i> {t('plat_feat_3')}</div>
+                <div className="pkg-item"><i className="ti ti-check"></i> {t('plat_feat_4')}</div>
+                <div className="pkg-item"><i className="ti ti-check"></i> {t('plat_feat_5')}</div>
               </div>
               <Link to={getTiersLink()} className="btn" style={{ width: '100%', justifyContent: 'center', padding: '10px', backgroundColor: 'rgba(30, 136, 229, 0.1)', borderColor: 'var(--primary)', color: '#ffffff', fontWeight: 600, textDecoration: 'none' }}>{getTiersButtonText()}</Link>
             </div>
