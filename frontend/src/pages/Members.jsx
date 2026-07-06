@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useTranslation } from '../contexts/LanguageContext';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
 export const Members = () => {
   const { token } = useAuth();
+  const { currentLang } = useTranslation();
   
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -15,6 +17,40 @@ export const Members = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [membersPerPage, setMembersPerPage] = useState(12);
   const [error, setError] = useState('');
+
+  // Trạng thái dịch mô tả hội viên (map từ memberId sang text)
+  const [translatedDescs, setTranslatedDescs] = useState({});
+  const [loadingTranslations, setLoadingTranslations] = useState({});
+
+  const handleTranslateMember = async (memberId, originalDesc) => {
+    if (translatedDescs[memberId]) {
+      setTranslatedDescs(prev => {
+        const copy = { ...prev };
+        delete copy[memberId];
+        return copy;
+      });
+      return;
+    }
+
+    setLoadingTranslations(prev => ({ ...prev, [memberId]: true }));
+    try {
+      const res = await fetch('/api/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: originalDesc, targetLang: currentLang })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setTranslatedDescs(prev => ({ ...prev, [memberId]: data.translatedText }));
+      } else {
+        alert('Lỗi dịch thuật: ' + (data.error || 'Lỗi không xác định'));
+      }
+    } catch (err) {
+      alert('Không thể thực hiện dịch: ' + err.message);
+    } finally {
+      setLoadingTranslations(prev => ({ ...prev, [memberId]: false }));
+    }
+  };
 
   const getInitialsColors = (name) => {
     const sum = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
@@ -228,7 +264,45 @@ export const Members = () => {
                       <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <i className="ti ti-briefcase" style={{ color: 'var(--amber)' }}></i> {m.industry}
                       </div>
-                      <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '15px', flex: 1, textAlign: 'left', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{m.desc}</p>
+                      <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+                        <p style={{ 
+                          fontSize: '12px', 
+                          color: 'var(--text-secondary)', 
+                          lineHeight: 1.6, 
+                          marginBottom: '8px', 
+                          textAlign: 'left', 
+                          display: '-webkit-box', 
+                          WebkitLineClamp: 3, 
+                          WebkitBoxOrient: 'vertical', 
+                          overflow: 'hidden' 
+                        }}>
+                          {translatedDescs[`feat-${m.id}`] ? translatedDescs[`feat-${m.id}`] : m.desc}
+                        </p>
+                        {m.desc && m.desc.trim() !== '' && (
+                          <button
+                            onClick={() => handleTranslateMember(`feat-${m.id}`, m.desc)}
+                            disabled={loadingTranslations[`feat-${m.id}`]}
+                            style={{
+                              alignSelf: 'flex-start',
+                              background: 'none',
+                              border: 'none',
+                              color: translatedDescs[`feat-${m.id}`] ? 'var(--emerald)' : 'var(--neon-cyan)',
+                              fontSize: '10.5px',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '3px',
+                              fontWeight: 600,
+                              padding: '2px 0',
+                              marginBottom: '10px',
+                              outline: 'none'
+                            }}
+                          >
+                            <i className={loadingTranslations[`feat-${m.id}`] ? "ti ti-loader animate-spin" : "ti ti-language"}></i>
+                            {loadingTranslations[`feat-${m.id}`] ? 'Đang dịch...' : translatedDescs[`feat-${m.id}`] ? 'Xem bản gốc' : 'Dịch AI'}
+                          </button>
+                        )}
+                      </div>
                       
                       {/* Contact Info Block */}
                       {m.email !== '***@***.***' ? (
@@ -295,7 +369,45 @@ export const Members = () => {
                       <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <i className="ti ti-briefcase"></i> {m.industry}
                       </div>
-                      <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '15px', flex: 1, textAlign: 'left', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{m.desc}</p>
+                      <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+                        <p style={{ 
+                          fontSize: '12px', 
+                          color: 'var(--text-secondary)', 
+                          lineHeight: 1.6, 
+                          marginBottom: '8px', 
+                          textAlign: 'left', 
+                          display: '-webkit-box', 
+                          WebkitLineClamp: 3, 
+                          WebkitBoxOrient: 'vertical', 
+                          overflow: 'hidden' 
+                        }}>
+                          {translatedDescs[m.id] ? translatedDescs[m.id] : m.desc}
+                        </p>
+                        {m.desc && m.desc.trim() !== '' && (
+                          <button
+                            onClick={() => handleTranslateMember(m.id, m.desc)}
+                            disabled={loadingTranslations[m.id]}
+                            style={{
+                              alignSelf: 'flex-start',
+                              background: 'none',
+                              border: 'none',
+                              color: translatedDescs[m.id] ? 'var(--emerald)' : 'var(--neon-cyan)',
+                              fontSize: '10.5px',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '3px',
+                              fontWeight: 600,
+                              padding: '2px 0',
+                              marginBottom: '10px',
+                              outline: 'none'
+                            }}
+                          >
+                            <i className={loadingTranslations[m.id] ? "ti ti-loader animate-spin" : "ti ti-language"}></i>
+                            {loadingTranslations[m.id] ? 'Đang dịch...' : translatedDescs[m.id] ? 'Xem bản gốc' : 'Dịch AI'}
+                          </button>
+                        )}
+                      </div>
                       
                       {/* Contact Info Block */}
                       {m.email !== '***@***.***' ? (

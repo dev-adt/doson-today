@@ -1636,6 +1636,151 @@ ${events.map(e => `• ${e.title} — ${new Date(e.event_date).toLocaleDateStrin
   }
 });
 
+// API dịch thuật động sử dụng AI
+app.post('/api/translate', async (req, res) => {
+  const { text, targetLang } = req.body;
+  if (!text) {
+    return res.status(400).json({ error: 'Thiếu nội dung cần dịch.' });
+  }
+
+  // Mặc định ngôn ngữ dịch là Tiếng Anh nếu không truyền hoặc không hợp lệ
+  let langName = 'English';
+  if (targetLang === 'vi') langName = 'Vietnamese';
+  else if (targetLang === 'ja') langName = 'Japanese';
+  else if (targetLang === 'zh') langName = 'Chinese';
+
+  // Lấy cấu hình AI đang hoạt động từ DB
+  let provider = 'gemini';
+  let model = 'gemini-1.5-flash';
+  try {
+    const [rows] = await db.query('SELECT provider, model FROM ai_config WHERE is_active = 1 LIMIT 1');
+    if (rows[0]) {
+      provider = rows[0].provider;
+      model = rows[0].model;
+    }
+  } catch (dbErr) {
+    console.error('Error fetching AI config for translation:', dbErr.message);
+  }
+
+  const apiKey = getAPIKey(provider);
+  if (!apiKey && provider !== 'ollama') {
+    return res.status(400).json({ error: `API Key cho ${provider} chưa được cấu hình.` });
+  }
+
+  const systemInstruction = `You are a professional translator. Translate the given text to ${langName}. 
+Preserve all HTML tags, line breaks, formatting, and markdown if present. Do not add any conversational text or explanations. Output ONLY the direct translation.`;
+
+  try {
+    let translatedText = '';
+    
+    if (provider === 'gemini') {
+      const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+        method : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body   : JSON.stringify({ 
+          system_instruction: { parts: [{ text: systemInstruction }] }, 
+          contents: [{ role: 'user', parts: [{ text: text }] }],
+          generationConfig: { maxOutputTokens: 2048 } 
+        }),
+      });
+      const d = await r.json();
+      if (d.error) throw new Error(d.error.message);
+      translatedText = d.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    }
+    else if (provider === 'openai') {
+      const r = await fetch('https://api.openai.com/v1/chat/completions', {
+        method : 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + apiKey },
+        body   : JSON.stringify({ 
+          model, 
+          max_tokens: 2048, 
+          messages: [
+            { role: 'system', content: systemInstruction },
+            { role: 'user', content: text }
+          ] 
+        }),
+      });
+      const d = await r.json();
+      if (d.error) throw new Error(d.error.message);
+      translatedText = d.choices?.[0]?.message?.content || '';
+    }
+    else if (provider === 'anthropic') {
+      const r = await fetch('https://api.anthropic.com/v1/messages', {
+        method : 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+        body   : JSON.stringify({ 
+          model, 
+          max_tokens: 2048, 
+          system: systemInstruction, 
+          messages: [{ role: 'user', content: text }] 
+        }),
+      });
+      const d = await r.json();
+      if (d.error) throw new Error(d.error.message);
+      translatedText = d.content?.[0]?.text || '';
+    }
+    else if (provider === 'deepseek') {
+      const r = await fetch('https://api.deepseek.com/v1/chat/completions', {
+        method : 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + apiKey },
+        body   : JSON.stringify({ 
+          model, 
+          max_tokens: 2048, 
+          messages: [
+            { role: 'system', content: systemInstruction },
+            { role: 'user', content: text }
+          ] 
+        }),
+      });
+      const d = await r.json();
+      if (d.error) throw new Error(d.error.message);
+      translatedText = d.choices?.[0]?.message?.content || '';
+    }
+    else if (provider === 'openrouter') {
+      const r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method : 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + apiKey, 'HTTP-Referer': process.env.SITE_URL || 'https://bizhub.vn', 'X-Title': 'BizHub AI' },
+        body   : JSON.stringify({ 
+          model, 
+          max_tokens: 2048, 
+          messages: [
+            { role: 'system', content: systemInstruction },
+            { role: 'user', content: text }
+          ] 
+        }),
+      });
+      const d = await r.json();
+      if (d.error) throw new Error(d.error.message);
+      translatedText = d.choices?.[0]?.message?.content || '';
+    }
+    else if (provider === 'ollama') {
+      const base = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
+      const r = await fetch(`${base}/api/chat`, {
+        method : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body   : JSON.stringify({ 
+          model, 
+          stream: false, 
+          messages: [
+            { role: 'system', content: systemInstruction },
+            { role: 'user', content: text }
+          ] 
+        }),
+      });
+      const d = await r.json();
+      translatedText = d.message?.content || '';
+    }
+    else {
+      return res.status(400).json({ error: `Provider "${provider}" không hỗ trợ.` });
+    }
+
+    res.json({ success: true, translatedText: translatedText.trim() });
+  } catch (err) {
+    console.error(`[Translate Error - ${provider}]:`, err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // ════════════════════════════════════════════
 // EVENTS API
 // ════════════════════════════════════════════
