@@ -133,4 +133,4 @@ INSERT INTO events (title, event_date, location, organizer, status) VALUES
 ('Diễn đàn Doanh nghiệp Đồ Sơn Today Q3/2025', '2025-08-05', 'Đồi Rồng Resort, Đồ Sơn', 'Đồ Sơn Today', 'upcoming');
 
 -- Cấu hình AI mặc định
-INSERT INTO ai_config (provider, model, is_active) VALUES ('openrouter', 'google/gemini-2.0-flash-001', 1);
+INSERT INTO ai_config (provider, model, is_active) VALUES ('openrouter', 'google/gemini-3-flash-preview', 1);
