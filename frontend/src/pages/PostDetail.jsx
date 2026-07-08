@@ -245,7 +245,7 @@ export const PostDetail = () => {
             <i className="ti ti-chevron-right" style={{ fontSize: '10px' }}></i>
             <Link to="/posts" style={{ color: 'inherit', textDecoration: 'none' }}>Bảng tin cơ hội</Link>
             <i className="ti ti-chevron-right" style={{ fontSize: '10px' }}></i>
-            <span style={{ color: '#fff' }}>{post.title}</span>
+            <span style={{ color: 'var(--text-primary)' }}>{post.title}</span>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '30px', alignItems: 'start' }}>
@@ -254,7 +254,7 @@ export const PostDetail = () => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', textAlign: 'left' }}>
               
               {/* Cover Image */}
-              <div style={{ width: '100%', maxHeight: '420px', borderRadius: '16px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.06)' }}>
+              <div style={{ width: '100%', maxHeight: '420px', borderRadius: '16px', overflow: 'hidden', border: '1px solid var(--border)' }}>
                 <img src={imgUrl} alt={post.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </div>
 
@@ -267,18 +267,18 @@ export const PostDetail = () => {
                 )}
                 
                 <div style={{ display: 'flex', gap: '10px', marginBottom: '12px' }}>
-                  <span style={{ fontSize: '10px', background: 'rgba(0, 229, 255, 0.1)', color: 'var(--neon-cyan)', border: '1px solid rgba(0, 229, 255, 0.2)', padding: '2px 8px', borderRadius: '4px', textTransform: 'uppercase', fontWeight: 600 }}>
+                  <span style={{ fontSize: '10px', background: 'rgba(2, 132, 199, 0.08)', color: 'var(--primary-dark)', border: '1px solid rgba(2, 132, 199, 0.15)', padding: '2px 8px', borderRadius: '4px', textTransform: 'uppercase', fontWeight: 600 }}>
                     {post.type === 'offer' ? t('type_offer') : post.type === 'demand' ? t('type_demand') : t('type_cooperate')}
                   </span>
                   <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{post.category || t('category_default')}</span>
                 </div>
 
-                <h1 style={{ fontFamily: 'var(--font-title)', fontSize: '28px', color: '#fff', fontWeight: 700, lineHeight: '1.4', margin: '0 0 12px' }}>
+                <h1 style={{ fontFamily: 'var(--font-title)', fontSize: '28px', color: 'var(--text-primary)', fontWeight: 700, lineHeight: '1.4', margin: '0 0 12px' }}>
                   {isTranslated ? translatedTitle : post.title}
                 </h1>
                 
                 <div style={{ fontSize: '12.5px', color: 'var(--text-secondary)' }}>
-                  {t('date_posted_label')}: <strong style={{ color: '#fff' }}>{dateStr}</strong>
+                  {t('date_posted_label')}: <strong style={{ color: 'var(--text-primary)' }}>{dateStr}</strong>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '15px', flexWrap: 'wrap' }}>
@@ -288,10 +288,10 @@ export const PostDetail = () => {
                       value={translateTargetLang}
                       onChange={(e) => setTranslateTargetLang(e.target.value)}
                       style={{
-                        background: 'rgba(255,255,255,0.06)',
-                        border: '1px solid rgba(255,255,255,0.12)',
+                        background: 'var(--surface-2)',
+                        border: '1px solid var(--border-strong)',
                         borderRadius: '6px',
-                        color: '#fff',
+                        color: 'var(--text-primary)',
                         fontSize: '11.5px',
                         padding: '4px 8px',
                         outline: 'none',
@@ -367,14 +367,14 @@ export const PostDetail = () => {
                     {post.company_name ? post.company_name.substring(0, 2).toUpperCase() : 'DN'}
                   </div>
                   <div>
-                    <h3 style={{ fontSize: '15px', color: '#fff', fontWeight: 600, margin: 0 }}>{post.company_name || 'Hội viên ẩn danh'}</h3>
+                    <h3 style={{ fontSize: '15px', color: 'var(--text-primary)', fontWeight: 600, margin: 0 }}>{post.company_name || 'Hội viên ẩn danh'}</h3>
                     <span style={{ 
                       display: 'inline-block',
                       marginTop: '4px',
                       fontSize: '9px',
-                      background: isPlatinum ? 'rgba(245,158,11,0.15)' : isGold ? 'rgba(245,158,11,0.1)' : 'rgba(255,255,255,0.05)',
-                      color: isPlatinum || isGold ? 'var(--amber)' : 'var(--text-muted)',
-                      border: `1px solid ${isPlatinum || isGold ? 'rgba(245,158,11,0.3)' : 'rgba(255,255,255,0.1)'}`,
+                      background: isPlatinum ? 'rgba(245,158,11,0.15)' : isGold ? 'rgba(245,158,11,0.1)' : 'var(--surface-0)',
+                      color: isPlatinum || isGold ? 'var(--amber-dark)' : 'var(--text-muted)',
+                      border: `1px solid ${isPlatinum || isGold ? 'rgba(245,158,11,0.3)' : 'var(--border-strong)'}`,
                       padding: '1px 6px',
                       borderRadius: '3px',
                       fontWeight: 700,
@@ -387,9 +387,9 @@ export const PostDetail = () => {
                         onClick={() => handleViewMemberDetails(post.member_id)}
                         style={{
                           marginTop: '8px',
-                          background: 'rgba(0, 229, 255, 0.08)',
-                          border: '1px solid rgba(0, 229, 255, 0.2)',
-                          color: 'var(--neon-cyan)',
+                          background: 'rgba(2, 132, 199, 0.08)',
+                          border: '1px solid rgba(2, 132, 199, 0.2)',
+                          color: 'var(--primary-dark)',
                           padding: '4px 10px',
                           borderRadius: '4px',
                           fontSize: '11px',
@@ -406,14 +406,14 @@ export const PostDetail = () => {
                   </div>
                 </div>
 
-                <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)', margin: '15px 0' }} />
+                <div style={{ height: '1px', background: 'var(--border)', margin: '15px 0' }} />
                 
                 {/* Contact Information Section (Login Wall) */}
                 <h4 style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 12px' }}>{t('contact_info_label')}</h4>
                 
                 {isGuest ? (
-                  <div style={{ padding: '15px', background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '8px', textAlign: 'center' }}>
-                    <i className="ti ti-lock" style={{ fontSize: '20px', color: 'var(--neon-cyan)', marginBottom: '8px', display: 'block' }}></i>
+                  <div style={{ padding: '15px', background: 'var(--surface-0)', border: '1px dashed var(--border-strong)', borderRadius: '8px', textAlign: 'center' }}>
+                    <i className="ti ti-lock" style={{ fontSize: '20px', color: 'var(--primary)', marginBottom: '8px', display: 'block' }}></i>
                     <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '0 0 12px', lineHeight: '1.5' }}>
                       {t('login_required_desc')}
                     </p>
@@ -424,8 +424,8 @@ export const PostDetail = () => {
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
-                      <i className="ti ti-info-square" style={{ color: 'var(--neon-cyan)', marginTop: '2px' }}></i>
-                      <div style={{ fontSize: '12.5px', color: 'rgba(255,255,255,0.85)', wordBreak: 'break-word' }}>
+                      <i className="ti ti-info-square" style={{ color: 'var(--primary-dark)', marginTop: '2px' }}></i>
+                      <div style={{ fontSize: '12.5px', color: 'var(--text-secondary)', wordBreak: 'break-word' }}>
                         {post.contact_info || t('contact_info_label')}
                       </div>
                     </div>
@@ -434,7 +434,7 @@ export const PostDetail = () => {
               </div>
 
               {/* Navigation Back */}
-              <Link to="/posts" className="btn" style={{ display: 'block', padding: '10px 15px', fontSize: '12.5px', textDecoration: 'none', background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.1)', color: '#fff', textAlign: 'center' }}>
+              <Link to="/posts" className="btn" style={{ display: 'block', padding: '10px 15px', fontSize: '12.5px', textDecoration: 'none', background: 'rgba(12,35,64,0.06)', borderColor: 'var(--border-strong)', color: 'var(--text-primary)', textAlign: 'center' }}>
                 <i className="ti ti-arrow-left"></i> {t('btn_back_to_feed')}
               </Link>
 
@@ -449,7 +449,7 @@ export const PostDetail = () => {
 
       {showMemberModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }} onClick={() => setShowMemberModal(false)}>
-          <div style={{ background: 'var(--surface-2)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', maxWidth: '600px', width: '100%', maxHeight: '90vh', overflowY: 'auto', padding: '24px', position: 'relative', textAlign: 'left' }} onClick={(e) => e.stopPropagation()}>
+          <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: '16px', maxWidth: '600px', width: '100%', maxHeight: '90vh', overflowY: 'auto', padding: '24px', position: 'relative', textAlign: 'left' }} onClick={(e) => e.stopPropagation()}>
             {/* Close Button */}
             <button onClick={() => setShowMemberModal(false)} style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '20px', padding: '4px' }} className="hover-highlight">
               <i className="ti ti-x"></i>
@@ -468,14 +468,14 @@ export const PostDetail = () => {
                     {memberDetails.name ? memberDetails.name.substring(0, 2).toUpperCase() : 'DN'}
                   </div>
                   <div>
-                    <h2 style={{ fontSize: '18px', color: '#fff', fontWeight: 700, margin: 0 }}>{memberDetails.name}</h2>
+                    <h2 style={{ fontSize: '18px', color: 'var(--text-primary)', fontWeight: 700, margin: 0 }}>{memberDetails.name}</h2>
                     <span style={{ 
                       display: 'inline-block',
                       marginTop: '4px',
                       fontSize: '9px',
-                      background: memberDetails.tier === 'Platinum' ? 'rgba(245,158,11,0.15)' : memberDetails.tier === 'Gold' ? 'rgba(245,158,11,0.1)' : 'rgba(255,255,255,0.05)',
-                      color: memberDetails.tier === 'Platinum' || memberDetails.tier === 'Gold' ? 'var(--amber)' : 'var(--text-muted)',
-                      border: `1px solid ${memberDetails.tier === 'Platinum' || memberDetails.tier === 'Gold' ? 'rgba(245,158,11,0.3)' : 'rgba(255,255,255,0.1)'}`,
+                      background: memberDetails.tier === 'Platinum' ? 'rgba(245,158,11,0.15)' : memberDetails.tier === 'Gold' ? 'rgba(245,158,11,0.1)' : 'var(--surface-0)',
+                      color: memberDetails.tier === 'Platinum' || memberDetails.tier === 'Gold' ? 'var(--amber-dark)' : 'var(--text-muted)',
+                      border: `1px solid ${memberDetails.tier === 'Platinum' || memberDetails.tier === 'Gold' ? 'rgba(245,158,11,0.3)' : 'var(--border-strong)'}`,
                       padding: '1px 6px',
                       borderRadius: '3px',
                       fontWeight: 700,
@@ -486,30 +486,30 @@ export const PostDetail = () => {
                   </div>
                 </div>
 
-                <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)', marginBottom: '15px' }} />
+                <div style={{ height: '1px', background: 'var(--border)', marginBottom: '15px' }} />
 
                 {/* Main Information */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '20px' }}>
                   <div>
                     <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Lĩnh vực hoạt động</div>
-                    <div style={{ fontSize: '13.5px', color: '#fff', fontWeight: 500, marginTop: '2px' }}>{memberDetails.industry || 'Chưa cập nhật'}</div>
+                    <div style={{ fontSize: '13.5px', color: 'var(--text-primary)', fontWeight: 500, marginTop: '2px' }}>{memberDetails.industry || 'Chưa cập nhật'}</div>
                   </div>
                   <div>
                     <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Quy mô</div>
-                    <div style={{ fontSize: '13.5px', color: '#fff', fontWeight: 500, marginTop: '2px' }}>{memberDetails.size || 'Chưa cập nhật'}</div>
+                    <div style={{ fontSize: '13.5px', color: 'var(--text-primary)', fontWeight: 500, marginTop: '2px' }}>{memberDetails.size || 'Chưa cập nhật'}</div>
                   </div>
                   <div>
                     <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Tỉnh/Thành phố</div>
-                    <div style={{ fontSize: '13.5px', color: '#fff', fontWeight: 500, marginTop: '2px' }}>{memberDetails.city || 'Chưa cập nhật'}</div>
+                    <div style={{ fontSize: '13.5px', color: 'var(--text-primary)', fontWeight: 500, marginTop: '2px' }}>{memberDetails.city || 'Chưa cập nhật'}</div>
                   </div>
                   <div>
                     <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Địa chỉ</div>
-                    <div style={{ fontSize: '13.5px', color: '#fff', fontWeight: 500, marginTop: '2px' }}>{memberDetails.address || 'Chưa cập nhật'}</div>
+                    <div style={{ fontSize: '13.5px', color: 'var(--text-primary)', fontWeight: 500, marginTop: '2px' }}>{memberDetails.address || 'Chưa cập nhật'}</div>
                   </div>
                   {memberDetails.website && (
                     <div style={{ gridColumn: 'span 2' }}>
                       <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Website</div>
-                      <a href={memberDetails.website.startsWith('http') ? memberDetails.website : `https://${memberDetails.website}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: '13px', color: 'var(--neon-cyan)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
+                      <a href={memberDetails.website.startsWith('http') ? memberDetails.website : `https://${memberDetails.website}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: '13px', color: 'var(--primary)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
                         <i className="ti ti-world"></i> {memberDetails.website}
                       </a>
                     </div>
@@ -525,10 +525,10 @@ export const PostDetail = () => {
                           value={memberTranslateTargetLang}
                           onChange={(e) => setMemberTranslateTargetLang(e.target.value)}
                           style={{
-                            background: 'rgba(255,255,255,0.05)',
-                            border: '1px solid rgba(255,255,255,0.1)',
+                            background: 'var(--surface-2)',
+                            border: '1px solid var(--border-strong)',
                             borderRadius: '4px',
-                            color: '#fff',
+                            color: 'var(--text-primary)',
                             fontSize: '10.5px',
                             padding: '2px 4px',
                             outline: 'none',
@@ -546,7 +546,7 @@ export const PostDetail = () => {
                           style={{
                             background: 'none',
                             border: 'none',
-                            color: isMemberDescTranslated ? 'var(--emerald)' : 'var(--neon-cyan)',
+                            color: isMemberDescTranslated ? 'var(--emerald)' : 'var(--primary-dark)',
                             fontSize: '11.5px',
                             cursor: 'pointer',
                             display: 'flex',
@@ -562,19 +562,19 @@ export const PostDetail = () => {
                         </button>
                       </div>
                     </div>
-                    <div style={{ fontSize: '13.5px', color: 'rgba(255,255,255,0.85)', lineHeight: '1.6', background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.04)' }}>
+                    <div style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: '1.6', background: 'var(--surface-0)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)' }}>
                       {isMemberDescTranslated ? translatedMemberDesc : memberDetails.description}
                     </div>
                   </div>
                 )}
 
                 {/* Contact wall check */}
-                <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)', marginBottom: '15px' }} />
+                <div style={{ height: '1px', background: 'var(--border)', marginBottom: '15px' }} />
                 
-                <h3 style={{ fontSize: '13px', color: '#fff', fontWeight: 600, margin: '0 0 10px' }}>{t('contact_info_label')}</h3>
+                <h3 style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: 600, margin: '0 0 10px' }}>{t('contact_info_label')}</h3>
                 {isGuest ? (
-                  <div style={{ padding: '15px', background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '8px', textAlign: 'center' }}>
-                    <i className="ti ti-lock" style={{ fontSize: '18px', color: 'var(--neon-cyan)', marginBottom: '6px', display: 'block' }}></i>
+                  <div style={{ padding: '15px', background: 'var(--surface-0)', border: '1px dashed var(--border-strong)', borderRadius: '8px', textAlign: 'center' }}>
+                    <i className="ti ti-lock" style={{ fontSize: '18px', color: 'var(--primary)', marginBottom: '6px', display: 'block' }}></i>
                     <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: '0 0 10px', lineHeight: '1.4' }}>
                       {t('login_required_desc')}
                     </p>
@@ -584,19 +584,19 @@ export const PostDetail = () => {
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                     <div>
                       <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Người liên hệ</div>
-                      <div style={{ fontSize: '13px', color: '#fff', fontWeight: 500 }}>{memberDetails.contact_name || 'Chưa cập nhật'}</div>
+                      <div style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: 500 }}>{memberDetails.contact_name || 'Chưa cập nhật'}</div>
                     </div>
                     <div>
                       <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Chức vụ</div>
-                      <div style={{ fontSize: '13px', color: '#fff', fontWeight: 500 }}>{memberDetails.contact_pos || 'Chưa cập nhật'}</div>
+                      <div style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: 500 }}>{memberDetails.contact_pos || 'Chưa cập nhật'}</div>
                     </div>
                     <div>
                       <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Email</div>
-                      <div style={{ fontSize: '13px', color: '#fff', fontWeight: 500 }}>{memberDetails.email || 'Chưa cập nhật'}</div>
+                      <div style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: 500 }}>{memberDetails.email || 'Chưa cập nhật'}</div>
                     </div>
                     <div>
                       <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Số điện thoại</div>
-                      <div style={{ fontSize: '13px', color: '#fff', fontWeight: 500 }}>{memberDetails.phone || 'Chưa cập nhật'}</div>
+                      <div style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: 500 }}>{memberDetails.phone || 'Chưa cập nhật'}</div>
                     </div>
                   </div>
                 )}

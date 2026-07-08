@@ -1750,7 +1750,7 @@ nav {
   background-color: #FFFFFF;
 }
 .register-sidebar {
-  background-color: #070D19;
+  background-color: #0C2340;
   color: #FFFFFF;
   padding: 3rem 2rem;
   display: flex;
@@ -2459,8 +2459,8 @@ nav {
 
 /* Select dropdown option visibility globally across themes */
 .public-body select option {
-  background-color: #0F172A !important;
-  color: #FFFFFF !important;
+  background-color: #FFFFFF !important;
+  color: #0C2340 !important;
 }
 .light-theme select option {
   background-color: #FFFFFF !important;
@@ -2477,7 +2477,109 @@ select option {
   border-bottom-color: var(--border) !important;
 }
 
+/* ============================================================
+   GLOBAL PUBLIC PAGE COLOR OVERRIDE
+   Override mọi màu chữ trắng hardcoded trong các trang public
+   để đảm bảo hiển thị đúng trên nền sáng xanh biển.
+   Áp dụng cho mọi phần tử trong .public-body
+   ============================================================ */
 
+/* Input fields: override nền tối thành nền sáng */
+.public-body input[type="text"],
+.public-body input[type="email"],
+.public-body input[type="password"],
+.public-body input[type="number"],
+.public-body input[type="search"],
+.public-body input[type="tel"],
+.public-body textarea,
+.public-body select {
+  background-color: var(--surface-2) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-strong) !important;
+}
+.public-body input::placeholder,
+.public-body textarea::placeholder {
+  color: var(--text-muted) !important;
+}
 
+/* Glass card trong public body: nền trắng trong suốt */
+.public-body .glass-card {
+  background: var(--glass-bg) !important;
+  border-color: var(--border) !important;
+  color: var(--text-secondary) !important;
+}
 
+/* opp-card trong public body */
+.public-body .opp-card {
+  background: var(--surface-2) !important;
+  border-color: var(--border) !important;
+}
 
+/* Stat card trong public body */
+.public-body .stat-val {
+  color: var(--primary-dark) !important;
+}
+.public-body .stat-label {
+  color: var(--text-primary) !important;
+}
+
+/* Package card (pricing tiers) */
+.public-body .pkg-item {
+  color: var(--text-secondary) !important;
+}
+.public-body .pkg-item i {
+  color: var(--emerald-dark) !important;
+}
+
+/* Service card */
+.public-body .srv-card {
+  background: var(--surface-2) !important;
+  border-color: var(--border) !important;
+}
+.public-body .srv-card:hover {
+  border-color: var(--primary) !important;
+}
+
+/* Modal overlay background: giữ tối cho dễ nhìn */
+/* (intentionally NOT overriding modal overlay backgrounds) */
+
+/* Search/filter tag buttons */
+.public-body .filter-tag,
+.public-body .category-tag {
+  background: var(--surface-0) !important;
+  color: var(--text-secondary) !important;
+  border-color: var(--border) !important;
+}
+.public-body .filter-tag.active,
+.public-body .category-tag.active {
+  background: var(--primary) !important;
+  color: #ffffff !important;
+  border-color: var(--primary) !important;
+}
+
+/* Member/Post card hover border */
+.public-body .opp-card:hover {
+  border-color: var(--primary) !important;
+}
+
+/* Section divider lines */
+.public-body [style*="rgba(255,255,255,0.05)"],
+.public-body [style*="rgba(255, 255, 255, 0.05)"] {
+  border-color: var(--border) !important;
+}
+
+/* AI Chat public area */
+.public-body .chat-container,
+.public-body .chat-messages {
+  background: var(--surface-2) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Post item trong Member Dashboard */
+.public-body .post-item {
+  background: var(--surface-0) !important;
+  border-color: var(--border-strong) !important;
+}
+.public-body .post-item:hover {
+  background: var(--surface-1) !important;
+}

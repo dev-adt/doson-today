@@ -78,9 +78,9 @@ export const Navbar = () => {
           <button 
             onClick={() => setLangOpen(!langOpen)}
             style={{
-              background: 'rgba(255,255,255,0.03)',
-              border: '1px solid rgba(255,255,255,0.08)',
-              color: '#fff',
+              background: 'rgba(12,35,64,0.06)',
+              border: '1px solid var(--border-strong)',
+              color: 'var(--text-primary)',
               fontSize: '11px',
               fontWeight: '600',
               padding: '4px 10px',
@@ -121,14 +121,14 @@ export const Navbar = () => {
                     padding: '6px 12px',
                     background: 'none',
                     border: 'none',
-                    color: currentLang === langKey ? '#fff' : 'var(--text-secondary)',
+                    color: currentLang === langKey ? 'var(--primary)' : 'var(--text-secondary)',
                     textAlign: 'left',
                     fontSize: '12px',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '8px',
-                    backgroundColor: currentLang === langKey ? 'rgba(255,255,255,0.05)' : 'transparent'
+                    backgroundColor: currentLang === langKey ? 'var(--surface-0)' : 'transparent'
                   }}
                 >
                   <span>{LANGS[langKey].flag}</span>
@@ -207,7 +207,7 @@ export const Navbar = () => {
           style={{
             background: 'none',
             border: 'none',
-            color: '#fff',
+            color: 'var(--text-primary)',
             fontSize: '22px',
             cursor: 'pointer',
             padding: '4px',
@@ -229,7 +229,7 @@ export const Navbar = () => {
         top: '64px',
         left: 0,
         right: 0,
-        backgroundColor: 'rgba(8, 14, 30, 0.96)',
+        backgroundColor: 'var(--surface-2)',
         backdropFilter: 'blur(16px)',
         WebkitBackdropFilter: 'blur(16px)',
         borderBottom: '1px solid var(--border)',
@@ -238,11 +238,11 @@ export const Navbar = () => {
         flexDirection: 'column',
         gap: '1rem',
         zIndex: 999,
-        boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
+        boxShadow: 'var(--shadow-lg)',
         boxSizing: 'border-box'
       }}>
         {/* Members dropdown items list inline */}
-        <div style={{ fontWeight: 600, color: '#fff', fontSize: '13.5px', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '6px' }}>
+        <div style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '13.5px', borderBottom: '1px solid var(--border-strong)', paddingBottom: '6px' }}>
           {t('menu_members')}
         </div>
         <Link to="/members" onClick={() => setMobileMenuOpen(false)} style={{ color: 'var(--text-secondary)', textDecoration: 'none', paddingLeft: '12px', fontSize: '13px' }}>
@@ -253,7 +253,7 @@ export const Navbar = () => {
         </a>
 
         {/* Marketplace inline list */}
-        <div style={{ fontWeight: 600, color: '#fff', fontSize: '13.5px', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '6px', marginTop: '8px' }}>
+        <div style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '13.5px', borderBottom: '1px solid var(--border-strong)', paddingBottom: '6px', marginTop: '8px' }}>
           {t('menu_marketplace')}
         </div>
         <a href="#posts" onClick={(e) => { handleAnchorClick(e, '#posts'); setMobileMenuOpen(false); }} style={{ color: 'var(--text-secondary)', textDecoration: 'none', paddingLeft: '12px', fontSize: '13px' }}>
@@ -264,13 +264,13 @@ export const Navbar = () => {
         </Link>
 
         {/* Simple Link items */}
-        <Link to="/events" onClick={() => setMobileMenuOpen(false)} style={{ fontWeight: 600, color: '#fff', fontSize: '13.5px', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '8px', textDecoration: 'none', marginTop: '8px' }}>
+        <Link to="/events" onClick={() => setMobileMenuOpen(false)} style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '13.5px', borderBottom: '1px solid var(--border-strong)', paddingBottom: '8px', textDecoration: 'none', marginTop: '8px' }}>
           {t('menu_events')}
         </Link>
-        <Link to="/ai-chat" onClick={() => setMobileMenuOpen(false)} style={{ fontWeight: 600, color: '#fff', fontSize: '13.5px', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '8px', textDecoration: 'none' }}>
+        <Link to="/ai-chat" onClick={() => setMobileMenuOpen(false)} style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '13.5px', borderBottom: '1px solid var(--border-strong)', paddingBottom: '8px', textDecoration: 'none' }}>
           {t('menu_ai')}
         </Link>
-        <Link to="/guide" onClick={() => setMobileMenuOpen(false)} style={{ fontWeight: 600, color: '#fff', fontSize: '13.5px', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '8px', textDecoration: 'none' }}>
+        <Link to="/guide" onClick={() => setMobileMenuOpen(false)} style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '13.5px', borderBottom: '1px solid var(--border-strong)', paddingBottom: '8px', textDecoration: 'none' }}>
           {t('menu_guide')}
         </Link>
       </div>

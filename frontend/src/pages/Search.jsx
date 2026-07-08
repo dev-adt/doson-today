@@ -99,7 +99,7 @@ export const Search = () => {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Nhập từ khóa tìm kiếm trên toàn website (ví dụ: công nghệ, nông sản, xúc tiến...)"
-                style={{ width: '100%', padding: '12px 16px 12px 42px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'var(--surface-3)', color: '#fff', fontSize: '14px', outline: 'none' }}
+                style={{ width: '100%', padding: '12px 16px 12px 42px', borderRadius: '8px', border: '1px solid var(--border-strong)', background: 'var(--surface-2)', color: 'var(--text-primary)', fontSize: '14px', outline: 'none' }}
                 autoFocus
               />
             </div>
@@ -184,27 +184,27 @@ export const Search = () => {
                       <div className="card" key={`mem-${m.id}`} style={{ boxShadow: 'var(--shadow)', transition: 'var(--transition)', borderRadius: 'var(--radius-lg)', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
                         <div style={{ height: '60px', background: `linear-gradient(135deg, ${colors.bg} 0%, rgba(255,255,255,0) 100%)`, borderBottom: '1px solid var(--border)' }}></div>
                         <div style={{ padding: '1.25rem', marginTop: '-35px', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                          <div className="av-circle" style={{ background: colors.bg, color: colors.fg, width: '54px', height: '54px', fontSize: '16px', border: '3px solid #ffffff', marginBottom: '12px', fontWeight: 600 }}>{initials}</div>
+                          <div className="av-circle" style={{ background: colors.bg, color: colors.fg, width: '54px', height: '54px', fontSize: '16px', border: '3px solid var(--surface-2)', marginBottom: '12px', fontWeight: 600 }}>{initials}</div>
                           <h3 style={{ fontFamily: 'var(--font-title)', fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px', lineHeight: 1.3, textAlign: 'left' }}>{m.name}</h3>
                           <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            <i className="ti ti-briefcase"></i> {m.industry || 'Chưa chọn'}
+                            <i className="ti ti-briefcase" style={{ color: 'var(--amber-dark)' }}></i> {m.industry || 'Chưa chọn'}
                           </div>
                           <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '15px', flex: 1, textAlign: 'left', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{m.description || 'Chưa có mô tả.'}</p>
                           
                           {m.email !== '***@***.***' ? (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left', marginTop: '8px', padding: '8px 10px', background: 'rgba(255,255,255,0.03)', borderRadius: '6px', fontSize: '11.5px', border: '1px solid rgba(255,255,255,0.04)' }}>
-                              <div style={{ color: '#fff', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <i className="ti ti-user" style={{ color: 'var(--amber)' }}></i> {m.contact_name}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left', marginTop: '8px', padding: '8px 10px', background: 'var(--surface-0)', borderRadius: '6px', fontSize: '11.5px', border: '1px solid var(--border)' }}>
+                              <div style={{ color: 'var(--text-primary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <i className="ti ti-user" style={{ color: 'var(--amber-dark)' }}></i> {m.contact_name}
                               </div>
                               <div style={{ color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <i className="ti ti-mail" style={{ color: 'var(--amber)' }}></i> {m.email}
+                                <i className="ti ti-mail" style={{ color: 'var(--amber-dark)' }}></i> {m.email}
                               </div>
                               <div style={{ color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <i className="ti ti-phone" style={{ color: 'var(--amber)' }}></i> {m.phone}
+                                <i className="ti ti-phone" style={{ color: 'var(--amber-dark)' }}></i> {m.phone}
                               </div>
                             </div>
                           ) : (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left', marginTop: '8px', padding: '8px 10px', background: 'rgba(255,255,255,0.02)', borderRadius: '6px', fontSize: '11.5px', border: '1px dashed rgba(255,255,255,0.05)' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left', marginTop: '8px', padding: '8px 10px', background: 'var(--surface-0)', borderRadius: '6px', fontSize: '11.5px', border: '1px dashed var(--border-strong)' }}>
                               <div style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                 <i className="ti ti-lock"></i> Đăng nhập để hiển thị liên hệ
                               </div>
@@ -233,28 +233,28 @@ export const Search = () => {
                   {results.posts.map((p) => {
                     const defaultPostImage = 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=600&auto=format&fit=crop&q=60';
                     return (
-                      <div className="card" key={`post-${p.id}`} style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', height: '100%', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                      <div className="card" key={`post-${p.id}`} style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', height: '100%', borderRadius: '12px', border: '1px solid var(--border-strong)' }}>
                         <div style={{ height: '160px', overflow: 'hidden', position: 'relative' }}>
                           <img 
                             src={p.image_url && p.image_url !== 'null' && p.image_url !== 'undefined' ? p.image_url : defaultPostImage} 
                             alt={p.title} 
                             style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
                           />
-                          <span style={{ position: 'absolute', top: '10px', right: '10px', fontSize: '10px', backgroundColor: 'rgba(0,0,0,0.6)', color: '#fff', padding: '3px 8px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                          <span style={{ position: 'absolute', top: '10px', right: '10px', fontSize: '10px', backgroundColor: 'var(--primary)', color: '#fff', padding: '3px 8px', borderRadius: '4px', border: '1px solid var(--border-strong)' }}>
                             {p.type}
                           </span>
                         </div>
                         <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                          <div style={{ fontSize: '11px', color: 'var(--primary-light)', marginBottom: '6px', fontWeight: 600 }}>
+                          <div style={{ fontSize: '11px', color: 'var(--primary)', marginBottom: '6px', fontWeight: 600 }}>
                             {p.category || 'Giao thương'}
                           </div>
-                          <h3 style={{ fontSize: '15px', color: '#fff', fontWeight: 700, margin: '0 0 8px', lineHeight: 1.4, height: '42px', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                          <h3 style={{ fontSize: '15px', color: 'var(--text-primary)', fontWeight: 700, margin: '0 0 8px', lineHeight: 1.4, height: '42px', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
                             {p.title}
                           </h3>
                           <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: '15px', height: '54px', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}>
                             {p.summary}
                           </p>
-                          <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '10px', marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', color: 'var(--text-muted)' }}>
+                          <div style={{ borderTop: '1px solid var(--border)', paddingTop: '10px', marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', color: 'var(--text-muted)' }}>
                             <span>{p.company_name}</span>
                             <Link to={`/posts/${p.id}`} className="btn btn-primary" style={{ padding: '4px 10px', fontSize: '11px', textDecoration: 'none', borderRadius: '4px' }}>
                               Đọc thêm
@@ -278,7 +278,7 @@ export const Search = () => {
                   {results.events.map((ev) => {
                     const defaultEvImage = 'https://images.unsplash.com/photo-1511578314322-379afb476865?w=600&auto=format&fit=crop&q=60';
                     return (
-                      <div className="card" key={`ev-${ev.id}`} style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', height: '100%', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                      <div className="card" key={`ev-${ev.id}`} style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', height: '100%', borderRadius: '12px', border: '1px solid var(--border-strong)' }}>
                         <div style={{ height: '160px', overflow: 'hidden', position: 'relative' }}>
                           <img 
                             src={ev.image_url || defaultEvImage} 
@@ -287,10 +287,10 @@ export const Search = () => {
                           />
                         </div>
                         <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                          <div style={{ fontSize: '11px', color: 'var(--emerald)', marginBottom: '6px', fontWeight: 600 }}>
+                          <div style={{ fontSize: '11px', color: 'var(--emerald-dark)', marginBottom: '6px', fontWeight: 600 }}>
                             <i className="ti ti-calendar"></i> {new Date(ev.date).toLocaleDateString('vi-VN')}
                           </div>
-                          <h3 style={{ fontSize: '15px', color: '#fff', fontWeight: 700, margin: '0 0 8px', lineHeight: 1.4 }}>
+                          <h3 style={{ fontSize: '15px', color: 'var(--text-primary)', fontWeight: 700, margin: '0 0 8px', lineHeight: 1.4 }}>
                             {ev.title}
                           </h3>
                           <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '8px' }}>
@@ -299,8 +299,8 @@ export const Search = () => {
                           <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                             <i className="ti ti-map-pin"></i> {ev.location}
                           </div>
-                          <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '10px', marginTop: 'auto', display: 'flex', justifyContent: 'flex-end' }}>
-                            <Link to="/events" className="btn" style={{ padding: '6px 12px', fontSize: '11.5px', textDecoration: 'none', borderRadius: '6px', backgroundColor: 'var(--surface-3)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}>
+                          <div style={{ borderTop: '1px solid var(--border)', paddingTop: '10px', marginTop: 'auto', display: 'flex', justifyContent: 'flex-end' }}>
+                            <Link to="/events" className="btn" style={{ padding: '6px 12px', fontSize: '11.5px', textDecoration: 'none', borderRadius: '6px', backgroundColor: 'rgba(12,35,64,0.06)', border: '1px solid var(--border-strong)', color: 'var(--text-primary)' }}>
                               Chi tiết sự kiện
                             </Link>
                           </div>

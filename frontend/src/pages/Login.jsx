@@ -54,7 +54,7 @@ export const Login = () => {
               <img src="/doson_logo.png" alt="Logo" style={{ width: '32px', height: '32px', objectFit: 'contain' }} />
             </div>
             <div>
-              <div className="logo-name" style={{ fontFamily: 'var(--font-title)', fontSize: '22px', fontWeight: 700, color: '#FFFFFF' }}>Đồ Sơn AI</div>
+              <div className="logo-name" style={{ fontFamily: 'var(--font-title)', fontSize: '22px', fontWeight: 700, color: 'var(--text-primary)' }}>Đồ Sơn AI</div>
               <div className="logo-sub" style={{ fontSize: '11px', color: '#64748B', marginTop: '2px', transform: 'uppercase', letterSpacing: '0.08em' }}>Cổng Đăng Nhập Hợp Nhất</div>
             </div>
           </div>
@@ -83,7 +83,7 @@ export const Login = () => {
                   autoComplete="username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  style={{ width: '100%', padding: '10px 12px 10px 36px', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.1)', background: 'rgba(255, 255, 255, 0.02)', color: '#FFFFFF', fontSize: '13px', outline: 'none' }}
+                  style={{ width: '100%', padding: '10px 12px 10px 36px', borderRadius: '8px', border: '1px solid var(--border-strong)', background: 'var(--surface-2)', color: 'var(--text-primary)', fontSize: '13px', outline: 'none' }}
                 />
                 <i className="ti ti-user" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', fontSize: '15px', color: '#475569' }}></i>
               </div>
@@ -100,7 +100,7 @@ export const Login = () => {
                   autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  style={{ width: '100%', padding: '10px 12px 10px 36px', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.1)', background: 'rgba(255, 255, 255, 0.02)', color: '#FFFFFF', fontSize: '13px', outline: 'none' }}
+                  style={{ width: '100%', padding: '10px 12px 10px 36px', borderRadius: '8px', border: '1px solid var(--border-strong)', background: 'var(--surface-2)', color: 'var(--text-primary)', fontSize: '13px', outline: 'none' }}
                 />
                 <i className="ti ti-lock" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', fontSize: '15px', color: '#475569' }}></i>
               </div>
@@ -125,9 +125,9 @@ export const Login = () => {
               style={{
                 width: '100%',
                 padding: '10px',
-                background: 'rgba(255,255,255,0.03)',
-                color: '#94A3B8',
-                border: '1px solid rgba(255,255,255,0.08)',
+                background: 'rgba(12,35,64,0.05)',
+                color: 'var(--text-secondary)',
+                border: '1px solid var(--border-strong)',
                 borderRadius: '8px',
                 cursor: 'pointer',
                 fontSize: '12px',
@@ -140,7 +140,7 @@ export const Login = () => {
 
             <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '8px' }}>
               Doanh nghiệp chưa đăng ký?{' '}
-              <Link to="/register" style={{ color: 'var(--neon-cyan)', fontWeight: '600', textDecoration: 'none' }}>Gửi hồ sơ ngay</Link>
+              <Link to="/register" style={{ color: 'var(--primary)', fontWeight: '600', textDecoration: 'none' }}>Gửi hồ sơ ngay</Link>
             </div>
           </div>
         </div>

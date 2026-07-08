@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Navbar from '../components/Navbar';
@@ -244,18 +244,18 @@ export const AIChat = () => {
       // Headings
       if (trimmed.startsWith('### ')) {
         if (inList) { formattedLines.push('</ul>'); inList = false; }
-        formattedLines.push(`<h4 style="font-size: 14.5px; font-weight: 700; margin: 12px 0 6px; color: #ffffff;">${trimmed.substring(4)}</h4>`);
+        formattedLines.push(`<h4 style="font-size: 14.5px; font-weight: 700; margin: 12px 0 6px; color: var(--text-primary);">${trimmed.substring(4)}</h4>`);
       } else if (trimmed.startsWith('## ')) {
         if (inList) { formattedLines.push('</ul>'); inList = false; }
-        formattedLines.push(`<h3 style="font-size: 16px; font-weight: 700; margin: 14px 0 8px; color: #ffffff;">${trimmed.substring(3)}</h3>`);
+        formattedLines.push(`<h3 style="font-size: 16px; font-weight: 700; margin: 14px 0 8px; color: var(--text-primary);">${trimmed.substring(3)}</h3>`);
       } else if (trimmed.startsWith('# ')) {
         if (inList) { formattedLines.push('</ul>'); inList = false; }
-        formattedLines.push(`<h2 style="font-size: 18px; font-weight: 700; margin: 16px 0 10px; color: #ffffff;">${trimmed.substring(2)}</h2>`);
+        formattedLines.push(`<h2 style="font-size: 18px; font-weight: 700; margin: 16px 0 10px; color: var(--text-primary);">${trimmed.substring(2)}</h2>`);
       } 
       // Horizontal Rule
       else if (trimmed === '---' || trimmed === '***') {
         if (inList) { formattedLines.push('</ul>'); inList = false; }
-        formattedLines.push('<hr style="border: none; border-top: 1px solid rgba(255,255,255,0.08); margin: 14px 0;" />');
+        formattedLines.push('<hr style="border: none; border-top: 1px solid var(--border); margin: 14px 0;" />');
       }
       // List items
       else if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
@@ -279,7 +279,7 @@ export const AIChat = () => {
           formattedLines.push('</ul>');
           inList = false;
         }
-        formattedLines.push(`<p style="margin: 4px 0; line-height: 1.6; font-size: 13px; color: rgba(255,255,255,0.9);">${trimmed}</p>`);
+        formattedLines.push(`<p style="margin: 4px 0; line-height: 1.6; font-size: 13px; color: var(--text-secondary);">${trimmed}</p>`);
       }
     }
     
@@ -301,10 +301,10 @@ export const AIChat = () => {
     return (
       <div className="public-body" style={{ height: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         <Navbar />
-        <div style={{ flex: 1, background: 'rgba(8,14,30,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ flex: 1, background: 'var(--bg-base)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ textAlign: 'center', maxWidth: '420px', padding: '2.5rem' }}>
-            <i className="ti ti-lock" style={{ fontSize: '48px', color: 'var(--neon-cyan)', display: 'block', marginBottom: '1.5rem' }}></i>
-            <h2 style={{ fontFamily: 'var(--font-title)', fontSize: '22px', color: '#FFFFFF', marginBottom: '0.75rem' }}>{t('login_ai_chat_title')}</h2>
+            <i className="ti ti-lock" style={{ fontSize: '48px', color: 'var(--primary)', display: 'block', marginBottom: '1.5rem' }}></i>
+            <h2 style={{ fontFamily: 'var(--font-title)', fontSize: '22px', color: 'var(--text-primary)', marginBottom: '0.75rem' }}>{t('login_ai_chat_title')}</h2>
             <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: '1.7', marginBottom: '2rem' }}>
               {t('login_ai_chat_desc')}
             </p>
@@ -398,9 +398,9 @@ export const AIChat = () => {
 
         {/* Center: Message Viewport */}
         <div className="chat-main">
-          <div style={{ backgroundColor: 'var(--surface-2)', borderBottom: '1px solid rgba(255,255,255,0.08)', padding: '0 1.25rem', height: '50px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
-            <div style={{ fontSize: '13.5px', fontWeight: 600, color: '#FFFFFF', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <i className="ti ti-robot" style={{ color: 'var(--neon-cyan)', fontSize: '18px' }}></i> {t('ai_assistant_title')}
+          <div style={{ backgroundColor: 'var(--surface-2)', borderBottom: '1px solid var(--border)', padding: '0 1.25rem', height: '50px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+            <div style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <i className="ti ti-robot" style={{ color: 'var(--primary)', fontSize: '18px' }}></i> {t('ai_assistant_title')}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#10B981', background: 'rgba(16,185,129,0.08)', border: '0.5px solid rgba(16,185,129,0.2)', padding: '4px 12px', borderRadius: '99px' }}>
               <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10B981', animation: 'pulse 2s infinite' }}></span>
@@ -422,13 +422,13 @@ export const AIChat = () => {
                 </div>
               ) : messages.length === 0 ? (
                 // Welcome Message
-                <div className="chat-bubble ai" style={{ alignSelf: 'flex-start', maxWidth: '85%', padding: '12px 16px', borderRadius: '12px', background: 'var(--surface-2)', color: '#fff', fontSize: '13px', lineHeight: '1.6', border: '1px solid rgba(255,255,255,0.04)', textAlign: 'left' }}>
+                <div className="chat-bubble ai" style={{ alignSelf: 'flex-start', maxWidth: '85%', padding: '12px 16px', borderRadius: '12px', background: 'var(--surface-2)', color: 'var(--text-primary)', fontSize: '13px', lineHeight: '1.6', border: '1px solid var(--border-strong)', textAlign: 'left' }}>
                   {t('ai_welcome_1')}<br/><br/>
                   {t('ai_welcome_2')}
                   <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '12px' }}>
-                    <button className="chip" onClick={() => handleSend(t('ai_suggestion_1_val'))} style={{ padding: '4px 10px', fontSize: '11px', borderRadius: '99px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)', color: '#fff', cursor: 'pointer' }}>{t('ai_suggestion_1_lbl')}</button>
-                    <button className="chip" onClick={() => handleSend(t('ai_suggestion_2_val'))} style={{ padding: '4px 10px', fontSize: '11px', borderRadius: '99px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)', color: '#fff', cursor: 'pointer' }}>{t('ai_suggestion_2_lbl')}</button>
-                    <button className="chip" onClick={() => handleSend(t('ai_suggestion_3_val'))} style={{ padding: '4px 10px', fontSize: '11px', borderRadius: '99px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)', color: '#fff', cursor: 'pointer' }}>{t('ai_suggestion_3_lbl')}</button>
+                    <button className="chip" onClick={() => handleSend(t('ai_suggestion_1_val'))} style={{ padding: '4px 10px', fontSize: '11px', borderRadius: '99px', border: '1px solid var(--border-strong)', background: 'rgba(12,35,64,0.06)', color: 'var(--text-primary)', cursor: 'pointer' }}>{t('ai_suggestion_1_lbl')}</button>
+                    <button className="chip" onClick={() => handleSend(t('ai_suggestion_2_val'))} style={{ padding: '4px 10px', fontSize: '11px', borderRadius: '99px', border: '1px solid var(--border-strong)', background: 'rgba(12,35,64,0.06)', color: 'var(--text-primary)', cursor: 'pointer' }}>{t('ai_suggestion_2_lbl')}</button>
+                    <button className="chip" onClick={() => handleSend(t('ai_suggestion_3_val'))} style={{ padding: '4px 10px', fontSize: '11px', borderRadius: '99px', border: '1px solid var(--border-strong)', background: 'rgba(12,35,64,0.06)', color: 'var(--text-primary)', cursor: 'pointer' }}>{t('ai_suggestion_3_lbl')}</button>
                   </div>
                 </div>
               ) : (
@@ -444,10 +444,10 @@ export const AIChat = () => {
                         padding: '12px 16px', 
                         borderRadius: '12px', 
                         background: isUser ? 'linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)' : 'var(--surface-2)', 
-                        color: '#fff', 
+                        color: isUser ? '#fff' : 'var(--text-primary)', 
                         fontSize: '13px', 
                         lineHeight: '1.6', 
-                        border: isUser ? 'none' : '1px solid rgba(255,255,255,0.04)',
+                        border: isUser ? 'none' : '1px solid var(--border-strong)',
                         textAlign: 'left'
                       }}
                     >
@@ -457,7 +457,7 @@ export const AIChat = () => {
                 })
               )}
               {sending && (
-                <div className="chat-bubble ai" style={{ alignSelf: 'flex-start', maxWidth: '85%', padding: '12px 16px', borderRadius: '12px', background: 'var(--surface-2)', color: '#fff', fontSize: '13px', border: '1px solid rgba(255,255,255,0.04)', textAlign: 'left' }}>
+                <div className="chat-bubble ai" style={{ alignSelf: 'flex-start', maxWidth: '85%', padding: '12px 16px', borderRadius: '12px', background: 'var(--surface-2)', color: 'var(--text-primary)', fontSize: '13px', border: '1px solid var(--border-strong)', textAlign: 'left' }}>
                   <i className="ti ti-loader animate-spin"></i> {t('ai_thinking')}
                 </div>
               )}
@@ -502,7 +502,7 @@ export const AIChat = () => {
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12.5px', color: 'var(--text-secondary)' }}>
               <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10B981' }}></span>
-              <span>{t('status_label')}: <strong style={{ color: '#ffffff' }}>{t('status_online')}</strong></span>
+              <span>{t('status_label')}: <strong style={{ color: 'var(--text-primary)' }}>{t('status_online')}</strong></span>
             </div>
             
             {user && (user.tier === 'Gold' || user.tier === 'Platinum') ? (
@@ -518,9 +518,9 @@ export const AIChat = () => {
                     width: '100%',
                     padding: '6px 10px',
                     borderRadius: '6px',
-                    background: 'var(--surface-3)',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    color: '#ffffff',
+                    background: 'var(--surface-2)',
+                    border: '1px solid var(--border-strong)',
+                    color: 'var(--text-primary)',
                     fontSize: '11.5px',
                     outline: 'none',
                     cursor: 'pointer'
@@ -549,13 +549,13 @@ export const AIChat = () => {
           {/* Suggested Actions Card */}
           <div className="chat-panel-card">
             <div className="chat-panel-title" style={{ marginBlockStart: 0 }}>
-              <i className="ti ti-sparkles" style={{ color: 'var(--neon-cyan)' }}></i> {t('suggested_actions_title')}
+              <i className="ti ti-sparkles" style={{ color: 'var(--primary)' }}></i> {t('suggested_actions_title')}
             </div>
             
             <div className="chat-panel-item" onClick={() => handleSend(t('suggested_action_1_title') + ' ' + t('category_default'))}>
               <div className="chat-panel-icon"><i className="ti ti-user-plus"></i></div>
               <div>
-                <div style={{ fontSize: '12px', fontWeight: 600, color: '#FFFFFF' }}>{t('suggested_action_1_title')}</div>
+                <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)' }}>{t('suggested_action_1_title')}</div>
                 <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '1px' }}>{t('suggested_action_1_desc')}</div>
               </div>
             </div>
@@ -563,7 +563,7 @@ export const AIChat = () => {
             <div className="chat-panel-item" onClick={() => handleSend(t('suggested_action_2_title'))}>
               <div className="chat-panel-icon"><i className="ti ti-calendar"></i></div>
               <div>
-                <div style={{ fontSize: '12px', fontWeight: 600, color: '#FFFFFF' }}>{t('suggested_action_2_title')}</div>
+                <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)' }}>{t('suggested_action_2_title')}</div>
                 <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '1px' }}>{t('suggested_action_2_desc')}</div>
               </div>
             </div>
@@ -571,7 +571,7 @@ export const AIChat = () => {
             <div className="chat-panel-item" onClick={() => handleSend(t('suggested_action_3_title'))}>
               <div className="chat-panel-icon"><i className="ti ti-building-handshake"></i></div>
               <div>
-                <div style={{ fontSize: '12px', fontWeight: 600, color: '#FFFFFF' }}>{t('suggested_action_3_title')}</div>
+                <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)' }}>{t('suggested_action_3_title')}</div>
                 <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '1px' }}>{t('suggested_action_3_desc')}</div>
               </div>
             </div>

@@ -145,7 +145,7 @@ export const Events = () => {
               placeholder={t('search_events_placeholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border-strong)', fontSize: '12px', width: '260px', outline: 'none', backgroundColor: 'rgba(255,255,255,0.01)', color: '#fff' }}
+              style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border-strong)', fontSize: '12px', width: '260px', outline: 'none', backgroundColor: 'var(--surface-2)', color: 'var(--text-primary)' }}
             />
           </div>
         </div>
@@ -169,7 +169,7 @@ export const Events = () => {
             {filteredEvents.map((e) => {
               const dateStr = e.event_date ? new Date(e.event_date).toLocaleDateString('vi-VN') : '';
               return (
-                <div className="opp-card" key={e.id} style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '1.5rem', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.05)', borderRadius: '12px', textAlign: 'left' }}>
+                <div className="opp-card" key={e.id} style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '1.5rem', background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: '12px', textAlign: 'left' }}>
                   <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                       {getStatusBadge(e.status)}
@@ -178,23 +178,23 @@ export const Events = () => {
                           evt.stopPropagation();
                           handleToggleEventInterest(e.id);
                         }}
-                        style={{ background: 'none', border: 'none', color: e.is_interested ? 'var(--amber)' : 'rgba(255,255,255,0.3)', cursor: 'pointer', fontSize: '16px', outline: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                        style={{ background: 'none', border: 'none', color: e.is_interested ? 'var(--amber-dark)' : 'var(--text-muted)', cursor: 'pointer', fontSize: '16px', outline: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                         title={e.is_interested ? "Bỏ quan tâm" : "Quan tâm sự kiện"}
                       >
                         <i className={e.is_interested ? "ti ti-star-filled" : "ti ti-star"}></i>
-                        <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>{e.interest_count || 0}</span>
+                        <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{e.interest_count || 0}</span>
                       </button>
                     </div>
-                    <h3 className="opp-title" style={{ minHeight: 'unset', marginBottom: '8px', fontSize: '15px' }}>{e.title}</h3>
-                    <div style={{ fontSize: '11.5px', color: 'var(--text-muted)', marginBottom: '4px' }}><i className="ti ti-calendar"></i> Ngày: {dateStr}</div>
-                    <div style={{ fontSize: '11.5px', color: 'var(--text-muted)', marginBottom: '4px' }}><i className="ti ti-users"></i> Tổ chức: {e.organizer || 'Đồ Sơn'}</div>
+                    <h3 className="opp-title" style={{ minHeight: 'unset', marginBottom: '8px', fontSize: '15px', color: 'var(--text-primary)' }}>{e.title}</h3>
+                    <div style={{ fontSize: '11.5px', color: 'var(--text-secondary)', marginBottom: '4px' }}><i className="ti ti-calendar"></i> Ngày: {dateStr}</div>
+                    <div style={{ fontSize: '11.5px', color: 'var(--text-secondary)', marginBottom: '4px' }}><i className="ti ti-users"></i> Tổ chức: {e.organizer || 'Đồ Sơn'}</div>
                     {!token && (
                       <div style={{ fontSize: '11px', color: 'var(--rose)', marginTop: '8px', background: 'rgba(244,63,94,0.05)', padding: '6px', borderRadius: '4px', border: '1px dashed rgba(244,63,94,0.15)' }}>
                         <i className="ti ti-lock"></i> {t('login_required_location')}
                       </div>
                     )}
                   </div>
-                  <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '12px', marginTop: '16px', display: 'flex', justifyContent: 'flex-end' }}>
+                  <div style={{ borderTop: '1px solid var(--border)', paddingTop: '12px', marginTop: '16px', display: 'flex', justifyContent: 'flex-end' }}>
                     <button className="opp-btn" onClick={() => openEventModal(e)}>{t('btn_view_details')}</button>
                   </div>
                 </div>
@@ -211,37 +211,37 @@ export const Events = () => {
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(8,14,30,0.85)', backdropFilter: 'blur(8px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem' }}>
           <div className="glass-card" style={{ width: '100%', maxWidth: '550px', padding: '2rem', borderColor: 'var(--border-strong)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '12px' }}>
-              <h3 style={{ fontFamily: 'var(--font-title)', fontSize: '16px', color: '#FFFFFF', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
-                <i className="ti ti-calendar-event" style={{ color: 'var(--amber)' }}></i> {t('event_details_title')}
+              <h3 style={{ fontFamily: 'var(--font-title)', fontSize: '16px', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+                <i className="ti ti-calendar-event" style={{ color: 'var(--amber-dark)' }}></i> {t('event_details_title')}
               </h3>
               <button onClick={closeEventModal} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '18px', cursor: 'pointer' }}><i className="ti ti-x"></i></button>
             </div>
             
             <div style={{ marginBottom: '1.5rem', maxHeight: '50vh', overflowY: 'auto', textAlign: 'left' }}>
               <div style={{ marginBottom: '14px' }}>
-                <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--amber)', fontWeight: 700 }}>{t('label_event_name')}</span>
-                <div style={{ fontSize: '15px', fontWeight: 600, color: '#FFFFFF', marginTop: '2px' }}>{selectedEvent.title}</div>
+                <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--amber-dark)', fontWeight: 700 }}>{t('label_event_name')}</span>
+                <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', marginTop: '2px' }}>{selectedEvent.title}</div>
               </div>
               <div style={{ marginBottom: '14px' }}>
-                <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--amber)', fontWeight: 700 }}>{t('label_organizer')}</span>
-                <div style={{ fontSize: '13px', color: '#FFFFFF', marginTop: '2px' }}>{selectedEvent.organizer || 'Đồ Sơn'}</div>
+                <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--amber-dark)', fontWeight: 700 }}>{t('label_organizer')}</span>
+                <div style={{ fontSize: '13px', color: 'var(--text-primary)', marginTop: '2px' }}>{selectedEvent.organizer || 'Đồ Sơn'}</div>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
                 <div>
-                  <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--amber)', fontWeight: 700 }}>{t('label_event_date')}</span>
-                  <div style={{ fontSize: '13px', color: '#FFFFFF', marginTop: '2px' }}>{new Date(selectedEvent.event_date).toLocaleDateString('vi-VN')}</div>
+                  <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--amber-dark)', fontWeight: 700 }}>{t('label_event_date')}</span>
+                  <div style={{ fontSize: '13px', color: 'var(--text-primary)', marginTop: '2px' }}>{new Date(selectedEvent.event_date).toLocaleDateString('vi-VN')}</div>
                 </div>
                 <div>
-                  <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--amber)', fontWeight: 700 }}>{t('label_max_capacity')}</span>
-                  <div style={{ fontSize: '13px', color: '#FFFFFF', marginTop: '2px' }}>{selectedEvent.capacity ? t('capacity_people')(selectedEvent.capacity) : t('capacity_unlimited')}</div>
+                  <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--amber-dark)', fontWeight: 700 }}>{t('label_max_capacity')}</span>
+                  <div style={{ fontSize: '13px', color: 'var(--text-primary)', marginTop: '2px' }}>{selectedEvent.capacity ? t('capacity_people')(selectedEvent.capacity) : t('capacity_unlimited')}</div>
                 </div>
               </div>
               <div style={{ marginBottom: '14px' }}>
-                <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--amber)', fontWeight: 700 }}>{t('label_location')}</span>
-                <div style={{ fontSize: '13px', color: '#FFFFFF', marginTop: '2px' }}>{selectedEvent.location || t('location_default')}</div>
+                <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--amber-dark)', fontWeight: 700 }}>{t('label_location')}</span>
+                <div style={{ fontSize: '13px', color: 'var(--text-primary)', marginTop: '2px' }}>{selectedEvent.location || t('location_default')}</div>
               </div>
               <div style={{ marginBottom: '14px' }}>
-                <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--amber)', fontWeight: 700 }}>{t('label_event_description')}</span>
+                <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--amber-dark)', fontWeight: 700 }}>{t('label_event_description')}</span>
                 <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '6px', whiteSpace: 'pre-line', lineHeight: '1.6' }}>{selectedEvent.description || t('no_event_desc')}</div>
               </div>
             </div>
@@ -250,7 +250,7 @@ export const Events = () => {
               <button 
                 onClick={() => handleToggleEventInterest(selectedEvent.id)}
                 className="btn"
-                style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12.5px', background: selectedEvent.is_interested ? 'var(--amber)' : 'rgba(255,255,255,0.05)', color: selectedEvent.is_interested ? '#000' : '#fff', borderColor: selectedEvent.is_interested ? 'var(--amber)' : 'rgba(255,255,255,0.1)', padding: '6px 16px', fontWeight: 600, cursor: 'pointer' }}
+                style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12.5px', background: selectedEvent.is_interested ? 'var(--amber)' : 'rgba(12,35,64,0.06)', color: selectedEvent.is_interested ? '#fff' : 'var(--text-primary)', borderColor: selectedEvent.is_interested ? 'var(--amber)' : 'var(--border-strong)', padding: '6px 16px', fontWeight: 600, cursor: 'pointer' }}
               >
                 <i className={selectedEvent.is_interested ? "ti ti-star-filled" : "ti ti-star"}></i>
                 {selectedEvent.is_interested ? t('status_interested') : t('btn_interest')} ({selectedEvent.interest_count || 0})

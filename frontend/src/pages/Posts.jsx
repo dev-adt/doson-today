@@ -166,7 +166,7 @@ export const Posts = () => {
                   <div style={{
                     position: 'absolute',
                     inset: 0,
-                    background: 'linear-gradient(90deg, rgba(8,14,30,0.98) 0%, rgba(8,14,30,0.85) 45%, rgba(8,14,30,0.1) 100%)',
+                    background: 'linear-gradient(90deg, rgba(12,35,64,0.96) 0%, rgba(12,35,64,0.85) 45%, rgba(12,35,64,0.15) 100%)',
                     zIndex: 2
                   }} />
                   
@@ -176,12 +176,12 @@ export const Posts = () => {
                       <i className="ti ti-crown"></i> {t('tier_platinum_partner')}
                     </span>
                     <h2 style={{ fontFamily: 'var(--font-title)', fontSize: '20px', fontWeight: 700, color: '#fff', margin: '0 0 8px', lineHeight: 1.3 }}>{p.title}</h2>
-                    <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '0 0 15px', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{p.summary || p.body.replace(/<[^>]*>/g, '').substring(0, 150)}</p>
+                    <p style={{ fontSize: '13px', color: '#B5CFEC', margin: '0 0 15px', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{p.summary || p.body.replace(/<[^>]*>/g, '').substring(0, 150)}</p>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                      <button onClick={() => navigate('/posts/' + p.id)} className="btn btn-primary" style={{ fontSize: '12px', padding: '8px 18px' }}>
+                       <button onClick={() => navigate('/posts/' + p.id)} className="btn btn-primary" style={{ fontSize: '12px', padding: '8px 18px' }}>
                         {t('btn_read_more')} <i className="ti ti-arrow-right"></i>
                       </button>
-                      <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.7)', fontWeight: 500 }}>{p.company_name}</span>
+                      <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.85)', fontWeight: 500 }}>{p.company_name}</span>
                     </div>
                   </div>
                 </div>
@@ -222,7 +222,7 @@ export const Posts = () => {
                 placeholder={t('search_posts_placeholder')} 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                style={{ padding: '8px 12px 8px 30px', width: '100%', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', fontSize: '12.5px', outline: 'none', backgroundColor: 'var(--surface-3)', color: '#fff' }}
+                style={{ padding: '8px 12px 8px 30px', width: '100%', borderRadius: '8px', border: '1px solid var(--border-strong)', fontSize: '12.5px', outline: 'none', backgroundColor: 'var(--surface-2)', color: 'var(--text-primary)' }}
               />
             </div>
 
@@ -230,7 +230,7 @@ export const Posts = () => {
             <select
               value={selectedTier}
               onChange={(e) => setSelectedTier(e.target.value)}
-              style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', fontSize: '12.5px', outline: 'none', backgroundColor: 'var(--surface-3)', color: '#fff', cursor: 'pointer', minWidth: '130px' }}
+              style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border-strong)', fontSize: '12.5px', outline: 'none', backgroundColor: 'var(--surface-2)', color: 'var(--text-primary)', cursor: 'pointer', minWidth: '130px' }}
             >
               <option value="">{t('all_members')}</option>
               <option value="Platinum">{t('tier_platinum_members')}</option>
@@ -242,7 +242,7 @@ export const Posts = () => {
             <select
               value={selectedType}
               onChange={(e) => setSelectedType(e.target.value)}
-              style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', fontSize: '12.5px', outline: 'none', backgroundColor: 'var(--surface-3)', color: '#fff', cursor: 'pointer', minWidth: '140px' }}
+              style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border-strong)', fontSize: '12.5px', outline: 'none', backgroundColor: 'var(--surface-2)', color: 'var(--text-primary)', cursor: 'pointer', minWidth: '140px' }}
             >
               <option value="">{t('all_types')}</option>
               <option value="offer">{t('type_offer')}</option>
@@ -310,11 +310,11 @@ export const Posts = () => {
               const initials = p.company_name ? p.company_name.split(' ').filter(Boolean).map(n => n[0]).join('').slice(0, 2).toUpperCase() : 'HV';
 
               return (
-                <div className="glass-card" key={p.id} style={{ position: 'relative', overflow: 'hidden', transition: 'transform 0.2s, border-color 0.2s', border: p.is_featured === 1 ? '1px solid rgba(245,158,11,0.2)' : '1px solid rgba(255,255,255,0.06)' }}>
+                <div className="glass-card" key={p.id} style={{ position: 'relative', overflow: 'hidden', transition: 'transform 0.2s, border-color 0.2s', border: p.is_featured === 1 ? '1px solid rgba(245,158,11,0.3)' : '1px solid var(--border-strong)' }}>
                   
                   {/* Featured Badge */}
                   {p.is_featured === 1 && (
-                    <span style={{ position: 'absolute', top: '12px', right: '12px', fontSize: '9px', background: 'rgba(245, 158, 11, 0.15)', color: 'var(--amber)', border: '1px solid rgba(245,158,11,0.3)', padding: '2px 6px', borderRadius: '3px', textTransform: 'uppercase', fontWeight: 700, zIndex: 1 }}>
+                    <span style={{ position: 'absolute', top: '12px', right: '12px', fontSize: '9px', background: 'rgba(245, 158, 11, 0.15)', color: 'var(--amber-dark)', border: '1px solid rgba(245,158,11,0.3)', padding: '2px 6px', borderRadius: '3px', textTransform: 'uppercase', fontWeight: 700, zIndex: 1 }}>
                       {t('badge_featured')} <i className="ti ti-star-filled"></i>
                     </span>
                   )}
@@ -322,7 +322,7 @@ export const Posts = () => {
                   <div style={{ display: 'flex', flexDirection: 'row', gap: '20px', flexWrap: 'wrap', padding: '1.25rem' }}>
                     
                     {/* Cover image left */}
-                    <div style={{ width: '130px', height: '100px', borderRadius: '10px', overflow: 'hidden', flexShrink: 0, border: '1px solid rgba(255,255,255,0.04)' }}>
+                    <div style={{ width: '130px', height: '100px', borderRadius: '10px', overflow: 'hidden', flexShrink: 0, border: '1px solid var(--border)' }}>
                       <img src={pImg} alt={p.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     </div>
 
@@ -332,11 +332,11 @@ export const Posts = () => {
                         {/* Member avatar & details line */}
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                           <div className="av-circle" style={{ width: '22px', height: '22px', fontSize: '9px', background: avatarColors.bg, color: avatarColors.fg, fontWeight: 600 }}>{initials}</div>
-                          <span style={{ fontSize: '12.5px', fontWeight: 600, color: '#fff' }}>{p.company_name}</span>
+                          <span style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--text-primary)' }}>{p.company_name}</span>
                           <span style={{ 
                             fontSize: '8.5px', 
-                            background: isPlat ? 'rgba(245,158,11,0.15)' : isGld ? 'rgba(245,158,11,0.1)' : 'rgba(255,255,255,0.05)', 
-                            color: isPlat || isGld ? 'var(--amber)' : 'var(--text-muted)',
+                            background: isPlat ? 'rgba(245,158,11,0.15)' : isGld ? 'rgba(245,158,11,0.1)' : 'var(--surface-0)', 
+                            color: isPlat || isGld ? 'var(--amber-dark)' : 'var(--text-muted)',
                             padding: '1px 5px',
                             borderRadius: '3px',
                             fontWeight: 700,
@@ -348,13 +348,13 @@ export const Posts = () => {
                         </div>
 
                         {/* Title */}
-                        <h3 style={{ fontFamily: 'var(--font-title)', fontSize: '15px', fontWeight: 650, color: '#fff', margin: '0 0 6px', lineHeight: 1.4 }}>{p.title}</h3>
+                        <h3 style={{ fontFamily: 'var(--font-title)', fontSize: '15px', fontWeight: 650, color: 'var(--text-primary)', margin: '0 0 6px', lineHeight: 1.4 }}>{p.title}</h3>
                         <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', margin: '0 0 10px', lineHeight: 1.5 }}>{p.summary || p.body.replace(/<[^>]*>/g, '').substring(0, 120)}</p>
                       </div>
 
                       {/* Tag & classification */}
                       <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: '9.5px', textTransform: 'uppercase', padding: '2px 8px', borderRadius: '4px', background: 'rgba(0,229,255,0.08)', color: 'var(--neon-cyan)', border: '1px solid rgba(0,229,255,0.15)', fontWeight: 600 }}>
+                        <span style={{ fontSize: '9.5px', textTransform: 'uppercase', padding: '2px 8px', borderRadius: '4px', background: 'rgba(2,132,199,0.08)', color: 'var(--primary-dark)', border: '1px solid rgba(2,132,199,0.15)', fontWeight: 600 }}>
                           {p.type === 'offer' ? t('type_offer_short') : p.type === 'demand' ? t('type_demand_short') : t('type_cooperate_short')}
                         </span>
                         {p.category && (
@@ -382,18 +382,36 @@ export const Posts = () => {
                   onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                   disabled={currentPage === 1}
                   className="btn"
-                  style={{ padding: '8px 16px', fontSize: '12px', opacity: currentPage === 1 ? 0.4 : 1, cursor: currentPage === 1 ? 'not-allowed' : 'pointer' }}
+                  style={{
+                    padding: '8px 16px',
+                    fontSize: '12px',
+                    borderRadius: '6px',
+                    backgroundColor: 'rgba(12,35,64,0.06)',
+                    color: currentPage === 1 ? 'var(--text-muted)' : 'var(--text-primary)',
+                    cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                    border: '1px solid var(--border-strong)',
+                    opacity: currentPage === 1 ? 0.5 : 1
+                  }}
                 >
                   <i className="ti ti-chevron-left"></i> {t('btn_back_prev')}
                 </button>
-                <span style={{ fontSize: '12.5px', color: '#fff' }}>
+                <span style={{ fontSize: '12.5px', color: 'var(--text-primary)' }}>
                   {t('label_page')} <strong>{currentPage}</strong> / {totalPages}
                 </span>
                 <button 
                   onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                   disabled={currentPage === totalPages}
                   className="btn"
-                  style={{ padding: '8px 16px', fontSize: '12px', opacity: currentPage === totalPages ? 0.4 : 1, cursor: currentPage === totalPages ? 'not-allowed' : 'pointer' }}
+                  style={{
+                    padding: '8px 16px',
+                    fontSize: '12px',
+                    borderRadius: '6px',
+                    backgroundColor: 'rgba(12,35,64,0.06)',
+                    color: currentPage === totalPages ? 'var(--text-muted)' : 'var(--text-primary)',
+                    cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+                    border: '1px solid var(--border-strong)',
+                    opacity: currentPage === totalPages ? 0.5 : 1
+                  }}
                 >
                   {t('btn_go_next')} <i className="ti ti-chevron-right"></i>
                 </button>

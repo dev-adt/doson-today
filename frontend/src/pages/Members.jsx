@@ -183,7 +183,7 @@ export const Members = () => {
                 placeholder={t('search_members_placeholder')} 
                 value={searchQuery}
                 onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-                style={{ padding: '8px 12px 8px 30px', width: '100%', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', fontSize: '12.5px', outline: 'none', backgroundColor: 'var(--surface-3)', color: '#fff' }}
+                style={{ padding: '8px 12px 8px 30px', width: '100%', borderRadius: '8px', border: '1px solid var(--border-strong)', fontSize: '12.5px', outline: 'none', backgroundColor: 'var(--surface-2)', color: 'var(--text-primary)' }}
               />
             </div>
 
@@ -191,7 +191,7 @@ export const Members = () => {
             <select
               value={selectedTier}
               onChange={(e) => { setSelectedTier(e.target.value); setCurrentPage(1); }}
-              style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', fontSize: '12.5px', outline: 'none', backgroundColor: 'var(--surface-3)', color: '#fff', cursor: 'pointer', minWidth: '130px' }}
+              style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border-strong)', fontSize: '12.5px', outline: 'none', backgroundColor: 'var(--surface-2)', color: 'var(--text-primary)', cursor: 'pointer', minWidth: '130px' }}
             >
               <option value="">{t('all_tiers')}</option>
               <option value="Platinum">💎 Platinum</option>
@@ -203,7 +203,7 @@ export const Members = () => {
             <select
               value={selectedIndustry}
               onChange={(e) => { setSelectedIndustry(e.target.value); setCurrentPage(1); }}
-              style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', fontSize: '12.5px', outline: 'none', backgroundColor: 'var(--surface-3)', color: '#fff', cursor: 'pointer', minWidth: '150px' }}
+              style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border-strong)', fontSize: '12.5px', outline: 'none', backgroundColor: 'var(--surface-2)', color: 'var(--text-primary)', cursor: 'pointer', minWidth: '150px' }}
             >
               <option value="">{t('all_industries')}</option>
               {uniqueIndustries.map(ind => (
@@ -224,9 +224,9 @@ export const Members = () => {
                 style={{
                   padding: '4px 8px',
                   borderRadius: '6px',
-                  border: '1px solid rgba(255,255,255,0.1)',
-                  background: 'var(--surface-3)',
-                  color: '#fff',
+                  border: '1px solid var(--border-strong)',
+                  background: 'var(--surface-2)',
+                  color: 'var(--text-primary)',
                   fontSize: '11.5px',
                   cursor: 'pointer',
                   outline: 'none'
@@ -265,15 +265,15 @@ export const Members = () => {
                 
                 return (
                   <div className="card" key={`feat-${m.id}`} style={{ border: '1px solid rgba(245,158,11,0.3)', boxShadow: '0 4px 20px rgba(245,158,11,0.08)', borderRadius: 'var(--radius-lg)', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', background: 'var(--surface-2)' }}>
-                    <div style={{ height: '60px', background: `linear-gradient(135deg, ${colors.bg} 0%, rgba(255,255,255,0) 100%)`, borderBottom: '1px solid rgba(255,255,255,0.05)' }}></div>
+                    <div style={{ height: '60px', background: `linear-gradient(135deg, ${colors.bg} 0%, rgba(255,255,255,0) 100%)`, borderBottom: '1px solid var(--border)' }}></div>
                     <div style={{ padding: '1.25rem', marginTop: '-35px', display: 'flex', flexDirection: 'column', flex: 1 }}>
                       <div className="av-circle" style={{ background: colors.bg, color: colors.fg, width: '54px', height: '54px', fontSize: '16px', border: '3px solid var(--surface-2)', marginBottom: '12px', fontWeight: 750 }}>{initials}</div>
-                      <h3 style={{ fontFamily: 'var(--font-title)', fontSize: '15px', fontWeight: 700, color: '#fff', marginBottom: '4px', lineHeight: 1.3, textAlign: 'left', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <h3 style={{ fontFamily: 'var(--font-title)', fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px', lineHeight: 1.3, textAlign: 'left', display: 'flex', alignItems: 'center', gap: '6px' }}>
                         {m.name}
-                        <i className="ti ti-star-filled" style={{ color: 'var(--amber)', fontSize: '14px' }}></i>
+                        <i className="ti ti-star-filled" style={{ color: 'var(--amber-dark)', fontSize: '14px' }}></i>
                       </h3>
                       <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <i className="ti ti-briefcase" style={{ color: 'var(--amber)' }}></i> {m.industry}
+                        <i className="ti ti-briefcase" style={{ color: 'var(--amber-dark)' }}></i> {m.industry}
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
                         <p style={{ 
@@ -295,10 +295,10 @@ export const Members = () => {
                               value={memberTargetLangs[`feat-${m.id}`] || (currentLang === 'vi' ? 'en' : currentLang)}
                               onChange={(e) => handleMemberTargetLangChange(`feat-${m.id}`, e.target.value)}
                               style={{
-                                background: 'rgba(255,255,255,0.05)',
-                                border: '1px solid rgba(255,255,255,0.1)',
+                                background: 'var(--surface-2)',
+                                border: '1px solid var(--border-strong)',
                                 borderRadius: '4px',
-                                color: '#fff',
+                                color: 'var(--text-primary)',
                                 fontSize: '10px',
                                 padding: '2px 4px',
                                 outline: 'none',
@@ -336,26 +336,26 @@ export const Members = () => {
                       
                       {/* Contact Info Block */}
                       {m.email !== '***@***.***' ? (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left', marginTop: '8px', padding: '8px 10px', background: 'rgba(255,255,255,0.03)', borderRadius: '6px', fontSize: '11.5px', border: '1px solid rgba(255,255,255,0.04)' }}>
-                          <div style={{ color: '#fff', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            <i className="ti ti-user" style={{ color: 'var(--amber)' }}></i> {m.contact_name}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left', marginTop: '8px', padding: '8px 10px', background: 'var(--surface-0)', borderRadius: '6px', fontSize: '11.5px', border: '1px solid var(--border)' }}>
+                          <div style={{ color: 'var(--text-primary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <i className="ti ti-user" style={{ color: 'var(--amber-dark)' }}></i> {m.contact_name}
                           </div>
                           <div style={{ color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            <i className="ti ti-mail" style={{ color: 'var(--amber)' }}></i> {m.email}
+                            <i className="ti ti-mail" style={{ color: 'var(--amber-dark)' }}></i> {m.email}
                           </div>
                           <div style={{ color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            <i className="ti ti-phone" style={{ color: 'var(--amber)' }}></i> {m.phone}
+                            <i className="ti ti-phone" style={{ color: 'var(--amber-dark)' }}></i> {m.phone}
                           </div>
                         </div>
                       ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left', marginTop: '8px', padding: '8px 10px', background: 'rgba(255,255,255,0.02)', borderRadius: '6px', fontSize: '11.5px', border: '1px dashed rgba(255,255,255,0.05)' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left', marginTop: '8px', padding: '8px 10px', background: 'var(--surface-0)', borderRadius: '6px', fontSize: '11.5px', border: '1px dashed var(--border-strong)' }}>
                           <div style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                             <i className="ti ti-lock"></i> {t('contact_login_required')}
                           </div>
                         </div>
                       )}
 
-                      <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '12px', marginTop: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ borderTop: '1px solid var(--border)', paddingTop: '12px', marginTop: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <span className={`badge ${tierClass}`}>{tierBadge}</span>
                         <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}><i className="ti ti-map-pin"></i> {m.city || t('location_default')}</span>
                       </div>
@@ -394,10 +394,10 @@ export const Members = () => {
                   <div className="card" key={m.id} style={{ boxShadow: 'var(--shadow)', transition: 'var(--transition)', borderRadius: 'var(--radius-lg)', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
                     <div style={{ height: '60px', background: `linear-gradient(135deg, ${m.bg} 0%, rgba(255,255,255,0) 100%)`, borderBottom: '1px solid var(--border)' }}></div>
                     <div style={{ padding: '1.25rem', marginTop: '-35px', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                      <div className="av-circle" style={{ background: m.bg, color: m.fg, width: '54px', height: '54px', fontSize: '16px', border: '3px solid #ffffff', marginBottom: '12px', fontWeight: 600 }}>{m.initials}</div>
+                      <div className="av-circle" style={{ background: m.bg, color: m.fg, width: '54px', height: '54px', fontSize: '16px', border: '3px solid var(--surface-2)', marginBottom: '12px', fontWeight: 600 }}>{m.initials}</div>
                       <h3 style={{ fontFamily: 'var(--font-title)', fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px', lineHeight: 1.3, textAlign: 'left' }}>{m.name}</h3>
                       <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <i className="ti ti-briefcase"></i> {m.industry}
+                        <i className="ti ti-briefcase" style={{ color: 'var(--amber-dark)' }}></i> {m.industry}
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
                         <p style={{ 
@@ -419,10 +419,10 @@ export const Members = () => {
                               value={memberTargetLangs[m.id] || (currentLang === 'vi' ? 'en' : currentLang)}
                               onChange={(e) => handleMemberTargetLangChange(m.id, e.target.value)}
                               style={{
-                                background: 'rgba(255,255,255,0.05)',
-                                border: '1px solid rgba(255,255,255,0.1)',
+                                background: 'var(--surface-2)',
+                                border: '1px solid var(--border-strong)',
                                 borderRadius: '4px',
-                                color: '#fff',
+                                color: 'var(--text-primary)',
                                 fontSize: '10px',
                                 padding: '2px 4px',
                                 outline: 'none',
@@ -460,19 +460,19 @@ export const Members = () => {
                       
                       {/* Contact Info Block */}
                       {m.email !== '***@***.***' ? (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left', marginTop: '8px', padding: '8px 10px', background: 'rgba(255,255,255,0.03)', borderRadius: '6px', fontSize: '11.5px', border: '1px solid rgba(255,255,255,0.04)' }}>
-                          <div style={{ color: '#fff', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            <i className="ti ti-user" style={{ color: 'var(--amber)' }}></i> {m.contact_name}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left', marginTop: '8px', padding: '8px 10px', background: 'var(--surface-0)', borderRadius: '6px', fontSize: '11.5px', border: '1px solid var(--border)' }}>
+                          <div style={{ color: 'var(--text-primary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <i className="ti ti-user" style={{ color: 'var(--amber-dark)' }}></i> {m.contact_name}
                           </div>
                           <div style={{ color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            <i className="ti ti-mail" style={{ color: 'var(--amber)' }}></i> {m.email}
+                            <i className="ti ti-mail" style={{ color: 'var(--amber-dark)' }}></i> {m.email}
                           </div>
                           <div style={{ color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            <i className="ti ti-phone" style={{ color: 'var(--amber)' }}></i> {m.phone}
+                            <i className="ti ti-phone" style={{ color: 'var(--amber-dark)' }}></i> {m.phone}
                           </div>
                         </div>
                       ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left', marginTop: '8px', padding: '8px 10px', background: 'rgba(255,255,255,0.02)', borderRadius: '6px', fontSize: '11.5px', border: '1px dashed rgba(255,255,255,0.05)' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left', marginTop: '8px', padding: '8px 10px', background: 'var(--surface-0)', borderRadius: '6px', fontSize: '11.5px', border: '1px dashed var(--border-strong)' }}>
                           <div style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                             <i className="ti ti-lock"></i> {t('contact_login_required')}
                           </div>
@@ -500,10 +500,10 @@ export const Members = () => {
                     padding: '6px 12px',
                     fontSize: '12.5px',
                     borderRadius: '6px',
-                    backgroundColor: 'rgba(255,255,255,0.03)',
-                    color: currentPage === 1 ? 'var(--text-muted)' : '#fff',
+                    backgroundColor: 'rgba(12,35,64,0.06)',
+                    color: currentPage === 1 ? 'var(--text-muted)' : 'var(--text-primary)',
                     cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
-                    border: '1px solid rgba(255,255,255,0.08)'
+                    border: '1px solid var(--border-strong)'
                   }}
                 >
                   <i className="ti ti-chevron-left"></i> {t('btn_back_prev')}
@@ -518,9 +518,9 @@ export const Members = () => {
                       padding: '6px 12px',
                       fontSize: '12.5px',
                       borderRadius: '6px',
-                      backgroundColor: currentPage === pg ? 'var(--primary)' : 'rgba(255,255,255,0.03)',
-                      borderColor: currentPage === pg ? 'var(--primary)' : 'rgba(255,255,255,0.08)',
-                      color: '#fff',
+                      backgroundColor: currentPage === pg ? 'var(--primary)' : 'rgba(12,35,64,0.06)',
+                      borderColor: currentPage === pg ? 'var(--primary)' : 'var(--border-strong)',
+                      color: currentPage === pg ? '#fff' : 'var(--text-primary)',
                       fontWeight: currentPage === pg ? '700' : 'normal',
                       cursor: 'pointer'
                     }}
@@ -537,10 +537,10 @@ export const Members = () => {
                     padding: '6px 12px',
                     fontSize: '12.5px',
                     borderRadius: '6px',
-                    backgroundColor: 'rgba(255,255,255,0.03)',
-                    color: currentPage === totalPages ? 'var(--text-muted)' : '#fff',
+                    backgroundColor: 'rgba(12,35,64,0.06)',
+                    color: currentPage === totalPages ? 'var(--text-muted)' : 'var(--text-primary)',
                     cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
-                    border: '1px solid rgba(255,255,255,0.08)'
+                    border: '1px solid var(--border-strong)'
                   }}
                 >
                   {t('btn_go_next')} <i className="ti ti-chevron-right"></i>
