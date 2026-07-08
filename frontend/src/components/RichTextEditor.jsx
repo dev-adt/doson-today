@@ -34,7 +34,7 @@ export const RichTextEditor = ({ value, onChange, placeholder }) => {
   const btnStyle = {
     background: 'none',
     border: 'none',
-    color: '#fff',
+    color: 'var(--text-primary)',
     padding: '4px 8px',
     borderRadius: '4px',
     cursor: 'pointer',
@@ -54,10 +54,10 @@ export const RichTextEditor = ({ value, onChange, placeholder }) => {
   };
 
   return (
-    <div style={{ border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', background: 'var(--surface-2)', overflow: 'hidden', textAlign: 'left' }}>
+    <div style={{ border: '1px solid var(--border-strong)', borderRadius: '8px', background: 'var(--surface-2)', overflow: 'hidden', textAlign: 'left' }}>
       
       {/* Formatting Toolbar */}
-      <div style={{ display: 'flex', gap: '4px', padding: '8px', background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(255,255,255,0.08)', flexWrap: 'wrap', alignItems: 'center' }}>
+      <div style={{ display: 'flex', gap: '4px', padding: '8px', background: 'var(--surface-0)', borderBottom: '1px solid var(--border)', flexWrap: 'wrap', alignItems: 'center' }}>
         
         {/* Paragraph Format Selector */}
         <button type="button" onClick={() => execCommand('formatBlock', '<h1>')} title="Tiêu đề H1" style={btnStyle} className="hover-highlight">H1</button>
@@ -65,7 +65,7 @@ export const RichTextEditor = ({ value, onChange, placeholder }) => {
         <button type="button" onClick={() => execCommand('formatBlock', '<h3>')} title="Tiêu đề H3" style={btnStyle} className="hover-highlight">H3</button>
         <button type="button" onClick={() => execCommand('formatBlock', '<p>')} title="Đoạn văn" style={btnStyle} className="hover-highlight">P</button>
         
-        <div style={{ width: '1px', height: '18px', background: 'rgba(255,255,255,0.1)', margin: '0 4px' }} />
+        <div style={{ width: '1px', height: '18px', background: 'var(--border)', margin: '0 4px' }} />
 
         {/* Text styling */}
         <button type="button" onClick={() => execCommand('bold')} title="In đậm" style={btnStyle} className="hover-highlight">
@@ -78,21 +78,21 @@ export const RichTextEditor = ({ value, onChange, placeholder }) => {
           <i className="ti ti-underline" style={{ fontSize: '14px' }}></i>
         </button>
 
-        <div style={{ width: '1px', height: '18px', background: 'rgba(255,255,255,0.1)', margin: '0 4px' }} />
+        <div style={{ width: '1px', height: '18px', background: 'var(--border)', margin: '0 4px' }} />
 
         {/* Font Size & Color controls */}
         <select
           onChange={(e) => execCommand('fontSize', e.target.value)}
           style={{
             background: 'none',
-            border: '1px solid rgba(255,255,255,0.15)',
-            color: '#fff',
+            border: '1px solid var(--border)',
+            color: 'var(--text-primary)',
             padding: '2px 4px',
             borderRadius: '4px',
             fontSize: '11px',
             cursor: 'pointer',
             outline: 'none',
-            backgroundColor: 'rgba(25,32,56,0.95)',
+            backgroundColor: 'var(--surface-2)',
             margin: '0 4px',
             height: '24px'
           }}
@@ -109,11 +109,11 @@ export const RichTextEditor = ({ value, onChange, placeholder }) => {
         </select>
 
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', margin: '0 6px', position: 'relative' }} title="Màu chữ">
-          <i className="ti ti-palette" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.8)' }}></i>
+          <i className="ti ti-palette" style={{ fontSize: '13px', color: 'var(--text-secondary)' }}></i>
           <input 
             type="color" 
             onChange={(e) => execCommand('foreColor', e.target.value)}
-            defaultValue="#ffffff"
+            defaultValue="#000000"
             style={{
               width: '18px',
               height: '18px',
@@ -126,7 +126,7 @@ export const RichTextEditor = ({ value, onChange, placeholder }) => {
           />
         </div>
         
-        <div style={{ width: '1px', height: '18px', background: 'rgba(255,255,255,0.1)', margin: '0 4px' }} />
+        <div style={{ width: '1px', height: '18px', background: 'var(--border)', margin: '0 4px' }} />
 
         {/* List formatting */}
         <button type="button" onClick={() => execCommand('insertUnorderedList')} title="Danh sách gạch đầu dòng" style={btnStyle} className="hover-highlight">
@@ -136,7 +136,7 @@ export const RichTextEditor = ({ value, onChange, placeholder }) => {
           <i className="ti ti-list-numbers" style={{ fontSize: '14px' }}></i>
         </button>
 
-        <div style={{ width: '1px', height: '18px', background: 'rgba(255,255,255,0.1)', margin: '0 4px' }} />
+        <div style={{ width: '1px', height: '18px', background: 'var(--border)', margin: '0 4px' }} />
 
         {/* Alignments */}
         <button type="button" onClick={() => execCommand('justifyLeft')} title="Căn trái" style={btnStyle} className="hover-highlight">
@@ -149,7 +149,7 @@ export const RichTextEditor = ({ value, onChange, placeholder }) => {
           <i className="ti ti-align-right" style={{ fontSize: '14px' }}></i>
         </button>
 
-        <div style={{ width: '1px', height: '18px', background: 'rgba(255,255,255,0.1)', margin: '0 4px' }} />
+        <div style={{ width: '1px', height: '18px', background: 'var(--border)', margin: '0 4px' }} />
 
         {/* Links and Media */}
         <button type="button" onClick={insertLink} title="Chèn liên kết" style={btnStyle} className="hover-highlight">
@@ -174,7 +174,7 @@ export const RichTextEditor = ({ value, onChange, placeholder }) => {
           maxHeight: '400px',
           overflowY: 'auto',
           padding: '16px', 
-          color: '#fff', 
+          color: 'var(--text-primary)', 
           outline: 'none',
           fontSize: '13.5px',
           lineHeight: '1.6'
@@ -185,7 +185,7 @@ export const RichTextEditor = ({ value, onChange, placeholder }) => {
       {/* Dynamic inline hover CSS styling */}
       <style>{`
         .hover-highlight:hover {
-          background-color: rgba(255,255,255,0.08) !important;
+          background-color: rgba(12,35,64,0.06) !important;
         }
       `}</style>
     </div>

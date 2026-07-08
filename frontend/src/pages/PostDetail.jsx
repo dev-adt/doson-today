@@ -332,8 +332,8 @@ export const PostDetail = () => {
 
               {/* Summary / Lead Paragraph */}
               {post.summary && (
-                <div className="glass-card" style={{ padding: '20px 24px', background: 'rgba(0,229,255,0.02)', borderColor: 'rgba(0,229,255,0.1)' }}>
-                  <p style={{ fontSize: '14.5px', fontWeight: 500, color: 'var(--neon-cyan)', margin: 0, lineHeight: '1.6' }}>
+                <div className="glass-card" style={{ padding: '20px 24px', background: 'var(--surface-0)', borderColor: 'var(--border-strong)' }}>
+                  <p style={{ fontSize: '14.5px', fontWeight: 500, color: 'var(--primary-dark)', margin: 0, lineHeight: '1.6' }}>
                     {isTranslated ? translatedSummary : post.summary}
                   </p>
                 </div>
@@ -346,7 +346,7 @@ export const PostDetail = () => {
                   dangerouslySetInnerHTML={{ __html: isTranslated ? translatedBody : post.body }}
                   style={{
                     fontSize: '15px',
-                    color: 'rgba(255,255,255,0.9)',
+                    color: 'var(--text-secondary)',
                     lineHeight: '1.8',
                     textAlign: 'left',
                   }}

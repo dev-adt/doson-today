@@ -250,7 +250,7 @@ export const Events = () => {
               <button 
                 onClick={() => handleToggleEventInterest(selectedEvent.id)}
                 className="btn"
-                style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12.5px', background: selectedEvent.is_interested ? 'var(--amber)' : 'rgba(12,35,64,0.06)', color: selectedEvent.is_interested ? '#fff' : 'var(--text-primary)', borderColor: selectedEvent.is_interested ? 'var(--amber)' : 'var(--border-strong)', padding: '6px 16px', fontWeight: 600, cursor: 'pointer' }}
+                style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12.5px', background: selectedEvent.is_interested ? 'var(--amber)' : 'rgba(12,35,64,0.06)', color: selectedEvent.is_interested ? '#000' : 'var(--text-primary)', borderColor: selectedEvent.is_interested ? 'var(--amber)' : 'var(--border-strong)', padding: '6px 16px', fontWeight: 600, cursor: 'pointer' }}
               >
                 <i className={selectedEvent.is_interested ? "ti ti-star-filled" : "ti ti-star"}></i>
                 {selectedEvent.is_interested ? t('status_interested') : t('btn_interest')} ({selectedEvent.interest_count || 0})

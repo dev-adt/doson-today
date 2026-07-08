@@ -2583,3 +2583,31 @@ select option {
 .public-body .post-item:hover {
   background: var(--surface-1) !important;
 }
+
+/* Dashboard hội viên cards */
+.public-body .dash-card {
+  background: var(--surface-2) !important;
+  border-color: var(--border) !important;
+  color: var(--text-secondary) !important;
+}
+.public-body .card-title {
+  color: var(--text-primary) !important;
+  border-bottom-color: var(--border) !important;
+}
+.public-body .fg label {
+  color: var(--text-secondary) !important;
+}
+.public-body .fg input,
+.public-body .fg select,
+.public-body .fg textarea {
+  background-color: var(--surface-0) !important;
+  border: 1px solid var(--border-strong) !important;
+  color: var(--text-primary) !important;
+}
+.public-body .fg input:focus,
+.public-body .fg select:focus,
+.public-body .fg textarea:focus {
+  border-color: var(--primary) !important;
+  background-color: var(--surface-2) !important;
+}
+
