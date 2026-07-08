@@ -1,11 +1,11 @@
 -- ============================================
--- BizHub AI — MySQL Database Schema
--- Chạy file này trong phpMyAdmin của Aaanel
--- hoặc: mysql -u root -p bizhub < schema.sql
+-- Đồ Sơn Today — MySQL Database Schema
+-- Database: doson | User: doson_db
+-- Chạy: mysql -u doson_db -p doson < schema.sql
 -- ============================================
 
-CREATE DATABASE IF NOT EXISTS bizhub CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE bizhub;
+-- Database đã được tạo qua aaPanel, chỉ cần USE
+USE doson;
 
 -- ── Bảng hội viên ─────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS members (
@@ -113,24 +113,24 @@ CREATE TABLE IF NOT EXISTS chat_logs (
 
 -- Admin mặc định (password: Admin@123)
 INSERT INTO admins (username, password_hash, name, email, role) VALUES
-('admin', '$2b$10$3luJFH.EMVPnxeH8BdXn9.5tnCQ9huv13yzOzHrwYGiRhgV7dcufq', 'Quản trị viên', 'admin@bizhub.vn', 'superadmin');
+('admin', '$2b$10$3luJFH.EMVPnxeH8BdXn9.5tnCQ9huv13yzOzHrwYGiRhgV7dcufq', 'Quản trị viên', 'admin@doson.today', 'superadmin');
 
 -- Hội viên mẫu
 INSERT INTO members (name, tax_code, industry, tier, status, contact_name, contact_pos, email, phone, description, address) VALUES
-('Công ty CP Vina Tech', '0101234567', 'Công nghệ thông tin', 'Platinum', 'approved', 'Trần Minh Đức', 'Giám đốc', 'duc@vinatech.vn', '0901111222', 'Phát triển phần mềm ERP, CRM cho thị trường Đông Nam Á. Đội ngũ 120 kỹ sư.', '45 Lý Thường Kiệt, Hoàn Kiếm, Hà Nội'),
-('Hoàng Long Export', '0209876543', 'Xuất nhập khẩu', 'Gold', 'approved', 'Nguyễn Thu Hà', 'Tổng giám đốc', 'ha@hoanglong.com', '0912333444', 'Xuất khẩu nông sản, thủy sản sang EU, Nhật Bản, Hàn Quốc. Kim ngạch 5 triệu USD/năm.', '123 Lê Duẩn, Hai Bà Trưng, Hà Nội'),
-('BĐS Phú Thịnh', '0312345678', 'Bất động sản', 'Silver', 'pending', 'Lê Quang Khải', 'Giám đốc', 'khai@phuthinhbds.vn', '0933555666', 'Phân phối BĐS khu vực Hà Nội và các tỉnh phía Bắc.', '89 Nguyễn Chí Thanh, Đống Đa, Hà Nội');
+('Công ty Du lịch Đồ Sơn', '0201234567', 'Du lịch - Nghỉ dưỡng', 'Platinum', 'approved', 'Nguyễn Văn Hùng', 'Giám đốc', 'hung@dosontravel.vn', '0901111222', 'Cung cấp dịch vụ du lịch, nghỉ dưỡng cao cấp tại bán đảo Đồ Sơn - Hải Phòng.', 'Khu 1, Đồ Sơn, Hải Phòng'),
+('Khách sạn Đồi Rồng Resort', '0209876543', 'Khách sạn - Nhà hàng', 'Gold', 'approved', 'Trần Thị Lan', 'Tổng giám đốc', 'lan@doirongresort.vn', '0912333444', 'Resort 5 sao nằm trên đỉnh Đồi Rồng, view biển toàn cảnh, sức chứa 200 phòng.', 'Đồi Rồng, Vạn Hương, Đồ Sơn, Hải Phòng'),
+('Hải sản Tươi Đồ Sơn', '0312345678', 'Thực phẩm - Hải sản', 'Silver', 'pending', 'Lê Quang Minh', 'Chủ cơ sở', 'minh@haisandoson.vn', '0933555666', 'Cung cấp hải sản tươi sống trực tiếp từ ngư dân Đồ Sơn cho nhà hàng và xuất khẩu.', 'Cảng cá Đồ Sơn, Hải Phòng');
 
 -- Bài viết mẫu
 INSERT INTO posts (member_id, title, summary, body, type, status, contact_info) VALUES
-(1, 'Tìm đối tác triển khai ERP khu vực miền Trung', 'Vina Tech cần đối tác có kinh nghiệm CNTT để triển khai ERP tại Đà Nẵng.', 'Vina Tech đang tìm kiếm đối tác chiến lược để triển khai giải pháp ERP tại miền Trung.', 'Tìm kiếm đối tác', 'approved', 'duc@vinatech.vn | 0901 111 222'),
-(2, 'Cần nhà cung cấp gạo ST25 số lượng lớn', 'Thu mua gạo ST25 chất lượng cao để xuất khẩu, 50 tấn/tháng.', 'Công ty Hoàng Long đang thu mua gạo ST25 phục vụ xuất khẩu sang Nhật Bản và Hàn Quốc.', 'Cần mua / Cần bán', 'pending', 'ha@hoanglong.com | 0912 333 444');
+(1, 'Tìm đối tác hợp tác tour du lịch Đồi Rồng - Đồ Sơn 2025', 'Công ty du lịch Đồ Sơn tìm đối tác lữ hành để hợp tác tour hè 2025.', 'Chúng tôi đang tìm kiếm các công ty lữ hành tại Hà Nội và TP.HCM để hợp tác đưa khách đến Đồi Rồng Đồ Sơn trong mùa hè 2025.', 'Tìm kiếm đối tác', 'approved', 'hung@dosontravel.vn | 0901 111 222'),
+(2, 'Cần nhà cung cấp hải sản tươi sống số lượng lớn cho resort', 'Đồi Rồng Resort cần đối tác cung cấp hải sản tươi hàng ngày cho nhà hàng 500 khách.', 'Resort đang tìm nguồn cung hải sản tươi sống ổn định, ưu tiên ngư dân và cơ sở tại Đồ Sơn, Cát Bà.', 'Cần mua / Cần bán', 'pending', 'lan@doirongresort.vn | 0912 333 444');
 
 -- Sự kiện mẫu
 INSERT INTO events (title, event_date, location, organizer, status) VALUES
-('Hội nghị Xuất khẩu Nông sản ASEAN 2025', '2025-07-15', 'Trung tâm Hội nghị Quốc gia, Hà Nội', 'Hoàng Long Export', 'upcoming'),
-('Vietnam Tech Expo 2025', '2025-07-22', 'GEM Center, TP. Hồ Chí Minh', 'Vina Tech', 'upcoming'),
-('Diễn đàn Doanh nhân BizHub Q3', '2025-08-05', 'Novotel Đà Nẵng', 'BizHub', 'upcoming');
+('Lễ hội Du lịch Biển Đồ Sơn 2025', '2025-07-15', 'Bãi biển Đồ Sơn, Hải Phòng', 'UBND Quận Đồ Sơn', 'upcoming'),
+('Hội chợ Hải sản Đặc sản Đồ Sơn', '2025-07-22', 'Quảng trường Đồ Sơn, Hải Phòng', 'Hiệp hội Du lịch Hải Phòng', 'upcoming'),
+('Diễn đàn Doanh nghiệp Đồ Sơn Today Q3/2025', '2025-08-05', 'Đồi Rồng Resort, Đồ Sơn', 'Đồ Sơn Today', 'upcoming');
 
 -- Cấu hình AI mặc định
 INSERT INTO ai_config (provider, model, is_active) VALUES ('openrouter', 'google/gemini-2.0-flash-001', 1);
