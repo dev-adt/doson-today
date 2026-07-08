@@ -1,7 +1,7 @@
 {
-  "name": "bizhub-ai",
+  "name": "doson-today",
   "version": "2.0.0",
-  "description": "BizHub — Hệ thống quản lý hội viên doanh nghiệp với AI + MySQL",
+  "description": "Đồ Sơn Today — Hệ thống quản lý hội viên doanh nghiệp với AI + MySQL",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

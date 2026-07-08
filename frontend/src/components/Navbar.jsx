@@ -41,8 +41,8 @@ export const Navbar = () => {
     <>
       <nav style={{ zIndex: 1000 }}>
       <Link to="/" className="nav-logo" style={{ textDecoration: 'none' }}>
-        <div className="nav-logo-icon"><img src="/avg_logo.png" alt="Logo" style={{ width: '20px', height: '20px', objectFit: 'contain' }} /></div>
-        AVG
+        <div className="nav-logo-icon"><img src="/doson_logo.png" alt="Logo" style={{ width: '20px', height: '20px', objectFit: 'contain' }} /></div>
+        Đồ Sơn
       </Link>
 
       <div className="nav-links">
