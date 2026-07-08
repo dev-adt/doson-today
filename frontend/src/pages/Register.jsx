@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import { useTranslation } from '../contexts/LanguageContext';
 
 export const Register = () => {
+  const { t } = useTranslation();
   const [step, setStep] = useState(1);
   const navigate = useNavigate();
 
@@ -51,27 +53,27 @@ export const Register = () => {
   };
 
   const validateStep1 = () => {
-    if (!formData.name) return 'Vui lòng điền tên doanh nghiệp';
-    if (!formData.industry) return 'Vui lòng chọn lĩnh vực hoạt động';
-    if (!formData.size) return 'Vui lòng chọn quy mô nhân sự';
-    if (!formData.tax_code) return 'Vui lòng điền mã số thuế';
-    if (!formData.city) return 'Vui lòng chọn tỉnh thành';
-    if (!formData.address) return 'Vui lòng điền địa chỉ chi tiết';
-    if (!formData.description) return 'Vui lòng điền mô tả ngắn hoạt động kinh doanh';
+    if (!formData.name) return t('err_fill_company_name');
+    if (!formData.industry) return t('err_select_industry');
+    if (!formData.size) return t('err_select_scale');
+    if (!formData.tax_code) return t('err_fill_tax_code');
+    if (!formData.city) return t('err_select_city');
+    if (!formData.address) return t('err_fill_address');
+    if (!formData.description) return t('err_fill_description');
     return null;
   };
 
   const validateStep2 = () => {
-    if (!formData.contact_name) return 'Vui lòng điền tên người đại diện';
-    if (!formData.contact_pos) return 'Vui lòng điền chức vụ người đại diện';
-    if (!formData.email) return 'Vui lòng điền email liên hệ';
-    if (!formData.phone) return 'Vui lòng điền số điện thoại';
+    if (!formData.contact_name) return t('err_fill_rep_name');
+    if (!formData.contact_pos) return t('err_fill_rep_position');
+    if (!formData.email) return t('err_fill_email');
+    if (!formData.phone) return t('err_fill_phone');
     return null;
   };
 
   const validateStep3 = () => {
-    if (!formData.password) return 'Vui lòng thiết lập mật khẩu';
-    if (formData.password.length < 8) return 'Mật khẩu phải tối thiểu 8 ký tự';
+    if (!formData.password) return t('err_fill_password');
+    if (formData.password.length < 8) return t('err_password_min_8');
     return null;
   };
 
@@ -119,12 +121,12 @@ export const Register = () => {
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || 'Đăng ký không thành công.');
+        throw new Error(data.error || t('error_occurred'));
       }
 
       setSuccess(true);
     } catch (err) {
-      setError(err.message || 'Có lỗi xảy ra khi kết nối máy chủ.');
+      setError(err.message || t('error_occurred'));
     } finally {
       setSubmitting(false);
     }
@@ -143,7 +145,7 @@ export const Register = () => {
               <path id="textCircle" d="M 150,150 m -115,0 a 115,115 0 1,1 230,0 a 115,115 0 1,1 -230,0" fill="none" />
               <text fill="rgba(255, 255, 255, 0.75)" fontSize="9.5" fontFamily="var(--font-title)" fontWeight="600" letterSpacing="0.065em">
                 <textPath href="#textCircle">
-                  AVG — MỞ RỘNG MẠNG LƯỚI, TỐI ĐA HÓA CƠ HỘI. KẾT NỐI TOÀN CẦU, PHÁT TRIỂN BỀN VỮNG.
+                  {t('register_sidebar_circular_text')}
                 </textPath>
               </text>
             </svg>
@@ -152,7 +154,7 @@ export const Register = () => {
           
           <div className="register-sidebar-text">
             <h2>AVG Connection</h2>
-            <p>Khởi tạo doanh nghiệp, xây dựng hồ sơ uy tín và mở rộng mạng lưới giao lưu kinh doanh rộng khắp toàn quốc.</p>
+            <p>{t('register_sidebar_desc')}</p>
           </div>
         </div>
 
@@ -162,20 +164,20 @@ export const Register = () => {
           {!success ? (
             <>
               <div className="reg-wizard-header">
-                <div style={{ fontFamily: 'var(--font-title)', fontSize: '22px', fontWeight: 700, color: '#0F172A' }}>Gia nhập AVG</div>
+                <div style={{ fontFamily: 'var(--font-title)', fontSize: '22px', fontWeight: 700, color: '#0F172A' }}>{t('register_card_title')}</div>
                 
                 <div style={{ display: 'flex', gap: '16px' }}>
                   <div className={`reg-step-item ${step === 1 ? 'active' : step > 1 ? 'completed' : ''}`}>
                     <div className="reg-step-num">1</div>
-                    <span>Doanh nghiệp</span>
+                    <span>{t('step_company')}</span>
                   </div>
                   <div className={`reg-step-item ${step === 2 ? 'active' : step > 2 ? 'completed' : ''}`}>
                     <div className="reg-step-num">2</div>
-                    <span>Người đại diện</span>
+                    <span>{t('step_representative')}</span>
                   </div>
                   <div className={`reg-step-item ${step === 3 ? 'active' : ''}`}>
                     <div className="reg-step-num">3</div>
-                    <span>Tài khoản</span>
+                    <span>{t('step_account')}</span>
                   </div>
                 </div>
               </div>
@@ -192,28 +194,28 @@ export const Register = () => {
                 {/* STEP 1: Thông tin Doanh nghiệp */}
                 {step === 1 && (
                   <div>
-                    <div style={{ fontWeight: 700, fontSize: '15px', color: '#1E293B', marginBottom: '1.25rem' }}><i className="ti ti-building" style={{ color: 'var(--primary)' }}></i> 1. Kê khai thông tin doanh nghiệp</div>
+                    <div style={{ fontWeight: 700, fontSize: '15px', color: '#1E293B', marginBottom: '1.25rem' }}><i className="ti ti-building" style={{ color: 'var(--primary)' }}></i> {t('step_1_title')}</div>
                     
                     <div className="fg" style={{ marginBottom: '1.25rem' }}>
-                      <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px', display: 'block' }}>Tên Doanh nghiệp <span style={{ color: 'var(--rose)' }}>*</span></label>
-                      <input type="text" id="r-name" value={formData.name} onChange={handleInputChange} placeholder="Ví dụ: Công ty Cổ phần Công nghệ Vina Tech" style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #D8E2EF', fontSize: '13px', outline: 'none' }} />
+                      <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px', display: 'block' }}>{t('label_company_name')} <span style={{ color: 'var(--rose)' }}>*</span></label>
+                      <input type="text" id="r-name" value={formData.name} onChange={handleInputChange} placeholder={t('placeholder_company_name')} style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #D8E2EF', fontSize: '13px', outline: 'none' }} />
                     </div>
                     
                     <div className="fg" style={{ marginBottom: '1.25rem' }}>
-                      <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px', display: 'block' }}>Địa chỉ Website doanh nghiệp</label>
-                      <input type="text" id="r-website" value={formData.website} onChange={handleInputChange} placeholder="Ví dụ: https://vinatech.vn" style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #D8E2EF', fontSize: '13px', outline: 'none' }} />
+                      <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px', display: 'block' }}>{t('label_website')}</label>
+                      <input type="text" id="r-website" value={formData.website} onChange={handleInputChange} placeholder={t('placeholder_website')} style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #D8E2EF', fontSize: '13px', outline: 'none' }} />
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem', marginBottom: '1.25rem' }}>
                       <div className="fg">
-                        <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px', display: 'block' }}>Lĩnh vực hoạt động <span style={{ color: 'var(--rose)' }}>*</span></label>
+                        <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px', display: 'block' }}>{t('label_industry')} <span style={{ color: 'var(--rose)' }}>*</span></label>
                         <input 
                           type="text" 
                           id="r-industry" 
                           list="industries-list" 
                           value={formData.industry} 
                           onChange={handleInputChange} 
-                          placeholder="Chọn hoặc tự điền lĩnh vực..."
+                          placeholder={t('placeholder_industry')}
                           style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #D8E2EF', fontSize: '13px', outline: 'none', backgroundColor: '#fff' }} 
                         />
                         <datalist id="industries-list">
@@ -234,32 +236,32 @@ export const Register = () => {
                         </datalist>
                       </div>
                       <div className="fg">
-                        <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px', display: 'block' }}>Quy mô (Nhân sự) <span style={{ color: 'var(--rose)' }}>*</span></label>
+                        <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px', display: 'block' }}>{t('label_employee_scale')} <span style={{ color: 'var(--rose)' }}>*</span></label>
                         <select id="r-size" value={formData.size} onChange={handleInputChange} style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #D8E2EF', fontSize: '13px', outline: 'none', backgroundColor: '#fff' }}>
-                          <option value="">-- Chọn quy mô --</option>
-                          <option value="Dưới 10 người">Dưới 10 người</option>
-                          <option value="10 – 50 người">10 – 50 người</option>
-                          <option value="50 – 200 người">50 – 200 người</option>
-                          <option value="200 – 500 người">200 – 500 người</option>
-                          <option value="Trên 500 người">Trên 500 người</option>
+                          <option value="">{t('placeholder_select_scale')}</option>
+                          <option value="Dưới 10 người">{t('scale_under_10')}</option>
+                          <option value="10 – 50 người">{t('scale_10_50')}</option>
+                          <option value="50 – 200 người">{t('scale_50_200')}</option>
+                          <option value="200 – 500 người">{t('scale_200_500')}</option>
+                          <option value="Trên 500 người">{t('scale_over_500')}</option>
                         </select>
                       </div>
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem', marginBottom: '1.25rem' }}>
                       <div className="fg">
-                        <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px', display: 'block' }}>Mã số thuế doanh nghiệp <span style={{ color: 'var(--rose)' }}>*</span></label>
-                        <input type="text" id="r-tax_code" value={formData.tax_code} onChange={handleInputChange} placeholder="Mã số thuế gồm 10 chữ số" style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #D8E2EF', fontSize: '13px', outline: 'none' }} />
+                        <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px', display: 'block' }}>{t('label_tax_code')} <span style={{ color: 'var(--rose)' }}>*</span></label>
+                        <input type="text" id="r-tax_code" value={formData.tax_code} onChange={handleInputChange} placeholder={t('placeholder_tax_code')} style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #D8E2EF', fontSize: '13px', outline: 'none' }} />
                       </div>
                       <div className="fg">
-                        <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px', display: 'block' }}>Tỉnh/Thành phố trụ sở <span style={{ color: 'var(--rose)' }}>*</span></label>
+                        <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px', display: 'block' }}>{t('label_city')} <span style={{ color: 'var(--rose)' }}>*</span></label>
                         <input 
                           type="text" 
                           id="r-city" 
                           list="cities-list" 
                           value={formData.city} 
                           onChange={handleInputChange} 
-                          placeholder="Chọn hoặc tự điền tỉnh thành..." 
+                          placeholder={t('search_members_placeholder')} 
                           style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #D8E2EF', fontSize: '13px', outline: 'none', backgroundColor: '#fff' }}
                         />
                         <datalist id="cities-list">
@@ -331,28 +333,28 @@ export const Register = () => {
                     </div>
 
                     <div className="fg" style={{ marginBottom: '1.25rem' }}>
-                      <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px', display: 'block' }}>Địa chỉ chi tiết trụ sở chính <span style={{ color: 'var(--rose)' }}>*</span></label>
+                      <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px', display: 'block' }}>{t('label_address')} <span style={{ color: 'var(--rose)' }}>*</span></label>
                       <input type="text" id="r-address" value={formData.address} onChange={handleInputChange} placeholder="Ví dụ: 45 Lý Thường Kiệt, Hoàn Kiếm, Hà Nội" style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #D8E2EF', fontSize: '13px', outline: 'none' }} />
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem', marginBottom: '1.25rem' }}>
                       <div className="fg">
-                        <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px', display: 'block' }}>Mã Bưu điện (ZIP code)</label>
+                        <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px', display: 'block' }}>{t('currentLang') === 'vi' ? 'Mã Bưu điện (ZIP code)' : 'ZIP / Postal Code'}</label>
                         <input type="text" id="r-zip" value={formData.zip} onChange={handleInputChange} placeholder="Ví dụ: 100000" style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #D8E2EF', fontSize: '13px', outline: 'none' }} />
                       </div>
                       <div className="fg">
-                        <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px', display: 'block' }}>Fanpage / LinkedIn doanh nghiệp</label>
+                        <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px', display: 'block' }}>{t('label_social_media')}</label>
                         <input type="text" id="r-social" value={formData.social} onChange={handleInputChange} placeholder="facebook.com/company" style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #D8E2EF', fontSize: '13px', outline: 'none' }} />
                       </div>
                     </div>
 
                     <div className="fg" style={{ marginBottom: '1.5rem' }}>
-                      <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px', display: 'block' }}>Mô tả ngắn hoạt động kinh doanh <span style={{ color: 'var(--rose)' }}>*</span></label>
+                      <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px', display: 'block' }}>{t('label_short_description')} <span style={{ color: 'var(--rose)' }}>*</span></label>
                       <textarea id="r-description" value={formData.description} onChange={handleInputChange} placeholder="Giới thiệu sơ lược sản phẩm, dịch vụ..." style={{ width: '100%', height: '100px', padding: '9px 12px', borderRadius: '8px', border: '1px solid #D8E2EF', fontSize: '13px', outline: 'none', resize: 'vertical' }}></textarea>
                     </div>
 
                     <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                      <button type="button" className="btn btn-primary" onClick={() => handleNext(2)}>Tiếp tục <i className="ti ti-chevron-right"></i></button>
+                      <button type="button" className="btn btn-primary" onClick={() => handleNext(2)}>{t('btn_continue')} <i className="ti ti-chevron-right"></i></button>
                     </div>
                   </div>
                 )}
@@ -360,39 +362,39 @@ export const Register = () => {
                 {/* STEP 2: Người đại diện */}
                 {step === 2 && (
                   <div>
-                    <div style={{ fontWeight: 700, fontSize: '15px', color: '#1E293B', marginBottom: '1.25rem' }}><i className="ti ti-user" style={{ color: 'var(--primary)' }}></i> 2. Thông tin người đại diện giao thương</div>
+                    <div style={{ fontWeight: 700, fontSize: '15px', color: '#1E293B', marginBottom: '1.25rem' }}><i className="ti ti-user" style={{ color: 'var(--primary)' }}></i> {t('step_2_title')}</div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem', marginBottom: '1.25rem' }}>
                       <div className="fg">
-                        <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px', display: 'block' }}>Tên người đại diện <span style={{ color: 'var(--rose)' }}>*</span></label>
-                        <input type="text" id="r-contact_name" value={formData.contact_name} onChange={handleInputChange} placeholder="Họ và tên người liên hệ" style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #D8E2EF', fontSize: '13px', outline: 'none' }} />
+                        <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px', display: 'block' }}>{t('label_contact_person')} <span style={{ color: 'var(--rose)' }}>*</span></label>
+                        <input type="text" id="r-contact_name" value={formData.contact_name} onChange={handleInputChange} placeholder={t('placeholder_rep_name')} style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #D8E2EF', fontSize: '13px', outline: 'none' }} />
                       </div>
                       <div className="fg">
-                        <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px', display: 'block' }}>Chức vụ tại doanh nghiệp <span style={{ color: 'var(--rose)' }}>*</span></label>
-                        <input type="text" id="r-contact_pos" value={formData.contact_pos} onChange={handleInputChange} placeholder="Ví dụ: Giám đốc kinh doanh" style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #D8E2EF', fontSize: '13px', outline: 'none' }} />
+                        <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px', display: 'block' }}>{t('label_contact_position')} <span style={{ color: 'var(--rose)' }}>*</span></label>
+                        <input type="text" id="r-contact_pos" value={formData.contact_pos} onChange={handleInputChange} placeholder={t('placeholder_rep_position')} style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #D8E2EF', fontSize: '13px', outline: 'none' }} />
                       </div>
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem', marginBottom: '1.25rem' }}>
                       <div className="fg">
-                        <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px', display: 'block' }}>Email doanh nghiệp <span style={{ color: 'var(--rose)' }}>*</span></label>
-                        <input type="email" id="r-email" value={formData.email} onChange={handleInputChange} placeholder="email@company.vn" style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #D8E2EF', fontSize: '13px', outline: 'none' }} />
+                        <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px', display: 'block' }}>{t('label_login_email')} <span style={{ color: 'var(--rose)' }}>*</span></label>
+                        <input type="email" id="r-email" value={formData.email} onChange={handleInputChange} placeholder={t('placeholder_rep_email')} style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #D8E2EF', fontSize: '13px', outline: 'none' }} />
                       </div>
                       <div className="fg">
-                        <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px', display: 'block' }}>Số điện thoại liên hệ <span style={{ color: 'var(--rose)' }}>*</span></label>
-                        <input type="tel" id="r-phone" value={formData.phone} onChange={handleInputChange} placeholder="Số điện thoại di động" style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #D8E2EF', fontSize: '13px', outline: 'none' }} />
+                        <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px', display: 'block' }}>{t('label_phone_number')} <span style={{ color: 'var(--rose)' }}>*</span></label>
+                        <input type="tel" id="r-phone" value={formData.phone} onChange={handleInputChange} placeholder={t('placeholder_rep_phone')} style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #D8E2EF', fontSize: '13px', outline: 'none' }} />
                       </div>
                     </div>
 
                     <div className="fg" style={{ marginBottom: '1.25rem' }}>
-                      <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px', display: 'block' }}>Mục tiêu lớn nhất khi gia nhập AVG</label>
-                      <input type="text" id="r-goal" value={formData.goal} onChange={handleInputChange} placeholder="Ví dụ: Tìm đối tác xuất khẩu nông sản sang Nhật" style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #D8E2EF', fontSize: '13px', outline: 'none' }} />
+                      <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px', display: 'block' }}>{t('label_joining_goal')}</label>
+                      <input type="text" id="r-goal" value={formData.goal} onChange={handleInputChange} placeholder={t('placeholder_joining_goal')} style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #D8E2EF', fontSize: '13px', outline: 'none' }} />
                     </div>
 
                     <div className="fg" style={{ marginBottom: '1.5rem' }}>
-                      <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px', display: 'block' }}>Biết tới AVG qua kênh nào?</label>
+                      <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px', display: 'block' }}>{t('label_referral')}</label>
                       <select id="r-referral" value={formData.referral} onChange={handleInputChange} style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #D8E2EF', fontSize: '13px', outline: 'none', backgroundColor: '#fff' }}>
-                        <option value="">-- Chọn kênh giới thiệu --</option>
+                        <option value="">{t('placeholder_referral')}</option>
                         <option value="Mạng xã hội (Facebook, LinkedIn...)">Mạng xã hội (Facebook, LinkedIn...)</option>
                         <option value="Báo chí, truyền thông">Báo chí, truyền thông</option>
                         <option value="Được hội viên AVG giới thiệu">Được hội viên AVG giới thiệu</option>
@@ -402,8 +404,8 @@ export const Register = () => {
                     </div>
 
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <button type="button" className="btn" onClick={() => setStep(1)}><i className="ti ti-chevron-left"></i> Quay lại</button>
-                      <button type="button" className="btn btn-primary" onClick={() => handleNext(3)}>Tiếp tục <i className="ti ti-chevron-right"></i></button>
+                      <button type="button" className="btn" onClick={() => setStep(1)}><i className="ti ti-chevron-left"></i> {t('btn_back')}</button>
+                      <button type="button" className="btn btn-primary" onClick={() => handleNext(3)}>{t('btn_continue')} <i className="ti ti-chevron-right"></i></button>
                     </div>
                   </div>
                 )}
@@ -411,21 +413,21 @@ export const Register = () => {
                 {/* STEP 3: Tài khoản & Chọn Gói */}
                 {step === 3 && (
                   <div>
-                    <div style={{ fontWeight: 700, fontSize: '15px', color: '#1E293B', marginBottom: '1.25rem' }}><i className="ti ti-lock" style={{ color: 'var(--primary)' }}></i> 3. Thiết lập tài khoản bảo mật & gói hội viên</div>
+                    <div style={{ fontWeight: 700, fontSize: '15px', color: '#1E293B', marginBottom: '1.25rem' }}><i className="ti ti-lock" style={{ color: 'var(--primary)' }}></i> {t('step_3_title')}</div>
 
                     <div className="fg" style={{ marginBottom: '1.25rem' }}>
-                      <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px', display: 'block' }}>Email đăng nhập (Username) <span style={{ color: 'var(--rose)' }}>*</span></label>
+                      <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px', display: 'block' }}>{t('label_login_email')} <span style={{ color: 'var(--rose)' }}>*</span></label>
                       <input type="text" value={formData.email} disabled style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #D8E2EF', fontSize: '13px', backgroundColor: '#F1F5F9', color: '#64748B' }} />
-                      <div style={{ fontSize: '11px', color: 'var(--text-light-muted)', marginTop: '4px' }}>AVG sử dụng Email doanh nghiệp ở Bước 2 làm tên đăng nhập tài khoản.</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-light-muted)', marginTop: '4px' }}>{t('login_email_help_text')}</div>
                     </div>
 
                     <div className="fg" style={{ marginBottom: '1.5rem' }}>
-                      <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px', display: 'block' }}>Thiết lập Mật khẩu <span style={{ color: 'var(--rose)' }}>*</span></label>
-                      <input type="password" id="r-password" value={formData.password} onChange={handleInputChange} placeholder="Mật khẩu chứa tối thiểu 8 ký tự" style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #D8E2EF', fontSize: '13px', outline: 'none' }} />
+                      <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '4px', display: 'block' }}>{t('label_setup_password')} <span style={{ color: 'var(--rose)' }}>*</span></label>
+                      <input type="password" id="r-password" value={formData.password} onChange={handleInputChange} placeholder={t('placeholder_setup_password')} style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #D8E2EF', fontSize: '13px', outline: 'none' }} />
                     </div>
 
                     <div style={{ marginBottom: '1.5rem' }}>
-                      <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '10px', display: 'block' }}>Chọn Gói dịch vụ gia nhập</label>
+                      <label style={{ fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '10px', display: 'block' }}>{t('label_choose_tier')}</label>
                       
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
                         <div 
@@ -439,8 +441,8 @@ export const Register = () => {
                             backgroundColor: formData.tier === 'Silver' ? 'rgba(30,136,229,0.03)' : '#fff'
                           }}
                         >
-                          <div style={{ fontWeight: '700', fontSize: '13px', color: '#0F172A' }}>🪙 Silver</div>
-                          <div style={{ fontSize: '11px', color: '#64748B', marginTop: '4px' }}>Miễn phí</div>
+                          <div style={{ fontWeight: '700', fontSize: '13px', color: '#0F172A' }}>🪙 {t('tier_silver')}</div>
+                          <div style={{ fontSize: '11px', color: '#64748B', marginTop: '4px' }}>{t('price_free')}</div>
                         </div>
 
                         <div 
@@ -454,8 +456,8 @@ export const Register = () => {
                             backgroundColor: formData.tier === 'Gold' ? 'rgba(245,158,11,0.03)' : '#fff'
                           }}
                         >
-                          <div style={{ fontWeight: '700', fontSize: '13px', color: '#0F172A' }}>🏅 Gold</div>
-                          <div style={{ fontSize: '11px', color: '#64748B', marginTop: '4px' }}>5.000.000đ/năm</div>
+                          <div style={{ fontWeight: '700', fontSize: '13px', color: '#0F172A' }}>🏅 {t('tier_gold')}</div>
+                          <div style={{ fontSize: '11px', color: '#64748B', marginTop: '4px' }}>{t('price_gold_val')}/{t('pricing_per_year')}</div>
                         </div>
 
                         <div 
@@ -469,22 +471,22 @@ export const Register = () => {
                             backgroundColor: formData.tier === 'Platinum' ? 'rgba(99,102,241,0.03)' : '#fff'
                           }}
                         >
-                          <div style={{ fontWeight: '700', fontSize: '13px', color: '#0F172A' }}>💎 Platinum</div>
-                          <div style={{ fontSize: '11px', color: '#64748B', marginTop: '4px' }}>15.000.000đ/năm</div>
+                          <div style={{ fontWeight: '700', fontSize: '13px', color: '#0F172A' }}>💎 {t('tier_platinum')}</div>
+                          <div style={{ fontSize: '11px', color: '#64748B', marginTop: '4px' }}>{t('price_platinum_val')}/{t('pricing_per_year')}</div>
                         </div>
                       </div>
                     </div>
 
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <button type="button" className="btn" onClick={() => setStep(2)}><i className="ti ti-chevron-left"></i> Quay lại</button>
+                      <button type="button" className="btn" onClick={() => setStep(2)}><i className="ti ti-chevron-left"></i> {t('btn_back')}</button>
                       <button type="submit" className="btn btn-primary" disabled={submitting}>
                         {submitting ? (
                           <>
-                            <i className="ti ti-loader animate-spin"></i> Đang đăng ký...
+                            <i className="ti ti-loader animate-spin"></i> {t('btn_registering')}
                           </>
                         ) : (
                           <>
-                            <i className="ti ti-circle-check"></i> Đăng ký ngay
+                            <i className="ti ti-circle-check"></i> {t('btn_register')}
                           </>
                         )}
                       </button>
@@ -499,13 +501,13 @@ export const Register = () => {
               <div style={{ width: '64px', height: '64px', borderRadius: '50%', backgroundColor: 'rgba(16,185,129,0.1)', color: 'var(--emerald)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '32px', margin: '0 auto 1.5rem' }}>
                 <i className="ti ti-circle-check"></i>
               </div>
-              <h2 style={{ fontFamily: 'var(--font-title)', fontSize: '22px', fontWeight: 700, color: '#0F172A', marginBottom: '8px' }}>Đăng ký hồ sơ thành công!</h2>
+              <h2 style={{ fontFamily: 'var(--font-title)', fontSize: '22px', fontWeight: 700, color: '#0F172A', marginBottom: '8px' }}>{t('register_success_title')}</h2>
               <p style={{ fontSize: '13.5px', color: '#64748B', lineHeight: '1.6', maxWidth: '440px', margin: '0 auto 1.5rem' }}>
-                Hồ sơ doanh nghiệp <strong>{formData.name}</strong> đã được lưu trữ trên hệ thống AVG AI và đang chờ quản trị viên phê duyệt. Chúng tôi sẽ liên hệ sớm qua email <strong>{formData.email}</strong>.
+                {t('register_success_desc')(formData.name, formData.email)}
               </p>
               <div style={{ display: 'flex', justifyContent: 'center', gap: '12px' }}>
-                <Link to="/" className="btn" style={{ textDecoration: 'none' }}>Quay lại Trang chủ</Link>
-                <Link to="/login" className="btn btn-primary" style={{ textDecoration: 'none' }}><i className="ti ti-login"></i> Đăng nhập ngay</Link>
+                <Link to="/" className="btn" style={{ textDecoration: 'none' }}>{t('btn_back_home')}</Link>
+                <Link to="/login" className="btn btn-primary" style={{ textDecoration: 'none' }}><i className="ti ti-login"></i> {t('login_now')}</Link>
               </div>
             </div>
           )}

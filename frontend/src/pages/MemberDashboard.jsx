@@ -3,9 +3,11 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Navbar from '../components/Navbar';
 import RichTextEditor from '../components/RichTextEditor';
+import { useTranslation } from '../contexts/LanguageContext';
 
 export const MemberDashboard = () => {
   const { user, token, getAuthHeaders, logout } = useAuth();
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   // State
@@ -105,9 +107,9 @@ export const MemberDashboard = () => {
       });
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || 'Cập nhật thất bại.');
+        throw new Error(data.error || t('error_occurred'));
       }
-      setMessage({ text: 'Đã cập nhật thông tin doanh nghiệp thành công!', type: 'success' });
+      setMessage({ text: t('profile_update_success'), type: 'success' });
       // Clear password input
       setProfileData(prev => ({ ...prev, password: '' }));
       loadDashboardData();
@@ -119,7 +121,7 @@ export const MemberDashboard = () => {
   };
 
   const handleRequestUpgrade = async (targetTier) => {
-    if (!confirm(`Bạn muốn gửi yêu cầu nâng cấp tài khoản lên gói ${targetTier}?`)) return;
+    if (!confirm(t('upgrade_confirm_msg')(targetTier))) return;
 
     try {
       const res = await fetch('/api/member/upgrade', {
@@ -129,32 +131,32 @@ export const MemberDashboard = () => {
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        alert('Gửi yêu cầu nâng cấp thành công! Vui lòng chờ admin phê duyệt.');
+        alert(t('upgrade_request_success'));
         loadDashboardData();
       } else {
-        alert(data.error || 'Yêu cầu nâng cấp thất bại.');
+        alert(data.error || t('upgrade_request_fail'));
       }
     } catch (err) {
-      alert('Lỗi: ' + err.message);
+      alert(t('error_occurred') + ': ' + err.message);
     }
   };
 
   const handleDeletePost = async (id, title) => {
-    if (!confirm(`Bạn có chắc chắn muốn xóa bài đăng "${title}"?`)) return;
+    if (!confirm(t('delete_post_confirm')(title))) return;
     try {
       const res = await fetch(`/api/posts/${id}`, {
         method: 'DELETE',
         headers: getAuthHeaders()
       });
       if (res.ok) {
-        alert('Đã xóa bài đăng thành công!');
+        alert(t('delete_post_success'));
         loadDashboardData();
       } else {
         const err = await res.json();
-        alert(err.error || 'Xóa bài đăng thất bại.');
+        alert(err.error || t('error_occurred'));
       }
     } catch (err) {
-      alert('Lỗi: ' + err.message);
+      alert(t('error_occurred') + ': ' + err.message);
     }
   };
 
@@ -171,7 +173,7 @@ export const MemberDashboard = () => {
     if (!file) return;
 
     if (file.size > 2 * 1024 * 1024) {
-      alert('Vui lòng chọn file ảnh nhỏ hơn 2MB.');
+      alert(t('err_image_size'));
       return;
     }
 
@@ -193,10 +195,10 @@ export const MemberDashboard = () => {
         if (res.ok && data.success) {
           setNewPostData(prev => ({ ...prev, image_url: data.url }));
         } else {
-          alert(data.error || 'Tải tệp ảnh thất bại.');
+          alert(data.error || t('error_occurred'));
         }
       } catch (err) {
-        alert('Lỗi tải ảnh lên: ' + err.message);
+        alert(t('error_occurred') + ': ' + err.message);
       } finally {
         setUploadingImage(false);
       }
@@ -230,7 +232,7 @@ export const MemberDashboard = () => {
             title: p.title || '',
             summary: p.summary || '',
             body: p.body || '',
-            type: p.type || 'Tìm kiếm đối tác',
+            type: p.type || t('type_find_partner'),
             category: p.category || '',
             tags: parsedTags,
             contact_info: p.contact_info || '',
@@ -243,24 +245,24 @@ export const MemberDashboard = () => {
         }
       } else {
         const err = await res.json();
-        alert(err.error || 'Không thể tải chi tiết bài viết.');
+        alert(err.error || t('error_load_post'));
       }
     } catch (e) {
-      alert('Lỗi: ' + e.message);
+      alert(t('error_occurred') + ': ' + e.message);
     }
   };
 
   const handleSubmitAction = async (isDraft) => {
     if (!newPostData.title) {
-      alert('Vui lòng nhập tiêu đề bài đăng');
+      alert(t('alert_enter_title'));
       return;
     }
     if (!newPostData.body) {
-      alert('Vui lòng nhập nội dung chi tiết bài đăng');
+      alert(t('alert_enter_body'));
       return;
     }
     if (!newPostData.contact_info) {
-      alert('Vui lòng cung cấp thông tin liên hệ trực tiếp');
+      alert(t('alert_enter_contact'));
       return;
     }
 
@@ -287,20 +289,20 @@ export const MemberDashboard = () => {
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || 'Giao dịch không thành công.');
+        throw new Error(data.error || t('error_occurred'));
       }
 
-      alert(isDraft ? 'Đã lưu bản nháp thành công!' : 'Đã đăng tin thành công! Tin đăng đang chờ Admin duyệt.');
+      alert(isDraft ? t('save_draft_success') : t('publish_post_success'));
       setModalOpen(false);
       setEditingPostId(null);
       setNewPostData({
-        title: '', summary: '', body: '', type: 'Tìm kiếm đối tác',
+        title: '', summary: '', body: '', type: t('type_find_partner'),
         category: '', tags: '', contact_info: '', deadline: '', image_url: '',
         featured_requested: 0
       });
       loadDashboardData();
     } catch (err) {
-      alert('Có lỗi xảy ra: ' + err.message);
+      alert(t('error_occurred') + ': ' + err.message);
     } finally {
       setCreatingPost(false);
     }
@@ -330,24 +332,24 @@ export const MemberDashboard = () => {
             <div style={{ textAlign: 'left' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <h1 style={{ fontFamily: 'var(--font-title)', fontSize: '24px', fontWeight: 800, color: '#fff', margin: 0 }}>
-                  Dashboard Hội viên
+                  {t('dashboard_title')}
                 </h1>
                 <span className={`badge ${userTier === 'Platinum' ? 'b-platinum' : userTier === 'Gold' ? 'b-gold' : 'b-silver'}`} style={{ marginRight: '8px' }}>
-                  {userTier === 'Platinum' ? '💎 Platinum' : userTier === 'Gold' ? '🏅 Gold' : '🪙 Silver'}
+                  {userTier === 'Platinum' ? '💎 ' + t('tier_platinum') : userTier === 'Gold' ? '🏅 ' + t('tier_gold') : '🪙 ' + t('tier_silver')}
                 </span>
                 {profileData.tier_expires_at && userTier !== 'Silver' && (
                   <span style={{ fontSize: '11px', color: 'var(--text-muted)', backgroundColor: 'rgba(255,255,255,0.05)', padding: '4px 10px', borderRadius: '4px', marginRight: '8px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                    <i className="ti ti-calendar-event"></i> Hạn dùng gói: {new Date(profileData.tier_expires_at).toLocaleDateString('vi-VN')}
+                    <i className="ti ti-calendar-event"></i> {t('tier_expiry_label')}: {new Date(profileData.tier_expires_at).toLocaleDateString('vi-VN')}
                   </span>
                 )}
                 {profileData.pending_tier_upgrade && (
                   <span style={{ fontSize: '11px', color: 'var(--amber)', backgroundColor: 'rgba(245,158,11,0.08)', border: '1px dashed rgba(245,158,11,0.3)', padding: '4px 10px', borderRadius: '4px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                    <i className="ti ti-loader animate-spin" style={{ fontSize: '10px' }}></i> Chờ duyệt nâng cấp lên {profileData.pending_tier_upgrade}
+                    <i className="ti ti-loader animate-spin" style={{ fontSize: '10px' }}></i> {t('pending_upgrade_status')(profileData.pending_tier_upgrade)}
                   </span>
                 )}
               </div>
               <p style={{ fontSize: '12.5px', color: 'var(--text-muted)', margin: '4px 0 0' }}>
-                Quản trị tài khoản doanh nghiệp thành viên <strong>{profileData.name}</strong>
+                {t('manage_account_desc')(profileData.name)}
               </p>
             </div>
             
@@ -355,7 +357,7 @@ export const MemberDashboard = () => {
               onClick={() => {
                 setEditingPostId(null);
                 setNewPostData({
-                  title: '', summary: '', body: '', type: 'Tìm kiếm đối tác',
+                  title: '', summary: '', body: '', type: t('type_find_partner'),
                   category: '', tags: '', contact_info: '', deadline: '', image_url: ''
                 });
                 setModalOpen(true);
@@ -365,7 +367,7 @@ export const MemberDashboard = () => {
               disabled={userStatus !== 'approved'}
               title={userStatus !== 'approved' ? 'Tài khoản chưa được duyệt, không thể đăng tin bài.' : ''}
             >
-              <i className="ti ti-plus"></i> Đăng tin giao thương mới
+              <i className="ti ti-plus"></i> {t('btn_create_new_post')}
             </button>
           </div>
         </div>
@@ -377,8 +379,8 @@ export const MemberDashboard = () => {
               <div className="status-banner pending">
                 <i className="ti ti-clock status-icon"></i>
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: '14px' }}>Tài khoản đang chờ duyệt</div>
-                  <div style={{ fontSize: '12px', marginTop: '2px' }}>Hồ sơ doanh nghiệp đang được admin kiểm tra. Các chức năng đăng bài và AI Chat sẽ hoạt động sau khi được phê duyệt.</div>
+                  <div style={{ fontWeight: 700, fontSize: '14px' }}>{t('pending_account_status_title')}</div>
+                  <div style={{ fontSize: '12px', marginTop: '2px' }}>{t('pending_account_status_desc')}</div>
                 </div>
               </div>
             )}
@@ -387,8 +389,8 @@ export const MemberDashboard = () => {
               <div className="status-banner approved">
                 <i className="ti ti-circle-check status-icon"></i>
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: '14px' }}>Hội viên chính thức</div>
-                  <div style={{ fontSize: '12px', marginTop: '2px' }}>Tài khoản của bạn đã được phê duyệt. Bạn đã được cấp toàn quyền giao dịch và sử dụng Trợ lý AI.</div>
+                  <div style={{ fontWeight: 700, fontSize: '14px' }}>{t('approved_account_status_title')}</div>
+                  <div style={{ fontSize: '12px', marginTop: '2px' }}>{t('approved_account_status_desc')}</div>
                 </div>
               </div>
             )}
@@ -397,15 +399,15 @@ export const MemberDashboard = () => {
               <div className="status-banner rejected">
                 <i className="ti ti-circle-x status-icon"></i>
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: '14px' }}>Hồ sơ bị từ chối</div>
-                  <div style={{ fontSize: '12px', marginTop: '2px' }}>Doanh nghiệp chưa đạt yêu cầu kiểm duyệt. Vui lòng cập nhật lại hồ sơ chi tiết.</div>
+                  <div style={{ fontWeight: 700, fontSize: '14px' }}>{t('rejected_account_status_title')}</div>
+                  <div style={{ fontSize: '12px', marginTop: '2px' }}>{t('rejected_account_status_desc')}</div>
                 </div>
               </div>
             )}
 
             <div className="dash-card">
               <div className="card-title">
-                <i className="ti ti-edit"></i> Cập nhật hồ sơ doanh nghiệp
+                <i className="ti ti-edit"></i> {t('update_profile_title')}
               </div>
 
               {message.text && (
@@ -422,36 +424,36 @@ export const MemberDashboard = () => {
               <form onSubmit={handleProfileSubmit}>
                 <div className="form-grid">
                   <div className="fg">
-                    <label>Tên Doanh nghiệp</label>
+                    <label>{t('label_company_name')}</label>
                     <input type="text" id="name" value={profileData.name} onChange={handleProfileChange} required />
                   </div>
                   <div className="fg">
-                    <label>Mã số thuế</label>
+                    <label>{t('label_tax_code')}</label>
                     <input type="text" id="tax_code" value={profileData.tax_code} onChange={handleProfileChange} />
                   </div>
                   <div className="fg">
-                    <label>Giấy phép KD</label>
+                    <label>{t('label_business_license')}</label>
                     <input type="text" id="license" value={profileData.license} onChange={handleProfileChange} />
                   </div>
                   <div className="fg">
-                    <label>Ngành nghề</label>
+                    <label>{t('label_industry')}</label>
                     <input type="text" id="industry" value={profileData.industry} onChange={handleProfileChange} />
                   </div>
                   <div className="fg">
-                    <label>Quy mô nhân sự</label>
+                    <label>{t('label_employee_scale')}</label>
                     <input type="text" id="size" value={profileData.size} onChange={handleProfileChange} />
                   </div>
                   <div className="fg">
-                    <label>Website</label>
+                    <label>{t('label_website')}</label>
                     <input type="text" id="website" value={profileData.website} onChange={handleProfileChange} />
                   </div>
                   <div className="fg">
-                    <label>Địa chỉ</label>
+                    <label>{t('label_address')}</label>
                     <input type="text" id="address" value={profileData.address} onChange={handleProfileChange} />
                   </div>
                   <div className="fg">
-                    <label>Tỉnh/Thành phố</label>
-                    <input type="text" id="city" list="cities-list" value={profileData.city || ''} onChange={handleProfileChange} placeholder="Nhập hoặc chọn tỉnh thành..." />
+                    <label>{t('label_city')}</label>
+                    <input type="text" id="city" list="cities-list" value={profileData.city || ''} onChange={handleProfileChange} placeholder={t('label_city')} />
                     <datalist id="cities-list">
                       <option value="An Giang" />
                       <option value="Bà Rịa - Vũng Tàu" />
@@ -519,38 +521,38 @@ export const MemberDashboard = () => {
                     </datalist>
                   </div>
                   <div className="fg">
-                    <label>Mạng xã hội (Fanpage / LinkedIn)</label>
+                    <label>{t('label_social_media')}</label>
                     <input type="text" id="social" value={profileData.social} onChange={handleProfileChange} />
                   </div>
                   <div className="fg">
-                    <label>Tên người liên hệ</label>
+                    <label>{t('label_contact_person')}</label>
                     <input type="text" id="contact_name" value={profileData.contact_name} onChange={handleProfileChange} />
                   </div>
                   <div className="fg">
-                    <label>Chức vụ người liên hệ</label>
+                    <label>{t('label_contact_position')}</label>
                     <input type="text" id="contact_pos" value={profileData.contact_pos} onChange={handleProfileChange} />
                   </div>
                   <div className="fg">
-                    <label>Số điện thoại</label>
+                    <label>{t('label_phone_number')}</label>
                     <input type="text" id="phone" value={profileData.phone} onChange={handleProfileChange} />
                   </div>
                   <div className="fg" style={{ gridColumn: 'span 2' }}>
-                    <label>Mục tiêu tham gia</label>
+                    <label>{t('label_joining_goal')}</label>
                     <input type="text" id="goal" value={profileData.goal} onChange={handleProfileChange} />
                   </div>
                   <div className="fg" style={{ gridColumn: 'span 2' }}>
-                    <label>Mô tả ngắn hoạt động</label>
+                    <label>{t('label_short_description')}</label>
                     <textarea id="description" value={profileData.description} onChange={handleProfileChange} style={{ height: '80px', resize: 'vertical' }} />
                   </div>
                   <div className="fg" style={{ gridColumn: 'span 2', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '1.25rem', marginTop: '0.5rem' }}>
-                    <label style={{ color: 'var(--amber)' }}>Thiết lập lại Mật khẩu mới (Bỏ trống nếu không đổi)</label>
-                    <input type="password" id="password" value={profileData.password} onChange={handleProfileChange} placeholder="Mật khẩu tối thiểu 8 ký tự..." />
+                    <label style={{ color: 'var(--amber)' }}>{t('label_reset_password_desc')}</label>
+                    <input type="password" id="password" value={profileData.password} onChange={handleProfileChange} placeholder={t('placeholder_password_min_8')} />
                   </div>
                 </div>
 
                 <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'flex-end' }}>
                   <button type="submit" className="btn btn-primary" disabled={updatingProfile}>
-                    {updatingProfile ? <><i className="ti ti-loader animate-spin"></i> Đang lưu...</> : <><i className="ti ti-save"></i> Lưu hồ sơ</>}
+                    {updatingProfile ? <><i className="ti ti-loader animate-spin"></i> {t('btn_saving')}</> : <><i className="ti ti-save"></i> {t('btn_save_profile')}</>}
                   </button>
                 </div>
               </form>
@@ -562,14 +564,14 @@ export const MemberDashboard = () => {
             {userTier !== 'Platinum' && (
               <div className="dash-card" style={{ padding: '1.25rem', border: '1px solid rgba(245,158,11,0.2)', background: 'linear-gradient(to bottom, rgba(245,158,11,0.02), rgba(0,0,0,0))', marginBottom: '1rem' }}>
                 <div className="card-title" style={{ color: 'var(--amber)', marginBottom: '0.75rem' }}>
-                  <i className="ti ti-arrow-big-up-lines"></i> Nâng cấp gói thành viên
+                  <i className="ti ti-arrow-big-up-lines"></i> {t('upgrade_tier_title')}
                 </div>
                 <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '12px', lineHeight: '1.5' }}>
-                  Nâng cấp lên gói <strong>Gold</strong> hoặc <strong>Platinum</strong> để đăng tin giao thương không giới hạn và tăng hiệu suất AI.
+                  {t('upgrade_tier_desc')}
                 </p>
                 {profileData.pending_tier_upgrade ? (
                   <div style={{ padding: '8px 12px', background: 'rgba(245,158,11,0.06)', borderRadius: '8px', border: '1px solid rgba(245,158,11,0.2)', fontSize: '11.5px', color: 'var(--amber)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <i className="ti ti-clock"></i> Yêu cầu nâng cấp lên {profileData.pending_tier_upgrade === 'Platinum' ? '💎 Platinum' : '🏅 Gold'} đang chờ duyệt.
+                    <i className="ti ti-clock"></i> {t('upgrade_request_pending_prefix')}: {profileData.pending_tier_upgrade === 'Platinum' ? '💎 ' + t('tier_platinum') : '🏅 ' + t('tier_gold')}
                   </div>
                 ) : (
                   <div style={{ display: 'flex', gap: '8px' }}>
@@ -579,7 +581,7 @@ export const MemberDashboard = () => {
                         className="btn" 
                         style={{ flex: 1, fontSize: '11.5px', padding: '6px 10px', background: 'var(--amber)', borderColor: 'var(--amber)', color: '#000', fontWeight: 600 }}
                       >
-                        🏅 Lên Gold
+                        🏅 {t('btn_upgrade_gold')}
                       </button>
                     )}
                     <button 
@@ -587,7 +589,7 @@ export const MemberDashboard = () => {
                       className="btn btn-primary" 
                       style={{ flex: 1, fontSize: '11.5px', padding: '6px 10px', fontWeight: 600 }}
                     >
-                      💎 Lên Platinum
+                      💎 {t('btn_upgrade_platinum')}
                     </button>
                   </div>
                 )}
@@ -596,32 +598,32 @@ export const MemberDashboard = () => {
 
             <div className="dash-card" style={{ padding: '1.25rem' }}>
               <div className="card-title" style={{ marginBottom: '1rem' }}>
-                <i className="ti ti-chart-bar"></i> Thống kê tin đăng
+                <i className="ti ti-chart-bar"></i> {t('posts_stats_title')}
               </div>
               <div className="stats-grid">
                 <div className="stat-item">
                   <div className="stat-val">{dbStats.total_posts}</div>
-                  <div className="stat-lbl">Tin bài</div>
+                  <div className="stat-lbl">{t('stat_total_posts')}</div>
                 </div>
                 <div className="stat-item">
                   <div className="stat-val">{dbStats.approved_posts}</div>
-                  <div className="stat-lbl">Đã duyệt</div>
+                  <div className="stat-lbl">{t('stat_approved_posts')}</div>
                 </div>
                 <div className="stat-item">
                   <div className="stat-val">{dbStats.total_views}</div>
-                  <div className="stat-lbl">Lượt xem</div>
+                  <div className="stat-lbl">{t('stat_total_views')}</div>
                 </div>
               </div>
             </div>
 
             <div className="dash-card">
               <div className="card-title">
-                <i className="ti ti-list-details"></i> Tin bài đã đăng của bạn
+                <i className="ti ti-list-details"></i> {t('my_published_posts_title')}
               </div>
 
               {memberPosts.length === 0 ? (
                 <div style={{ padding: '2rem 1rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '12px' }}>
-                  Bạn chưa đăng tin bài cơ hội giao thương nào.
+                  {t('no_posts_published')}
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -640,19 +642,19 @@ export const MemberDashboard = () => {
                             onClick={() => handleStartEditPost(p.id)}
                             style={{ background: 'none', border: 'none', color: 'var(--primary-light)', cursor: 'pointer', padding: 0, display: 'inline-flex', alignItems: 'center', gap: '3px', fontSize: '11px', outline: 'none' }}
                           >
-                            <i className="ti ti-edit"></i> Sửa
+                            <i className="ti ti-edit"></i> {t('btn_edit')}
                           </button>
                           <span>·</span>
                           <button 
                             onClick={() => handleDeletePost(p.id, p.title)}
                             style={{ background: 'none', border: 'none', color: '#EF4444', cursor: 'pointer', padding: 0, display: 'inline-flex', alignItems: 'center', gap: '3px', fontSize: '11px', outline: 'none' }}
                           >
-                            <i className="ti ti-trash"></i> Xóa
+                            <i className="ti ti-trash"></i> {t('btn_delete')}
                           </button>
                         </div>
                       </div>
                       <span className={`badge ${p.status === 'approved' ? 'approved' : p.status === 'rejected' ? 'rejected' : p.status === 'draft' ? 'draft' : 'pending'}`}>
-                        {p.status === 'approved' ? 'Đã duyệt' : p.status === 'rejected' ? 'Từ chối' : p.status === 'draft' ? 'Bản nháp' : 'Chờ duyệt'}
+                        {p.status === 'approved' ? t('status_approved') : p.status === 'rejected' ? t('status_rejected') : p.status === 'draft' ? t('status_draft') : t('status_pending')}
                       </span>
                     </div>
                   ))}
@@ -670,7 +672,7 @@ export const MemberDashboard = () => {
           <div className="glass-card" style={{ width: '100%', maxWidth: '600px', padding: '2rem', borderColor: 'var(--border-strong)', textAlign: 'left' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '12px' }}>
               <h3 style={{ fontFamily: 'var(--font-title)', fontSize: '16px', color: '#FFFFFF', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
-                <i className="ti ti-plus" style={{ color: 'var(--neon-cyan)' }}></i> Đăng tin cơ hội giao thương mới
+                <i className="ti ti-plus" style={{ color: 'var(--neon-cyan)' }}></i> {editingPostId ? t('modal_edit_post_title') : t('modal_create_post_title')}
               </h3>
               <button onClick={() => setModalOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '18px', cursor: 'pointer' }}><i className="ti ti-x"></i></button>
             </div>
@@ -678,64 +680,64 @@ export const MemberDashboard = () => {
             <form onSubmit={(e) => e.preventDefault()}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '60vh', overflowY: 'auto', paddingRight: '6px' }}>
                 <div className="fg">
-                  <label>Tiêu đề bài đăng <span style={{ color: 'var(--rose)' }}>*</span></label>
-                  <input type="text" id="title" value={newPostData.title} onChange={handleNewPostChange} placeholder="Ví dụ: Cần tìm nhà cung cấp hạt điều xuất khẩu..." required />
+                  <label>{t('modal_post_title_label')} <span style={{ color: 'var(--rose)' }}>*</span></label>
+                  <input type="text" id="title" value={newPostData.title} onChange={handleNewPostChange} placeholder={t('modal_post_title_placeholder')} required />
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   <div className="fg">
-                    <label>Loại tin bài</label>
+                    <label>{t('modal_post_type_label')}</label>
                     <select id="type" value={newPostData.type} onChange={handleNewPostChange}>
-                      <option value="Tìm kiếm đối tác">Tìm kiếm đối tác</option>
-                      <option value="Cần mua / Cần bán">Cần mua / Cần bán</option>
-                      <option value="Thông báo sự kiện">Thông báo sự kiện</option>
-                      <option value="Tuyển dụng">Tuyển dụng</option>
+                      <option value="Tìm kiếm đối tác">{t('type_find_partner')}</option>
+                      <option value="Cần mua / Cần bán">{t('type_buy_sell')}</option>
+                      <option value="Thông báo sự kiện">{t('type_event_announcement')}</option>
+                      <option value="Tuyển dụng">{t('type_recruitment')}</option>
                     </select>
                   </div>
                   <div className="fg">
-                    <label>Danh mục ngành</label>
-                    <input type="text" id="category" value={newPostData.category} onChange={handleNewPostChange} placeholder="Ví dụ: Nông nghiệp, CNTT..." />
+                    <label>{t('modal_post_category_label')}</label>
+                    <input type="text" id="category" value={newPostData.category} onChange={handleNewPostChange} placeholder={t('modal_post_category_placeholder')} />
                   </div>
                 </div>
 
                 <div className="fg">
-                  <label>Tags từ khoá (phân tách bằng dấu phẩy)</label>
-                  <input type="text" id="tags" value={newPostData.tags} onChange={handleNewPostChange} placeholder="Ví dụ: nông sản, xuất khẩu, b2b" />
+                  <label>{t('modal_post_tags_label')}</label>
+                  <input type="text" id="tags" value={newPostData.tags} onChange={handleNewPostChange} placeholder={t('modal_post_tags_placeholder')} />
                 </div>
 
                 <div className="fg">
-                  <label>Tóm tắt bài đăng</label>
-                  <input type="text" id="summary" value={newPostData.summary} onChange={handleNewPostChange} placeholder="Tóm tắt ngắn gọn nhu cầu trong 1-2 câu..." />
+                  <label>{t('modal_post_summary_label')}</label>
+                  <input type="text" id="summary" value={newPostData.summary} onChange={handleNewPostChange} placeholder={t('modal_post_summary_placeholder')} />
                 </div>
 
                 <div className="fg">
-                  <label>Nội dung chi tiết cơ hội giao thương <span style={{ color: 'var(--rose)' }}>*</span></label>
+                  <label>{t('modal_post_body_label')} <span style={{ color: 'var(--rose)' }}>*</span></label>
                   <RichTextEditor 
                     value={newPostData.body} 
                     onChange={(val) => setNewPostData(prev => ({ ...prev, body: val }))} 
-                    placeholder="Mô tả chi tiết sản phẩm, dịch vụ, tiêu chí đối tác cần tìm kiếm..." 
+                    placeholder={t('modal_post_body_label')} 
                   />
                 </div>
 
                 <div className="fg">
-                  <label>Thông tin liên hệ trực tiếp <span style={{ color: 'var(--rose)' }}>*</span></label>
-                  <input type="text" id="contact_info" value={newPostData.contact_info} onChange={handleNewPostChange} placeholder="Ví dụ: email@vinatech.vn | 0901 111 222 (Mr. Đức)" required />
+                  <label>{t('modal_post_contact_label')} <span style={{ color: 'var(--rose)' }}>*</span></label>
+                  <input type="text" id="contact_info" value={newPostData.contact_info} onChange={handleNewPostChange} placeholder={t('modal_post_contact_placeholder')} required />
                 </div>
 
                 <div className="fg">
-                  <label>Hạn liên hệ (Hạn đăng bài)</label>
+                  <label>{t('modal_post_deadline_label')}</label>
                   <input type="date" id="deadline" value={newPostData.deadline} onChange={handleNewPostChange} />
                 </div>
 
                 <div className="fg">
-                  <label>Ảnh minh họa</label>
+                  <label>{t('modal_post_image_label')}</label>
                   <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                     <input 
                       type="text" 
                       id="image_url" 
                       value={newPostData.image_url} 
                       onChange={handleNewPostChange} 
-                      placeholder="Dán link ảnh hoặc chọn tệp tải lên..." 
+                      placeholder={t('modal_post_image_placeholder')} 
                       style={{ flex: 1 }} 
                     />
                     <label 
@@ -754,7 +756,7 @@ export const MemberDashboard = () => {
                         color: '#FFF'
                       }}
                     >
-                      <i className="ti ti-upload"></i> Chọn tệp
+                      <i className="ti ti-upload"></i> {t('btn_choose_file')}
                       <input 
                         type="file" 
                         accept="image/*" 
@@ -763,7 +765,7 @@ export const MemberDashboard = () => {
                       />
                     </label>
                   </div>
-                  {uploadingImage && <div style={{ fontSize: '11px', color: 'var(--primary-light)', marginTop: '2px' }}><i className="ti ti-loader animate-spin"></i> Đang tải ảnh lên...</div>}
+                  {uploadingImage && <div style={{ fontSize: '11px', color: 'var(--primary-light)', marginTop: '2px' }}><i className="ti ti-loader animate-spin"></i> {t('status_uploading_image')}</div>}
                 </div>
 
                 {profileData.tier === 'Platinum' && (
@@ -776,14 +778,14 @@ export const MemberDashboard = () => {
                       style={{ width: '16px', height: '16px', cursor: 'pointer' }}
                     />
                     <label htmlFor="featured_requested" style={{ margin: 0, cursor: 'pointer', fontSize: '13px', fontWeight: 650, color: 'var(--amber)' }}>
-                      <i className="ti ti-star-filled"></i> Yêu cầu ghim nổi bật bài đăng này ngoài trang chủ (Quyền lợi Platinum)
+                      <i className="ti ti-star-filled"></i> {t('modal_request_featured_label')}
                     </label>
                   </div>
                 )}
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '1.5rem', borderTop: '1px solid var(--border)', paddingTop: '12px' }}>
-                <button type="button" className="btn" onClick={() => setModalOpen(false)}>Hủy</button>
+                <button type="button" className="btn" onClick={() => setModalOpen(false)}>{t('btn_cancel')}</button>
                 <button 
                   type="button" 
                   onClick={() => handleSubmitAction(true)} 
@@ -791,7 +793,7 @@ export const MemberDashboard = () => {
                   style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.1)', color: '#FFFFFF' }}
                   disabled={creatingPost || uploadingImage}
                 >
-                  Lưu nháp
+                  {t('btn_save_draft')}
                 </button>
                 <button 
                   type="button" 
@@ -799,7 +801,7 @@ export const MemberDashboard = () => {
                   className="btn btn-primary" 
                   disabled={creatingPost || uploadingImage}
                 >
-                  {creatingPost ? <><i className="ti ti-loader animate-spin"></i> Đang gửi...</> : (editingPostId ? <><i className="ti ti-save"></i> Cập nhật & Đăng</> : <><i className="ti ti-plus"></i> Đăng tin</>)}
+                  {creatingPost ? <><i className="ti ti-loader animate-spin"></i> {t('btn_sending')}</> : (editingPostId ? <><i className="ti ti-save"></i> {t('btn_update_publish')}</> : <><i className="ti ti-plus"></i> {t('btn_publish')}</>)}
                 </button>
               </div>
             </form>

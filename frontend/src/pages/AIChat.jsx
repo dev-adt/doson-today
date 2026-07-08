@@ -2,9 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Navbar from '../components/Navbar';
+import { useTranslation } from '../contexts/LanguageContext';
 
 export const AIChat = () => {
   const { role, token, user, getAuthHeaders } = useAuth();
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   // State
@@ -126,7 +128,7 @@ export const AIChat = () => {
 
   const deleteSession = async (e, sessionId) => {
     e.stopPropagation();
-    if (!confirm('Bạn có chắc chắn muốn xóa cuộc trò chuyện này?')) return;
+    if (!confirm(t('confirm_delete_session'))) return;
 
     try {
       const res = await fetch(`/api/chat/session/${sessionId}`, {
@@ -186,7 +188,7 @@ export const AIChat = () => {
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || 'Có lỗi xảy ra khi gọi AI.');
+        throw new Error(data.error || t('error_ai_call'));
       }
 
       setMessages(prev => [...prev, { role: 'assistant', content: data.text, created_at: new Date().toISOString() }]);
@@ -194,7 +196,7 @@ export const AIChat = () => {
       // Load lại danh sách phiên để cập nhật tiêu đề/thời gian hoạt động mới nhất
       loadSessions(false);
     } catch (e) {
-      alert(e.message || 'Lỗi gửi tin nhắn');
+      alert(e.message || t('error_sending_message'));
     } finally {
       setSending(false);
     }
@@ -212,8 +214,8 @@ export const AIChat = () => {
     const now = new Date();
     const diffMs = now - date;
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-    if (diffDays === 0) return 'Hôm nay';
-    if (diffDays === 1) return 'Hôm qua';
+    if (diffDays === 0) return t('date_today');
+    if (diffDays === 1) return t('date_yesterday');
     return date.toLocaleDateString('vi-VN');
   };
 
@@ -302,13 +304,13 @@ export const AIChat = () => {
         <div style={{ flex: 1, background: 'rgba(8,14,30,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ textAlign: 'center', maxWidth: '420px', padding: '2.5rem' }}>
             <i className="ti ti-lock" style={{ fontSize: '48px', color: 'var(--neon-cyan)', display: 'block', marginBottom: '1.5rem' }}></i>
-            <h2 style={{ fontFamily: 'var(--font-title)', fontSize: '22px', color: '#FFFFFF', marginBottom: '0.75rem' }}>Đăng nhập để sử dụng Trợ lý AI</h2>
+            <h2 style={{ fontFamily: 'var(--font-title)', fontSize: '22px', color: '#FFFFFF', marginBottom: '0.75rem' }}>{t('login_ai_chat_title')}</h2>
             <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: '1.7', marginBottom: '2rem' }}>
-              Tính năng Trợ lý AI chỉ dành cho hội viên doanh nghiệp đã đăng nhập và được phê duyệt. Vui lòng đăng nhập tài khoản hội viên của bạn.
+              {t('login_ai_chat_desc')}
             </p>
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-              <Link to="/login" className="btn btn-primary" style={{ padding: '10px 24px', fontSize: '14px', textDecoration: 'none' }}><i className="ti ti-login"></i> Đăng nhập ngay</Link>
-              <Link to="/register" className="btn" style={{ padding: '10px 24px', fontSize: '14px', textDecoration: 'none' }}><i className="ti ti-user-plus"></i> Đăng ký mới</Link>
+              <Link to="/login" className="btn btn-primary" style={{ padding: '10px 24px', fontSize: '14px', textDecoration: 'none' }}><i className="ti ti-login"></i> {t('login_now')}</Link>
+              <Link to="/register" className="btn" style={{ padding: '10px 24px', fontSize: '14px', textDecoration: 'none' }}><i className="ti ti-user-plus"></i> {t('register_new')}</Link>
             </div>
           </div>
         </div>
@@ -325,8 +327,8 @@ export const AIChat = () => {
         {/* Left Side: Chat History & Topics */}
         <div className="chat-left-sidebar" style={{ textAlign: 'left' }}>
           <div className="chat-hist-header">
-            <div className="chat-hist-title">Lịch sử trò chuyện</div>
-            <button className="chat-add-btn" onClick={newChatSession} title="Cuộc trò chuyện mới"><i className="ti ti-plus"></i></button>
+            <div className="chat-hist-title">{t('chat_history_title')}</div>
+            <button className="chat-add-btn" onClick={newChatSession} title={t('new_chat_btn_tooltip')}><i className="ti ti-plus"></i></button>
           </div>
           
           <div className="chat-hist-search">
@@ -334,7 +336,7 @@ export const AIChat = () => {
               <i className="ti ti-search" style={{ position: 'absolute', left: '8px', top: '50%', transform: 'translateY(-50%)', fontSize: '13px', color: 'var(--text-muted)' }}></i>
               <input 
                 type="text" 
-                placeholder="Tìm kiếm hội thoại..." 
+                placeholder={t('search_chat_placeholder')} 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 style={{ paddingLeft: '28px' }}
@@ -346,17 +348,17 @@ export const AIChat = () => {
             {loadingSessions ? (
               <div style={{ padding: '1.5rem', textAlign: 'center', fontSize: '11px', color: 'var(--text-muted)' }}>
                 <i className="ti ti-loader animate-spin" style={{ fontSize: '14px', display: 'block', margin: '0 auto 6px' }}></i>
-                Đang tải lịch sử...
+                {t('loading_chat_history')}
               </div>
             ) : filteredSessions.length === 0 ? (
               <div style={{ padding: '1.5rem', textAlign: 'center', fontSize: '11px', color: 'var(--text-muted)' }}>
                 <i className="ti ti-messages" style={{ fontSize: '18px', display: 'block', margin: '0 auto 6px' }}></i>
-                Không có lịch sử trò chuyện.
+                {t('no_chat_history')}
               </div>
             ) : (
               filteredSessions.map((session) => {
                 const activeClass = session.session_id === currentSessionId ? 'active' : '';
-                const titleText = session.title ? (session.title.length > 22 ? session.title.slice(0, 22) + '...' : session.title) : 'Cuộc trò chuyện mới';
+                const titleText = session.title ? (session.title.length > 22 ? session.title.slice(0, 22) + '...' : session.title) : t('new_chat_session_title');
                 const dateLabel = getFriendlyDate(session.last_activity);
                 
                 return (
@@ -372,7 +374,7 @@ export const AIChat = () => {
                         className="delete-session-btn" 
                         onClick={(e) => deleteSession(e, session.session_id)} 
                         style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '2px', fontSize: '11px', lineHeight: 1 }} 
-                        title="Xóa hội thoại"
+                        title={t('delete_chat_tooltip')}
                       >
                         <i className="ti ti-trash"></i>
                       </button>
@@ -387,10 +389,10 @@ export const AIChat = () => {
           </div>
           
           <div style={{ padding: '1.25rem 1rem 0.5rem', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-            <div className="chat-hist-title" style={{ marginBottom: '8px' }}>Chủ đề</div>
-            <button className="chat-topic-btn" onClick={() => handleSend('Nghiệp vụ Kinh doanh B2B doanh nghiệp')}><i className="ti ti-briefcase" style={{ color: 'var(--neon-cyan)' }}></i> &nbsp;Kinh doanh</button>
-            <button className="chat-topic-btn" onClick={() => handleSend('Cơ hội đầu tư xúc tiến mới nhất')}><i className="ti ti-chart-line" style={{ color: 'var(--neon-cyan)' }}></i> &nbsp;Đầu tư</button>
-            <button className="chat-topic-btn" onClick={() => handleSend('Đối tác kết nối hội viên AVG')}><i className="ti ti-users" style={{ color: 'var(--neon-cyan)' }}></i> &nbsp;Kết nối</button>
+            <div className="chat-hist-title" style={{ marginBottom: '8px' }}>{t('label_topics')}</div>
+            <button className="chat-topic-btn" onClick={() => handleSend(t('ai_suggestion_1_val'))}><i className="ti ti-briefcase" style={{ color: 'var(--neon-cyan)' }}></i> &nbsp;{t('topic_business')}</button>
+            <button className="chat-topic-btn" onClick={() => handleSend(t('ai_suggestion_2_val'))}><i className="ti ti-chart-line" style={{ color: 'var(--neon-cyan)' }}></i> &nbsp;{t('topic_investment')}</button>
+            <button className="chat-topic-btn" onClick={() => handleSend(t('ai_suggestion_3_val'))}><i className="ti ti-users" style={{ color: 'var(--neon-cyan)' }}></i> &nbsp;{t('topic_connection')}</button>
           </div>
         </div>
 
@@ -398,7 +400,7 @@ export const AIChat = () => {
         <div className="chat-main">
           <div style={{ backgroundColor: 'var(--surface-2)', borderBottom: '1px solid rgba(255,255,255,0.08)', padding: '0 1.25rem', height: '50px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
             <div style={{ fontSize: '13.5px', fontWeight: 600, color: '#FFFFFF', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <i className="ti ti-robot" style={{ color: 'var(--neon-cyan)', fontSize: '18px' }}></i> Trợ lý thông minh AI
+              <i className="ti ti-robot" style={{ color: 'var(--neon-cyan)', fontSize: '18px' }}></i> {t('ai_assistant_title')}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#10B981', background: 'rgba(16,185,129,0.08)', border: '0.5px solid rgba(16,185,129,0.2)', padding: '4px 12px', borderRadius: '99px' }}>
               <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10B981', animation: 'pulse 2s infinite' }}></span>
@@ -416,17 +418,17 @@ export const AIChat = () => {
               {loadingHistory ? (
                 <div style={{ padding: '3rem', textAlign: 'center', fontSize: '11px', color: 'var(--text-muted)' }}>
                   <i className="ti ti-loader animate-spin" style={{ fontSize: '16px', display: 'block', margin: '0 auto 6px' }}></i>
-                  Đang tải tin nhắn...
+                  {t('loading_messages')}
                 </div>
               ) : messages.length === 0 ? (
                 // Welcome Message
                 <div className="chat-bubble ai" style={{ alignSelf: 'flex-start', maxWidth: '85%', padding: '12px 16px', borderRadius: '12px', background: 'var(--surface-2)', color: '#fff', fontSize: '13px', lineHeight: '1.6', border: '1px solid rgba(255,255,255,0.04)', textAlign: 'left' }}>
-                  Xin chào! Tôi là Trợ lý AI phân tích doanh nghiệp của <strong>AVG</strong>.<br/><br/>
-                  Tôi được tích hợp dữ liệu cơ sở thực của hội viên để hỗ trợ tra cứu hồ sơ năng lực, các cơ hội hợp tác và sự kiện. Bạn cần phân tích lĩnh vực nào hôm nay?
+                  {t('ai_welcome_1')}<br/><br/>
+                  {t('ai_welcome_2')}
                   <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '12px' }}>
-                    <button className="chip" onClick={() => handleSend('Phân tích xu hiện trạng doanh nghiệp B2B năm 2026')} style={{ padding: '4px 10px', fontSize: '11px', borderRadius: '99px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)', color: '#fff', cursor: 'pointer' }}>Phân tích thị trường B2B</button>
-                    <button className="chip" onClick={() => handleSend('Tìm đối tác trong ngành Công nghệ thông tin')} style={{ padding: '4px 10px', fontSize: '11px', borderRadius: '99px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)', color: '#fff', cursor: 'pointer' }}>Tìm đối tác Công nghệ</button>
-                    <button className="chip" onClick={() => handleSend('Sự kiện kết nối giao lưu sắp tới')} style={{ padding: '4px 10px', fontSize: '11px', borderRadius: '99px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)', color: '#fff', cursor: 'pointer' }}>Sự kiện giao thương</button>
+                    <button className="chip" onClick={() => handleSend(t('ai_suggestion_1_val'))} style={{ padding: '4px 10px', fontSize: '11px', borderRadius: '99px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)', color: '#fff', cursor: 'pointer' }}>{t('ai_suggestion_1_lbl')}</button>
+                    <button className="chip" onClick={() => handleSend(t('ai_suggestion_2_val'))} style={{ padding: '4px 10px', fontSize: '11px', borderRadius: '99px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)', color: '#fff', cursor: 'pointer' }}>{t('ai_suggestion_2_lbl')}</button>
+                    <button className="chip" onClick={() => handleSend(t('ai_suggestion_3_val'))} style={{ padding: '4px 10px', fontSize: '11px', borderRadius: '99px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)', color: '#fff', cursor: 'pointer' }}>{t('ai_suggestion_3_lbl')}</button>
                   </div>
                 </div>
               ) : (
@@ -456,7 +458,7 @@ export const AIChat = () => {
               )}
               {sending && (
                 <div className="chat-bubble ai" style={{ alignSelf: 'flex-start', maxWidth: '85%', padding: '12px 16px', borderRadius: '12px', background: 'var(--surface-2)', color: '#fff', fontSize: '13px', border: '1px solid rgba(255,255,255,0.04)', textAlign: 'left' }}>
-                  <i className="ti ti-loader animate-spin"></i> Trợ lý AI đang suy nghĩ...
+                  <i className="ti ti-loader animate-spin"></i> {t('ai_thinking')}
                 </div>
               )}
               <div ref={messagesEndRef} />
@@ -468,7 +470,7 @@ export const AIChat = () => {
             <div className="chat-input-inner">
               <textarea 
                 className="chat-ta" 
-                placeholder="Nhập tin nhắn của bạn..." 
+                placeholder={t('chat_input_placeholder')} 
                 rows="1"
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
@@ -484,8 +486,8 @@ export const AIChat = () => {
               </button>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '6px', padding: '0 4px', fontSize: '10.5px', color: 'var(--text-muted)' }}>
-              <span>Nhấn Enter để gửi · Shift+Enter để xuống dòng</span>
-              <span>Truy xuất dữ liệu: <strong id="ctx-summary">Real-Time Database</strong></span>
+              <span>{t('chat_help_tip')}</span>
+              <span>{t('data_retrieval_label')}: <strong id="ctx-summary">Real-Time Database</strong></span>
             </div>
           </div>
         </div>
@@ -496,18 +498,18 @@ export const AIChat = () => {
           {/* AI Settings Card */}
           <div className="chat-panel-card">
             <div className="chat-panel-title" style={{ marginBlockStart: 0 }}>
-              <i className="ti ti-settings" style={{ color: 'var(--neon-cyan)' }}></i> Cấu hình AI
+              <i className="ti ti-settings" style={{ color: 'var(--neon-cyan)' }}></i> {t('ai_config_title')}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12.5px', color: 'var(--text-secondary)' }}>
               <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10B981' }}></span>
-              <span>Trạng thái: <strong style={{ color: '#ffffff' }}>Online</strong></span>
+              <span>{t('status_label')}: <strong style={{ color: '#ffffff' }}>{t('status_online')}</strong></span>
             </div>
             
             {user && (user.tier === 'Gold' || user.tier === 'Platinum') ? (
               <div style={{ marginTop: '12px', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '10px' }}>
                 <label style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px', fontWeight: 600 }}>
                   <i className="ti ti-crown" style={{ color: 'var(--amber)', marginRight: '4px' }}></i>
-                  Mô hình cao cấp (Gói {user.tier})
+                  {t('premium_model_label')(user.tier)}
                 </label>
                 <select
                   value={selectedModelOverride}
@@ -524,7 +526,7 @@ export const AIChat = () => {
                     cursor: 'pointer'
                   }}
                 >
-                  <option value="">[Mặc định hệ thống]</option>
+                  <option value="">{t('system_default_model')}</option>
                   <option value="deepseek/deepseek-chat">DeepSeek V3 (Chat)</option>
                   <option value="deepseek/deepseek-r1">DeepSeek R1 (Suy luận)</option>
                   <option value="openai/gpt-4o">OpenAI GPT-4o</option>
@@ -534,10 +536,10 @@ export const AIChat = () => {
               </div>
             ) : (
               <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '8px', lineHeight: '1.5' }}>
-                Mô hình hiện hành có khả năng tìm kiếm chéo hồ sơ doanh nghiệp và cơ hội giao thương B2B toàn hệ thống.
+                {t('free_model_desc')}
                 {user && (
                   <div style={{ marginTop: '6px', color: 'var(--amber)', fontWeight: 500 }}>
-                    <i className="ti ti-crown"></i> Nâng cấp gói Gold/Platinum để tự do đổi mô hình AI khác (OpenAI, Claude, Grok, DeepSeek...)
+                    <i className="ti ti-crown"></i> {t('upgrade_to_change_models')}
                   </div>
                 )}
               </div>
@@ -547,30 +549,30 @@ export const AIChat = () => {
           {/* Suggested Actions Card */}
           <div className="chat-panel-card">
             <div className="chat-panel-title" style={{ marginBlockStart: 0 }}>
-              <i className="ti ti-sparkles" style={{ color: 'var(--neon-cyan)' }}></i> Hành động đề xuất
+              <i className="ti ti-sparkles" style={{ color: 'var(--neon-cyan)' }}></i> {t('suggested_actions_title')}
             </div>
             
-            <div className="chat-panel-item" onClick={() => handleSend('Kết nối B2B doanh nghiệp Công nghệ thông tin')}>
+            <div className="chat-panel-item" onClick={() => handleSend(t('suggested_action_1_title') + ' ' + t('category_default'))}>
               <div className="chat-panel-icon"><i className="ti ti-user-plus"></i></div>
               <div>
-                <div style={{ fontSize: '12px', fontWeight: 600, color: '#FFFFFF' }}>Kết nối B2B</div>
-                <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '1px' }}>Yêu cầu giới thiệu và thông tin liên hệ</div>
+                <div style={{ fontSize: '12px', fontWeight: 600, color: '#FFFFFF' }}>{t('suggested_action_1_title')}</div>
+                <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '1px' }}>{t('suggested_action_1_desc')}</div>
               </div>
             </div>
             
-            <div className="chat-panel-item" onClick={() => handleSend('Sự kiện xúc tiến thương mại sắp tới')}>
+            <div className="chat-panel-item" onClick={() => handleSend(t('suggested_action_2_title'))}>
               <div className="chat-panel-icon"><i className="ti ti-calendar"></i></div>
               <div>
-                <div style={{ fontSize: '12px', fontWeight: 600, color: '#FFFFFF' }}>Tham gia sự kiện</div>
-                <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '1px' }}>Xúc tiến kết nối giao thương trực tiếp</div>
+                <div style={{ fontSize: '12px', fontWeight: 600, color: '#FFFFFF' }}>{t('suggested_action_2_title')}</div>
+                <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '1px' }}>{t('suggested_action_2_desc')}</div>
               </div>
             </div>
             
-            <div className="chat-panel-item" onClick={() => handleSend('Phân tích cơ hội đầu tư xúc tiến')}>
+            <div className="chat-panel-item" onClick={() => handleSend(t('suggested_action_3_title'))}>
               <div className="chat-panel-icon"><i className="ti ti-building-handshake"></i></div>
               <div>
-                <div style={{ fontSize: '12px', fontWeight: 600, color: '#FFFFFF' }}>Cơ hội đầu tư</div>
-                <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '1px' }}>Trợ lý phân tích dự báo giao thương</div>
+                <div style={{ fontSize: '12px', fontWeight: 600, color: '#FFFFFF' }}>{t('suggested_action_3_title')}</div>
+                <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '1px' }}>{t('suggested_action_3_desc')}</div>
               </div>
             </div>
           </div>

@@ -3,9 +3,11 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import { useTranslation } from '../contexts/LanguageContext';
 
 export const Events = () => {
   const { role, token } = useAuth();
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const [events, setEvents] = useState([]);
@@ -22,7 +24,7 @@ export const Events = () => {
     try {
       const headers = token ? { 'Authorization': 'Bearer ' + token } : {};
       const res = await fetch('/api/events', { headers });
-      if (!res.ok) throw new Error('Không thể tải danh sách sự kiện');
+      if (!res.ok) throw new Error(t('error_loading_events'));
       const data = await res.json();
       setEvents(data.data || []);
     } catch (err) {
@@ -45,7 +47,7 @@ export const Events = () => {
 
   const openEventModal = (event) => {
     if (!token) {
-      if (confirm('Vui lòng đăng nhập để xem chi tiết địa điểm và thông tin mô tả sự kiện. Đến trang đăng nhập?')) {
+      if (confirm(t('login_required_event_confirm'))) {
         navigate('/login');
       }
       return;
@@ -61,7 +63,7 @@ export const Events = () => {
 
   const handleToggleEventInterest = async (eventId) => {
     if (!token) {
-      alert('Vui lòng đăng nhập để thực hiện tính năng này.');
+      alert(t('login_required_feature'));
       navigate('/login');
       return;
     }
@@ -99,23 +101,23 @@ export const Events = () => {
           });
         }
       } else {
-        alert(data.error || 'Có lỗi xảy ra.');
+        alert(data.error || t('error_occurred'));
       }
     } catch (err) {
-      alert('Lỗi: ' + err.message);
+      alert(t('error_occurred') + ': ' + err.message);
     }
   };
 
   const getStatusBadge = (status) => {
     switch (status) {
       case 'upcoming':
-        return <span style={{ fontSize: '10px', background: 'rgba(245,158,11,0.1)', color: 'var(--amber)', border: '1px solid rgba(245,158,11,0.2)', padding: '2px 8px', borderRadius: '4px', textTransform: 'uppercase', fontWeight: 600 }}>Sắp diễn ra</span>;
+        return <span style={{ fontSize: '10px', background: 'rgba(245,158,11,0.1)', color: 'var(--amber)', border: '1px solid rgba(245,158,11,0.2)', padding: '2px 8px', borderRadius: '4px', textTransform: 'uppercase', fontWeight: 600 }}>{t('status_upcoming')}</span>;
       case 'ongoing':
-        return <span style={{ fontSize: '10px', background: 'rgba(59,130,246,0.1)', color: '#3B82F6', border: '1px solid rgba(59,130,246,0.2)', padding: '2px 8px', borderRadius: '4px', textTransform: 'uppercase', fontWeight: 600 }}>Đang diễn ra</span>;
+        return <span style={{ fontSize: '10px', background: 'rgba(59,130,246,0.1)', color: '#3B82F6', border: '1px solid rgba(59,130,246,0.2)', padding: '2px 8px', borderRadius: '4px', textTransform: 'uppercase', fontWeight: 600 }}>{t('status_ongoing')}</span>;
       case 'completed':
-        return <span style={{ fontSize: '10px', background: 'rgba(16,185,129,0.1)', color: '#10B981', border: '1px solid rgba(16,185,129,0.2)', padding: '2px 8px', borderRadius: '4px', textTransform: 'uppercase', fontWeight: 600 }}>Đã kết thúc</span>;
+        return <span style={{ fontSize: '10px', background: 'rgba(16,185,129,0.1)', color: '#10B981', border: '1px solid rgba(16,185,129,0.2)', padding: '2px 8px', borderRadius: '4px', textTransform: 'uppercase', fontWeight: 600 }}>{t('status_completed')}</span>;
       case 'cancelled':
-        return <span style={{ fontSize: '10px', background: 'rgba(239,68,68,0.1)', color: '#EF4444', border: '1px solid rgba(239,68,68,0.2)', padding: '2px 8px', borderRadius: '4px', textTransform: 'uppercase', fontWeight: 600 }}>Đã hủy</span>;
+        return <span style={{ fontSize: '10px', background: 'rgba(239,68,68,0.1)', color: '#EF4444', border: '1px solid rgba(239,68,68,0.2)', padding: '2px 8px', borderRadius: '4px', textTransform: 'uppercase', fontWeight: 600 }}>{t('status_cancelled')}</span>;
       default:
         return null;
     }
@@ -133,14 +135,14 @@ export const Events = () => {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
             <h1 style={{ fontFamily: 'var(--font-title)', fontSize: '26px', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '10px', margin: 0 }}>
-              <i className="ti ti-calendar-event" style={{ color: 'var(--amber)' }}></i> Sự kiện giao thương & Kết nối
+              <i className="ti ti-calendar-event" style={{ color: 'var(--amber)' }}></i> {t('events_title')}
             </h1>
-            <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px', marginBlockEnd: 0 }}>Giao lưu trực tiếp, kết nối giao thương giữa các hội viên doanh nghiệp.</p>
+            <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px', marginBlockEnd: 0 }}>{t('events_subtitle')}</p>
           </div>
           <div style={{ display: 'flex', gap: '8px' }}>
             <input 
               type="text" 
-              placeholder="Tìm kiếm sự kiện..." 
+              placeholder={t('search_events_placeholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border-strong)', fontSize: '12px', width: '260px', outline: 'none', backgroundColor: 'rgba(255,255,255,0.01)', color: '#fff' }}
@@ -151,16 +153,16 @@ export const Events = () => {
         {loading ? (
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '5rem' }}>
             <div style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
-              <i className="ti ti-loader animate-spin" style={{ fontSize: '28px', display: 'block', margin: '0 auto 10px' }}></i> Đang tải danh sách sự kiện...
+              <i className="ti ti-loader animate-spin" style={{ fontSize: '28px', display: 'block', margin: '0 auto 10px' }}></i> {t('loading_events_list')}
             </div>
           </div>
         ) : error ? (
           <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
-            <i className="ti ti-alert-triangle" style={{ fontSize: '24px', display: 'block', marginBottom: '8px', color: 'var(--rose)' }}></i> Lỗi tải danh sách sự kiện: {error}
+            <i className="ti ti-alert-triangle" style={{ fontSize: '24px', display: 'block', marginBottom: '8px', color: 'var(--rose)' }}></i> {t('error_loading_events_prefix')} {error}
           </div>
         ) : filteredEvents.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
-            <i className="ti ti-calendar" style={{ fontSize: '24px', display: 'block', marginBottom: '8px' }}></i> Không tìm thấy sự kiện nào phù hợp.
+            <i className="ti ti-calendar" style={{ fontSize: '24px', display: 'block', marginBottom: '8px' }}></i> {t('no_events_found')}
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
@@ -188,12 +190,12 @@ export const Events = () => {
                     <div style={{ fontSize: '11.5px', color: 'var(--text-muted)', marginBottom: '4px' }}><i className="ti ti-users"></i> Tổ chức: {e.organizer || 'AVG'}</div>
                     {!token && (
                       <div style={{ fontSize: '11px', color: 'var(--rose)', marginTop: '8px', background: 'rgba(244,63,94,0.05)', padding: '6px', borderRadius: '4px', border: '1px dashed rgba(244,63,94,0.15)' }}>
-                        <i className="ti ti-lock"></i> Đăng nhập để xem chi tiết địa điểm.
+                        <i className="ti ti-lock"></i> {t('login_required_location')}
                       </div>
                     )}
                   </div>
                   <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '12px', marginTop: '16px', display: 'flex', justifyContent: 'flex-end' }}>
-                    <button className="opp-btn" onClick={() => openEventModal(e)}>Xem chi tiết</button>
+                    <button className="opp-btn" onClick={() => openEventModal(e)}>{t('btn_view_details')}</button>
                   </div>
                 </div>
               );
@@ -210,37 +212,37 @@ export const Events = () => {
           <div className="glass-card" style={{ width: '100%', maxWidth: '550px', padding: '2rem', borderColor: 'var(--border-strong)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '12px' }}>
               <h3 style={{ fontFamily: 'var(--font-title)', fontSize: '16px', color: '#FFFFFF', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
-                <i className="ti ti-calendar-event" style={{ color: 'var(--amber)' }}></i> Chi tiết sự kiện giao thương
+                <i className="ti ti-calendar-event" style={{ color: 'var(--amber)' }}></i> {t('event_details_title')}
               </h3>
               <button onClick={closeEventModal} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '18px', cursor: 'pointer' }}><i className="ti ti-x"></i></button>
             </div>
             
             <div style={{ marginBottom: '1.5rem', maxHeight: '50vh', overflowY: 'auto', textAlign: 'left' }}>
               <div style={{ marginBottom: '14px' }}>
-                <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--amber)', fontWeight: 700 }}>Tên Sự Kiện</span>
+                <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--amber)', fontWeight: 700 }}>{t('label_event_name')}</span>
                 <div style={{ fontSize: '15px', fontWeight: 600, color: '#FFFFFF', marginTop: '2px' }}>{selectedEvent.title}</div>
               </div>
               <div style={{ marginBottom: '14px' }}>
-                <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--amber)', fontWeight: 700 }}>Đơn vị tổ chức</span>
+                <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--amber)', fontWeight: 700 }}>{t('label_organizer')}</span>
                 <div style={{ fontSize: '13px', color: '#FFFFFF', marginTop: '2px' }}>{selectedEvent.organizer || 'AVG'}</div>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
                 <div>
-                  <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--amber)', fontWeight: 700 }}>Ngày Tổ chức</span>
+                  <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--amber)', fontWeight: 700 }}>{t('label_event_date')}</span>
                   <div style={{ fontSize: '13px', color: '#FFFFFF', marginTop: '2px' }}>{new Date(selectedEvent.event_date).toLocaleDateString('vi-VN')}</div>
                 </div>
                 <div>
-                  <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--amber)', fontWeight: 700 }}>Sức chứa tối đa</span>
-                  <div style={{ fontSize: '13px', color: '#FFFFFF', marginTop: '2px' }}>{selectedEvent.capacity ? `${selectedEvent.capacity} người` : 'Không giới hạn'}</div>
+                  <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--amber)', fontWeight: 700 }}>{t('label_max_capacity')}</span>
+                  <div style={{ fontSize: '13px', color: '#FFFFFF', marginTop: '2px' }}>{selectedEvent.capacity ? t('capacity_people')(selectedEvent.capacity) : t('capacity_unlimited')}</div>
                 </div>
               </div>
               <div style={{ marginBottom: '14px' }}>
-                <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--amber)', fontWeight: 700 }}>Địa điểm tổ chức</span>
-                <div style={{ fontSize: '13px', color: '#FFFFFF', marginTop: '2px' }}>{selectedEvent.location || 'Chưa cập nhật'}</div>
+                <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--amber)', fontWeight: 700 }}>{t('label_location')}</span>
+                <div style={{ fontSize: '13px', color: '#FFFFFF', marginTop: '2px' }}>{selectedEvent.location || t('location_default')}</div>
               </div>
               <div style={{ marginBottom: '14px' }}>
-                <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--amber)', fontWeight: 700 }}>Mô tả chi tiết</span>
-                <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '6px', whiteSpace: 'pre-line', lineHeight: '1.6' }}>{selectedEvent.description || 'Không có mô tả chi tiết cho sự kiện này.'}</div>
+                <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--amber)', fontWeight: 700 }}>{t('label_event_description')}</span>
+                <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '6px', whiteSpace: 'pre-line', lineHeight: '1.6' }}>{selectedEvent.description || t('no_event_desc')}</div>
               </div>
             </div>
 
@@ -251,9 +253,9 @@ export const Events = () => {
                 style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12.5px', background: selectedEvent.is_interested ? 'var(--amber)' : 'rgba(255,255,255,0.05)', color: selectedEvent.is_interested ? '#000' : '#fff', borderColor: selectedEvent.is_interested ? 'var(--amber)' : 'rgba(255,255,255,0.1)', padding: '6px 16px', fontWeight: 600, cursor: 'pointer' }}
               >
                 <i className={selectedEvent.is_interested ? "ti ti-star-filled" : "ti ti-star"}></i>
-                {selectedEvent.is_interested ? 'Đã quan tâm' : 'Quan tâm sự kiện'} ({selectedEvent.interest_count || 0})
+                {selectedEvent.is_interested ? t('status_interested') : t('btn_interest')} ({selectedEvent.interest_count || 0})
               </button>
-              <button className="btn btn-primary" onClick={closeEventModal}>Đóng</button>
+              <button className="btn btn-primary" onClick={closeEventModal}>{t('btn_close')}</button>
             </div>
           </div>
         </div>

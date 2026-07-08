@@ -317,19 +317,19 @@ export const Home = () => {
           <div className="opp-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
             {loadingPosts ? (
               <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '3rem', color: 'var(--text-dark-secondary)' }}>
-                <i className="ti ti-loader animate-spin" style={{ fontSize: '24px', display: 'block', margin: '0 auto 10px' }}></i> Đang tải danh sách cơ hội giao thương mới nhất...
+                <i className="ti ti-loader animate-spin" style={{ fontSize: '24px', display: 'block', margin: '0 auto 10px' }}></i> {t('loading_latest_opps')}
               </div>
             ) : latestPosts.length > 0 ? (
               latestPosts.map((p, idx) => {
                 const dateStr = p.created_at ? new Date(p.created_at).toLocaleDateString('vi-VN') : '11/06/2026';
                 const hasValidImage = p.image_url && p.image_url !== 'null' && p.image_url !== 'undefined' && p.image_url.trim() !== '';
                 const imgUrl = hasValidImage ? p.image_url : demoImages[idx % demoImages.length];
-                const companyName = p.company_name || 'Hội viên ẩn danh';
+                const companyName = p.company_name || 'AVG Member';
                 return (
                   <div className="opp-card" key={p.id} style={{ position: 'relative' }}>
                     {p.is_featured === 1 && (
                       <span style={{ position: 'absolute', top: '12px', right: '12px', fontSize: '9px', background: 'rgba(245, 158, 11, 0.15)', color: 'var(--amber)', border: '1px solid rgba(245,158,11,0.3)', padding: '2px 6px', borderRadius: '3px', textTransform: 'uppercase', fontWeight: 700, zIndex: 10 }}>
-                        Nổi bật <i className="ti ti-star-filled"></i>
+                        {t('badge_featured')} <i className="ti ti-star-filled"></i>
                       </span>
                     )}
                     <img src={imgUrl} className="opp-img" alt={p.title} />
@@ -343,7 +343,7 @@ export const Home = () => {
                       </div>
                       <div className="opp-foot">
                         <span>{dateStr}</span>
-                        <button className="opp-btn" onClick={() => navigate('/posts/' + p.id)}>Đọc bài</button>
+                        <button className="opp-btn" onClick={() => navigate('/posts/' + p.id)}>{t('btn_read_post')}</button>
                       </div>
                     </div>
                   </div>
@@ -351,7 +351,7 @@ export const Home = () => {
               })
             ) : (
               <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '3rem', color: 'var(--text-dark-muted)' }}>
-                <i className="ti ti-news" style={{ fontSize: '24px', display: 'block', margin: '0 auto 10px' }}></i> Hiện chưa có cơ hội giao thương nào được duyệt.
+                <i className="ti ti-news" style={{ fontSize: '24px', display: 'block', margin: '0 auto 10px' }}></i> {t('no_approved_opps')}
               </div>
             )}
           </div>
@@ -411,14 +411,14 @@ export const Home = () => {
                       </div>
 
                       <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                        <i className="ti ti-briefcase" style={{ color: 'var(--amber)' }}></i> {m.industry || 'Chưa phân loại'}
+                        <i className="ti ti-briefcase" style={{ color: 'var(--amber)' }}></i> {m.industry || t('category_default')}
                       </div>
 
-                      <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '15px', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{m.description || 'Chưa có mô tả chi tiết hoạt động kinh doanh.'}</p>
+                      <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '15px', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{m.description || t('desc_default')}</p>
                       
                       <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '12px', marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}><i className="ti ti-map-pin"></i> {m.city || 'Việt Nam'}</span>
-                        <span style={{ fontSize: '12px', color: 'var(--amber)', fontWeight: 600 }}>Liên hệ <i className="ti ti-chevron-right"></i></span>
+                        <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}><i className="ti ti-map-pin"></i> {m.city || t('location_default')}</span>
+                        <span style={{ fontSize: '12px', color: 'var(--amber)', fontWeight: 600 }}>{t('btn_contact')} <i className="ti ti-chevron-right"></i></span>
                       </div>
                     </div>
                   </div>
@@ -443,12 +443,12 @@ export const Home = () => {
           <div className="opp-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
             {loadingEvents ? (
               <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '3rem', color: 'var(--text-dark-secondary)' }}>
-                <i className="ti ti-loader animate-spin" style={{ fontSize: '24px', display: 'block', margin: '0 auto 10px' }}></i> Đang tải danh sách sự kiện...
+                <i className="ti ti-loader animate-spin" style={{ fontSize: '24px', display: 'block', margin: '0 auto 10px' }}></i> {t('loading_events_list')}
               </div>
             ) : events.length > 0 ? (
               events.map((e) => {
                 const dateStr = e.event_date ? new Date(e.event_date).toLocaleDateString('vi-VN') : '15/07/2026';
-                const statusLabel = e.status === 'upcoming' ? 'Sắp diễn ra' : e.status === 'ongoing' ? 'Đang diễn ra' : e.status === 'completed' ? 'Đã kết thúc' : 'Đã hủy';
+                const statusLabel = e.status === 'upcoming' ? t('status_upcoming') : e.status === 'ongoing' ? t('status_ongoing') : e.status === 'completed' ? t('status_completed') : t('status_cancelled');
                 return (
                   <div className="opp-card" key={e.id} style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '1.5rem', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.05)', borderRadius: '12px' }}>
                     <div style={{ textAlign: 'left' }}>
@@ -471,19 +471,19 @@ export const Home = () => {
                       <div style={{ fontSize: '11.5px', color: 'var(--text-muted)', marginBottom: '4px' }}><i className="ti ti-users"></i> Tổ chức: {e.organizer || 'AVG'}</div>
                       {!token && (
                         <div style={{ fontSize: '11px', color: 'var(--rose)', marginTop: '8px', background: 'rgba(244,63,94,0.05)', padding: '6px', borderRadius: '4px', border: '1px dashed rgba(244,63,94,0.15)' }}>
-                          <i className="ti ti-lock"></i> Đăng nhập để xem chi tiết địa điểm.
+                          <i className="ti ti-lock"></i> {t('login_required_location')}
                         </div>
                       )}
                     </div>
                     <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '12px', marginTop: '16px', display: 'flex', justifyContent: 'flex-end' }}>
-                      <button className="opp-btn" onClick={() => openEventDetail(e)}>Xem chi tiết</button>
+                      <button className="opp-btn" onClick={() => openEventDetail(e)}>{t('btn_view_details')}</button>
                     </div>
                   </div>
                 );
               })
             ) : (
               <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '3rem', color: 'var(--text-dark-muted)' }}>
-                <i className="ti ti-calendar" style={{ fontSize: '24px', display: 'block', margin: '0 auto 10px' }}></i> Hiện chưa có sự kiện giao thương nào sắp tới.
+                <i className="ti ti-calendar" style={{ fontSize: '24px', display: 'block', margin: '0 auto 10px' }}></i> {t('no_upcoming_events')}
               </div>
             )}
           </div>
@@ -561,37 +561,37 @@ export const Home = () => {
           <div className="glass-card" style={{ width: '100%', maxWidth: '550px', padding: '2rem', borderColor: 'var(--border-strong)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '12px' }}>
               <h3 style={{ fontFamily: 'var(--font-title)', fontSize: '16px', color: '#FFFFFF', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
-                <i className="ti ti-calendar-event" style={{ color: 'var(--amber)' }}></i> Chi tiết sự kiện giao thương
+                <i className="ti ti-calendar-event" style={{ color: 'var(--amber)' }}></i> {t('event_details_title')}
               </h3>
               <button onClick={() => setEventModalOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '18px', cursor: 'pointer' }}><i className="ti ti-x"></i></button>
             </div>
             
             <div style={{ marginBottom: '1.5rem', maxHeight: '50vh', overflowY: 'auto', textAlign: 'left' }}>
               <div style={{ marginBottom: '14px' }}>
-                <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--amber)', fontWeight: 700 }}>Tên Sự Kiện</span>
+                <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--amber)', fontWeight: 700 }}>{t('label_event_name')}</span>
                 <div style={{ fontSize: '15px', fontWeight: 600, color: '#FFFFFF', marginTop: '2px' }}>{selectedEvent.title}</div>
               </div>
               <div style={{ marginBottom: '14px' }}>
-                <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--amber)', fontWeight: 700 }}>Đơn vị tổ chức</span>
+                <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--amber)', fontWeight: 700 }}>{t('label_organizer')}</span>
                 <div style={{ fontSize: '13px', color: '#FFFFFF', marginTop: '2px' }}>{selectedEvent.organizer || 'AVG'}</div>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
                 <div>
-                  <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--amber)', fontWeight: 700 }}>Ngày Tổ chức</span>
+                  <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--amber)', fontWeight: 700 }}>{t('label_event_date')}</span>
                   <div style={{ fontSize: '13px', color: '#FFFFFF', marginTop: '2px' }}>{new Date(selectedEvent.event_date).toLocaleDateString('vi-VN')}</div>
                 </div>
                 <div>
-                  <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--amber)', fontWeight: 700 }}>Sức chứa tối đa</span>
-                  <div style={{ fontSize: '13px', color: '#FFFFFF', marginTop: '2px' }}>{selectedEvent.capacity ? `${selectedEvent.capacity} người` : 'Không giới hạn'}</div>
+                  <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--amber)', fontWeight: 700 }}>{t('label_max_capacity')}</span>
+                  <div style={{ fontSize: '13px', color: '#FFFFFF', marginTop: '2px' }}>{selectedEvent.capacity ? t('capacity_people')(selectedEvent.capacity) : t('capacity_unlimited')}</div>
                 </div>
               </div>
               <div style={{ marginBottom: '14px' }}>
-                <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--amber)', fontWeight: 700 }}>Địa điểm tổ chức</span>
-                <div style={{ fontSize: '13px', color: '#FFFFFF', marginTop: '2px' }}>{selectedEvent.location || 'Chưa cập nhật'}</div>
+                <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--amber)', fontWeight: 700 }}>{t('label_location')}</span>
+                <div style={{ fontSize: '13px', color: '#FFFFFF', marginTop: '2px' }}>{selectedEvent.location || t('location_default')}</div>
               </div>
               <div style={{ marginBottom: '14px' }}>
-                <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--amber)', fontWeight: 700 }}>Mô tả chi tiết</span>
-                <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '6px', whiteSpace: 'pre-line', lineHeight: '1.6' }}>{selectedEvent.description || 'Không có mô tả chi tiết cho sự kiện này.'}</div>
+                <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--amber)', fontWeight: 700 }}>{t('label_event_description')}</span>
+                <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '6px', whiteSpace: 'pre-line', lineHeight: '1.6' }}>{selectedEvent.description || t('no_event_desc')}</div>
               </div>
             </div>
 
@@ -602,9 +602,9 @@ export const Home = () => {
                 style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12.5px', background: selectedEvent.is_interested ? 'var(--amber)' : 'rgba(255,255,255,0.05)', color: selectedEvent.is_interested ? '#000' : '#fff', borderColor: selectedEvent.is_interested ? 'var(--amber)' : 'rgba(255,255,255,0.1)', padding: '6px 16px', fontWeight: 600, cursor: 'pointer' }}
               >
                 <i className={selectedEvent.is_interested ? "ti ti-star-filled" : "ti ti-star"}></i>
-                {selectedEvent.is_interested ? 'Đã quan tâm' : 'Quan tâm sự kiện'} ({selectedEvent.interest_count || 0})
+                {selectedEvent.is_interested ? t('status_interested') : t('btn_interest')} ({selectedEvent.interest_count || 0})
               </button>
-              <button className="btn btn-primary" onClick={() => setEventModalOpen(false)}>Đóng</button>
+              <button className="btn btn-primary" onClick={() => setEventModalOpen(false)}>{t('btn_close')}</button>
             </div>
           </div>
         </div>
