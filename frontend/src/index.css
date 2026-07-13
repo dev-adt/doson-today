@@ -1896,8 +1896,11 @@ nav {
   margin: 2rem auto;
   padding: 0 1.5rem;
   display: grid;
-  grid-template-columns: 1.6fr 1fr;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
   gap: 2rem;
+}
+.dash-container > div {
+  min-width: 0;
 }
 .dash-card {
   background: rgba(15, 27, 53, 0.45);
