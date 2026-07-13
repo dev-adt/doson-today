@@ -135,6 +135,20 @@ db.query(`
     await db.query("ALTER TABLE members MODIFY COLUMN status ENUM('pending','approved','rejected','suspended') DEFAULT 'pending'");
     console.log("✅ Cập nhật ENUM cột status bảng members thành công");
 
+    // Thêm cột system_instruction vào bảng ai_config
+    const [aiCols] = await db.query("SHOW COLUMNS FROM ai_config LIKE 'system_instruction'");
+    if (!aiCols.length) {
+      await db.query("ALTER TABLE ai_config ADD COLUMN system_instruction TEXT DEFAULT NULL");
+      console.log('✅ Đã thêm cột system_instruction vào bảng ai_config');
+    }
+
+    // Tạo thư mục kiến thức
+    const KB_DIR = path.join(__dirname, 'knowledge_base');
+    if (!fs.existsSync(KB_DIR)) {
+      fs.mkdirSync(KB_DIR, { recursive: true });
+      console.log('✅ Đã tạo thư mục knowledge_base');
+    }
+
     // Tạo bảng events nếu chưa có
     await db.query(`
       CREATE TABLE IF NOT EXISTS events (
@@ -651,15 +665,15 @@ app.post('/api/member/upgrade', memberAuthMiddleware, async (req, res) => {
 
 // Lưu cấu hình và API key của AI Provider
 app.post('/api/admin/save-config', authMiddleware, async (req, res) => {
-  const { provider, model, apiKey } = req.body;
+  const { provider, model, apiKey, system_instruction } = req.body;
   if (!provider || !model) {
     return res.status(400).json({ error: 'Thiếu thông tin provider hoặc model.' });
   }
 
   try {
-    // 1. Lưu provider/model vào bảng ai_config trong DB
+    // 1. Lưu provider/model/system_instruction vào bảng ai_config trong DB
     await db.query('DELETE FROM ai_config'); // chỉ lưu 1 dòng hoạt động duy nhất
-    await db.query('INSERT INTO ai_config (provider, model, is_active) VALUES (?, ?, 1)', [provider, model]);
+    await db.query('INSERT INTO ai_config (provider, model, system_instruction, is_active) VALUES (?, ?, ?, 1)', [provider, model, system_instruction || null]);
 
     // 2. Nếu có nhập apiKey, lưu đè vào file config.json
     if (apiKey && apiKey !== '(key đã lưu)' && apiKey !== '**************************************' && apiKey.trim() !== '') {
@@ -683,8 +697,8 @@ app.post('/api/admin/save-config', authMiddleware, async (req, res) => {
 // Lấy cấu hình AI hiện tại
 app.get('/api/admin/get-config', anyAuthMiddleware, async (req, res) => {
   try {
-    const [rows] = await db.query('SELECT provider, model FROM ai_config WHERE is_active = 1 LIMIT 1');
-    const config = rows[0] || { provider: 'anthropic', model: 'claude-sonnet-4-6' };
+    const [rows] = await db.query('SELECT provider, model, system_instruction FROM ai_config WHERE is_active = 1 LIMIT 1');
+    const config = rows[0] || { provider: 'anthropic', model: 'claude-sonnet-4-6', system_instruction: null };
 
     let hasKey = false;
     const configPath = path.join(__dirname, 'config.json');
@@ -702,7 +716,68 @@ app.get('/api/admin/get-config', anyAuthMiddleware, async (req, res) => {
       if (key) hasKey = true;
     }
 
-    res.json({ provider: config.provider, model: config.model, hasKey });
+    res.json({ provider: config.provider, model: config.model, system_instruction: config.system_instruction || '', hasKey });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── QUẢN LÝ TÀI LIỆU KIẾN THỨC (KNOWLEDGE BASE) ────────────────────
+const KB_DIR = path.join(__dirname, 'knowledge_base');
+
+// Lấy danh sách tệp kiến thức
+app.get('/api/admin/knowledge-files', authMiddleware, async (req, res) => {
+  try {
+    if (!fs.existsSync(KB_DIR)) {
+      fs.mkdirSync(KB_DIR, { recursive: true });
+    }
+    const files = fs.readdirSync(KB_DIR);
+    const list = files.map(file => {
+      const stats = fs.statSync(path.join(KB_DIR, file));
+      return {
+        filename: file,
+        size: stats.size,
+        updated_at: stats.mtime
+      };
+    });
+    res.json(list);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Tải lên tài liệu kiến thức (nhận text)
+app.post('/api/admin/upload-knowledge', authMiddleware, async (req, res) => {
+  const { filename, content } = req.body;
+  if (!filename || !content) {
+    return res.status(400).json({ error: 'Thiếu tên tệp hoặc nội dung.' });
+  }
+
+  // Chống ghi file ngoài thư mục (Directory Traversal)
+  const safeFilename = path.basename(filename);
+  const filepath = path.join(KB_DIR, safeFilename);
+
+  try {
+    fs.writeFileSync(filepath, content, 'utf8');
+    res.json({ success: true, message: 'Đã lưu tài liệu kiến thức.' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Xóa tệp tài liệu kiến thức
+app.delete('/api/admin/knowledge-file/:filename', authMiddleware, async (req, res) => {
+  const filename = req.params.filename;
+  const safeFilename = path.basename(filename);
+  const filepath = path.join(KB_DIR, safeFilename);
+
+  if (!fs.existsSync(filepath)) {
+    return res.status(404).json({ error: 'Không tìm thấy tài liệu kiến thức.' });
+  }
+
+  try {
+    fs.unlinkSync(filepath);
+    res.json({ success: true, message: 'Đã xóa tài liệu kiến thức thành công.' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -1517,11 +1592,30 @@ app.post('/api/chat', anyAuthMiddleware, async (req, res) => {
   let memberContext = system || '';
   if (!system) {
     try {
+      // Đọc system_instruction từ ai_config
+      const [aiConfigs] = await db.query("SELECT system_instruction FROM ai_config WHERE is_active = 1 LIMIT 1");
+      const systemInstruction = (aiConfigs[0] && aiConfigs[0].system_instruction) || 
+        "Bạn là trợ lý AI của Đồ Sơn — nền tảng hội viên doanh nghiệp Việt Nam. Trả lời ngắn gọn, thân thiện bằng tiếng Việt.";
+
       const [members] = await db.query("SELECT name,tier,industry,description,email,phone FROM members WHERE status='approved'");
       const [posts]   = await db.query("SELECT p.title,p.type,p.contact_info,m.name AS company FROM posts p JOIN members m ON p.member_id=m.id WHERE p.status='approved' ORDER BY p.created_at DESC LIMIT 10");
       const [events]  = await db.query("SELECT title,event_date,location,organizer FROM events WHERE status='upcoming' ORDER BY event_date ASC LIMIT 5");
 
-      memberContext = `Bạn là trợ lý AI của Đồ Sơn — nền tảng hội viên doanh nghiệp Việt Nam. Trả lời ngắn gọn, thân thiện bằng tiếng Việt.
+      // Đọc các tệp dữ liệu kiến thức lơ lửng trong thư mục knowledge_base
+      let knowledgeText = '';
+      const KB_DIR = path.join(__dirname, 'knowledge_base');
+      if (fs.existsSync(KB_DIR)) {
+        const files = fs.readdirSync(KB_DIR);
+        for (const file of files) {
+          const filepath = path.join(KB_DIR, file);
+          if (fs.statSync(filepath).isFile()) {
+            const content = fs.readFileSync(filepath, 'utf8');
+            knowledgeText += `\nTÀI LIỆU KIẾN THỨC BỔ SUNG (${file}):\n${content}\n`;
+          }
+        }
+      }
+
+      memberContext = `${systemInstruction}
 
 HỘI VIÊN (${members.length} thành viên):
 ${members.map(m => `• ${m.name} [${m.tier}] — ${m.industry}: ${m.description} Liên hệ: ${m.email} | ${m.phone}`).join('\n')}
@@ -1530,7 +1624,8 @@ BÀI VIẾT MỚI:
 ${posts.map(p => `• [${p.type}] "${p.title}" — ${p.company} (${p.contact_info})`).join('\n')}
 
 SỰ KIỆN SẮP TỚI:
-${events.map(e => `• ${e.title} — ${new Date(e.event_date).toLocaleDateString('vi-VN')} tại ${e.location}`).join('\n')}`;
+${events.map(e => `• ${e.title} — ${new Date(e.event_date).toLocaleDateString('vi-VN')} tại ${e.location}`).join('\n')}
+${knowledgeText ? `\n${knowledgeText}` : ''}`;
     } catch (dbErr) {
       console.error('DB error building context:', dbErr.message);
     }
