@@ -1896,7 +1896,7 @@ nav {
   margin: 2rem auto;
   padding: 0 1.5rem;
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: 1.6fr 1fr;
   gap: 2rem;
 }
 .dash-card {
@@ -2414,6 +2414,11 @@ nav {
   }
   .register-form-panel {
     padding: 2rem 1.5rem;
+  }
+  .dash-container {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    margin: 1rem auto;
   }
 }
 
