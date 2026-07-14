@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useTranslation } from '../contexts/LanguageContext';
@@ -222,6 +222,8 @@ export const Guide = () => {
 
   const langContent = GUIDE_CONTENT[currentLang] || GUIDE_CONTENT.vi;
 
+  const imgUrl = (path) => `${path}?v=2.0`;
+
   const handleOpenImg = (src) => {
     setSelectedImg(src);
   };
@@ -243,10 +245,10 @@ export const Guide = () => {
                 {s.intro.img_label} (Click to expand)
               </span>
               <img 
-                src="/img_guide/img_full.png" 
+                src={imgUrl('/img_guide/img_full.png')} 
                 alt="Homepage" 
                 style={{ width: '100%', maxWidth: '650px', borderRadius: '8px', border: '1px solid var(--border-strong)', cursor: 'zoom-in', transition: 'transform 0.2s' }}
-                onClick={() => handleOpenImg('/img_guide/img_full.png')}
+                onClick={() => handleOpenImg(imgUrl('/img_guide/img_full.png'))}
                 onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.01)'}
                 onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
               />
@@ -270,10 +272,10 @@ export const Guide = () => {
                 </p>
                 <div style={{ marginTop: '1.25rem', textAlign: 'center' }}>
                   <img 
-                    src="/img_guide/image%201.png" 
+                    src={imgUrl('/img_guide/image 1.png')} 
                     alt="Step 1" 
                     style={{ width: '100%', maxWidth: '600px', borderRadius: '8px', border: '1px solid var(--border-strong)', cursor: 'zoom-in' }}
-                    onClick={() => handleOpenImg('/img_guide/image 1.png')}
+                    onClick={() => handleOpenImg(imgUrl('/img_guide/image 1.png'))}
                   />
                 </div>
               </div>
@@ -287,10 +289,10 @@ export const Guide = () => {
                 </p>
                 <div style={{ marginTop: '1.25rem', textAlign: 'center' }}>
                   <img 
-                    src="/img_guide/image%202.png" 
+                    src={imgUrl('/img_guide/image 2.png')} 
                     alt="Step 2" 
                     style={{ width: '100%', maxWidth: '600px', borderRadius: '8px', border: '1px solid var(--border-strong)', cursor: 'zoom-in' }}
-                    onClick={() => handleOpenImg('/img_guide/image 2.png')}
+                    onClick={() => handleOpenImg(imgUrl('/img_guide/image 2.png'))}
                   />
                 </div>
               </div>
@@ -344,10 +346,10 @@ export const Guide = () => {
                 </p>
                 <div style={{ marginTop: '1.25rem', textAlign: 'center' }}>
                   <img 
-                    src="/img_guide/image%203.png" 
+                    src={imgUrl('/img_guide/image 3.png')} 
                     alt="Dashboard" 
                     style={{ width: '100%', maxWidth: '600px', borderRadius: '8px', border: '1px solid var(--border-strong)', cursor: 'zoom-in' }}
-                    onClick={() => handleOpenImg('/img_guide/image 3.png')}
+                    onClick={() => handleOpenImg(imgUrl('/img_guide/image 3.png'))}
                   />
                 </div>
               </div>
@@ -374,10 +376,10 @@ export const Guide = () => {
                 </p>
                 <div style={{ marginTop: '1.25rem', textAlign: 'center' }}>
                   <img 
-                    src="/img_guide/image%204.png" 
+                    src={imgUrl('/img_guide/image 4.png')} 
                     alt="Editor" 
                     style={{ width: '100%', maxWidth: '600px', borderRadius: '8px', border: '1px solid var(--border-strong)', cursor: 'zoom-in' }}
-                    onClick={() => handleOpenImg('/img_guide/image 4.png')}
+                    onClick={() => handleOpenImg(imgUrl('/img_guide/image 4.png'))}
                   />
                 </div>
               </div>
@@ -413,10 +415,10 @@ export const Guide = () => {
                 </p>
                 <div style={{ marginTop: '1.25rem', textAlign: 'center' }}>
                   <img 
-                    src="/img_guide/image%205.png" 
+                    src={imgUrl('/img_guide/image 5.png')} 
                     alt="AI Models" 
                     style={{ width: '100%', maxWidth: '600px', borderRadius: '8px', border: '1px solid var(--border-strong)', cursor: 'zoom-in' }}
-                    onClick={() => handleOpenImg('/img_guide/image 5.png')}
+                    onClick={() => handleOpenImg(imgUrl('/img_guide/image 5.png'))}
                   />
                 </div>
               </div>
@@ -446,28 +448,28 @@ export const Guide = () => {
                   <div style={{ background: 'var(--surface-0)', padding: '1rem', borderRadius: '12px', border: '1px solid var(--border)', textAlign: 'center' }}>
                     <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block', marginBottom: '10px', fontWeight: 600 }}>Bảng tin bài đăng</span>
                     <img 
-                      src="/img_guide/image%206.png" 
+                      src={imgUrl('/img_guide/image 6.png')} 
                       alt="Feeds" 
                       style={{ width: '100%', borderRadius: '8px', border: '1px solid var(--border-strong)', cursor: 'zoom-in' }}
-                      onClick={() => handleOpenImg('/img_guide/image 6.png')}
+                      onClick={() => handleOpenImg(imgUrl('/img_guide/image 6.png'))}
                     />
                   </div>
                   <div style={{ background: 'var(--surface-0)', padding: '1rem', borderRadius: '12px', border: '1px solid var(--border)', textAlign: 'center' }}>
                     <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block', marginBottom: '10px', fontWeight: 600 }}>Thư mục hội viên</span>
                     <img 
-                      src="/img_guide/image%207.png" 
+                      src={imgUrl('/img_guide/image 7.png')} 
                       alt="Directory" 
                       style={{ width: '100%', borderRadius: '8px', border: '1px solid var(--border-strong)', cursor: 'zoom-in' }}
-                      onClick={() => handleOpenImg('/img_guide/image 7.png')}
+                      onClick={() => handleOpenImg(imgUrl('/img_guide/image 7.png'))}
                     />
                   </div>
                   <div style={{ background: 'var(--surface-0)', padding: '1rem', borderRadius: '12px', border: '1px solid var(--border)', textAlign: 'center' }}>
                     <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block', marginBottom: '10px', fontWeight: 600 }}>Sự kiện</span>
                     <img 
-                      src="/img_guide/image%208.png" 
+                      src={imgUrl('/img_guide/image 8.png')} 
                       alt="Events" 
                       style={{ width: '100%', borderRadius: '8px', border: '1px solid var(--border-strong)', cursor: 'zoom-in' }}
-                      onClick={() => handleOpenImg('/img_guide/image 8.png')}
+                      onClick={() => handleOpenImg(imgUrl('/img_guide/image 8.png'))}
                     />
                   </div>
                 </div>
