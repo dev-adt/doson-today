@@ -2619,3 +2619,37 @@ select option {
   background-color: var(--surface-2) !important;
 }
 
+/* Responsive Mobile Bottom Nav & Mega Menu Utilities */
+@media (max-width: 768px) {
+  .mobile-bottom-nav {
+    display: flex !important;
+  }
+  body.public-body {
+    padding-bottom: 70px;
+  }
+  .top-bar {
+    font-size: 10.5px !important;
+  }
+}
+
+/* Mega menu dropdown columns */
+.mega-menu-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1.5rem;
+  padding: 1.25rem;
+  min-width: 600px;
+}
+.mega-menu-item {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 12px;
+  padding: 5px 0;
+  display: block;
+  transition: color 0.2s;
+}
+.mega-menu-item:hover {
+  color: var(--primary) !important;
+}
+
+

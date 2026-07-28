@@ -2,8 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../contexts/LanguageContext';
+import TopBar from '../components/TopBar';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import FloatingAIWidget from '../components/FloatingAIWidget';
+import FloatingSpeedDial from '../components/FloatingSpeedDial';
+import MobileBottomNav from '../components/MobileBottomNav';
+import DosonMap from '../components/DosonMap';
 
 export const Home = () => {
   const { role, token } = useAuth();
@@ -13,33 +18,32 @@ export const Home = () => {
   // State
   const [stats, setStats] = useState({ members: 0, posts: 0, events: 0 });
   const [latestPosts, setLatestPosts] = useState([]);
-  const [loadingPosts, setLoadingPosts] = useState(true);
   const [events, setEvents] = useState([]);
-  const [loadingEvents, setLoadingEvents] = useState(true);
-  const [selectedEvent, setSelectedEvent] = useState(null);
-  const [eventModalOpen, setEventModalOpen] = useState(false);
   const [featuredMembers, setFeaturedMembers] = useState([]);
-  const [loadingMembers, setLoadingMembers] = useState(true);
-
-  const getMemberInitialsColors = (name) => {
-    if (!name) return { bg: '#E6F1FB', fg: '#0C447C' };
-    const sum = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    const colors = [
-      { bg: '#E6F1FB', fg: '#0C447C' },
-      { bg: '#EAF3DE', fg: '#27500A' },
-      { bg: '#FAEEDA', fg: '#633806' },
-      { bg: '#EEEDFE', fg: '#3C3489' },
-      { bg: '#E1F5EE', fg: '#085041' },
-      { bg: '#FAECE7', fg: '#712B13' }
-    ];
-    return colors[sum % colors.length];
-  };
   
-  // Modal State
-  const [selectedPost, setSelectedPost] = useState(null);
-  const [modalOpen, setModalOpen] = useState(false);
+  // Smart Search Banner State
+  const [searchQuery, setSearchQuery] = useState('');
 
-  // Fetch Public Stats
+  // Newsletter State
+  const [newsletterEmail, setNewsletterEmail] = useState('');
+  const [newsletterTopics, setNewsletterTopics] = useState(['news', 'tourism']);
+  const [newsletterSubmitted, setNewsletterSubmitted] = useState(false);
+
+  // Home AI direct box state
+  const [homeAiQuery, setHomeAiQuery] = useState('');
+  const [homeAiReply, setHomeAiReply] = useState('');
+  const [loadingAi, setLoadingAi] = useState(false);
+
+  // Quick suggestions for Banner Search
+  const quickSearchKeywords = [
+    'Đi đâu cuối tuần?',
+    'Ăn hải sản ở đâu?',
+    'Tìm khách sạn gần biển',
+    'Tìm doanh nghiệp Đồ Sơn',
+    'Cơ hội đầu tư hiện có'
+  ];
+
+  // Fetch Public Stats & Data
   useEffect(() => {
     const fetchStats = async () => {
       try {
@@ -55,7 +59,6 @@ export const Home = () => {
     fetchStats();
   }, []);
 
-  // Fetch Latest Approved Posts
   useEffect(() => {
     const fetchLatestPosts = async () => {
       try {
@@ -64,41 +67,31 @@ export const Home = () => {
         if (res.ok) {
           const data = await res.json();
           const allPosts = data.data || [];
-          // Sắp xếp: bài nổi bật lên đầu, sau đó đến bài viết mới nhất
-          const featured = allPosts.filter(p => p.is_featured === 1);
-          const normal = allPosts.filter(p => p.is_featured !== 1);
-          setLatestPosts([...featured, ...normal].slice(0, 3));
+          setLatestPosts(allPosts.slice(0, 4));
         }
       } catch (err) {
         console.error('Error fetching latest posts:', err);
-      } finally {
-        setLoadingPosts(false);
       }
     };
     fetchLatestPosts();
   }, [token]);
 
-  // Fetch Upcoming Events
   useEffect(() => {
     const fetchEvents = async () => {
-      setLoadingEvents(true);
       try {
         const headers = token ? { 'Authorization': 'Bearer ' + token } : {};
-        const res = await fetch('/api/events?limit=3&upcoming=true', { headers });
+        const res = await fetch('/api/events?limit=4&upcoming=true', { headers });
         if (res.ok) {
           const data = await res.json();
           setEvents(data.data || []);
         }
       } catch (err) {
         console.error('Error fetching events:', err);
-      } finally {
-        setLoadingEvents(false);
       }
     };
     fetchEvents();
   }, [token]);
 
-  // Fetch Featured Members (limit to 3)
   useEffect(() => {
     const fetchFeaturedMembers = async () => {
       try {
@@ -106,510 +99,752 @@ export const Home = () => {
         if (res.ok) {
           const data = await res.json();
           const all = data.data || [];
-          const featured = all.filter(m => m.is_featured === 1);
-          setFeaturedMembers(featured.slice(0, 3));
+          setFeaturedMembers(all.slice(0, 3));
         }
       } catch (err) {
         console.error('Error fetching featured members:', err);
-      } finally {
-        setLoadingMembers(false);
       }
     };
     fetchFeaturedMembers();
   }, []);
 
-  const openPostDetail = (post) => {
-    setSelectedPost(post);
-    setModalOpen(true);
-  };
-
-  const closePostDetail = () => {
-    setSelectedPost(null);
-    setModalOpen(false);
-  };
-
-  const openEventDetail = (event) => {
-    if (!token) {
-      if (confirm('Vui lòng đăng nhập để xem chi tiết địa điểm và thông tin mô tả sự kiện. Đến trang đăng nhập?')) {
-        navigate('/login');
-      }
-      return;
-    }
-    setSelectedEvent(event);
-    setEventModalOpen(true);
-  };
-
-  const handleToggleEventInterest = async (eventId) => {
-    if (!token) {
-      alert('Vui lòng đăng nhập để thực hiện tính năng này.');
-      navigate('/login');
-      return;
-    }
-
+  // Handle Home Direct AI Question
+  const handleHomeAiAsk = async (queryText) => {
+    const q = queryText || homeAiQuery;
+    if (!q.trim()) return;
+    setLoadingAi(true);
+    setHomeAiReply('');
     try {
-      const res = await fetch(`/api/events/${eventId}/interest`, {
+      const res = await fetch('/api/ai/chat', {
         method: 'POST',
-        headers: {
-          'Authorization': 'Bearer ' + token,
-          'Content-Type': 'application/json'
-        }
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: q, history: [] })
       });
       const data = await res.json();
-      if (res.ok && data.success) {
-        setEvents(prev => prev.map(e => {
-          if (e.id === eventId) {
-            const diff = data.is_interested ? 1 : -1;
-            return {
-              ...e,
-              is_interested: data.is_interested,
-              interest_count: Math.max(0, (e.interest_count || 0) + diff)
-            };
-          }
-          return e;
-        }));
-
-        if (selectedEvent && selectedEvent.id === eventId) {
-          setSelectedEvent(prev => {
-            const diff = data.is_interested ? 1 : -1;
-            return {
-              ...prev,
-              is_interested: data.is_interested,
-              interest_count: Math.max(0, (prev.interest_count || 0) + diff)
-            };
-          });
-        }
+      if (res.ok && data.reply) {
+        setHomeAiReply(data.reply);
       } else {
-        alert(data.error || 'Có lỗi xảy ra.');
+        setHomeAiReply('Trợ lý AI Đồ Sơn gợi ý bạn nên xem trang lịch trình du lịch hoặc hỏi chi tiết hơn trên trang AI Chat.');
       }
-    } catch (err) {
-      alert('Lỗi: ' + err.message);
+    } catch (e) {
+      setHomeAiReply('Hiện tại hệ thống AI đang nâng cấp. Bạn có thể thử lại sau ít phút.');
+    } finally {
+      setLoadingAi(false);
     }
   };
 
-  const getTiersLink = () => {
-    if (role === 'member') return '/member-dashboard';
-    if (role === 'admin') return '/admin-dashboard';
-    return '/register';
-  };
-  const getTiersButtonText = () => {
-    if (role === 'member') return t('btn_upgrade_now');
-    return t('btn_join_now');
+  // Handle Newsletter Form Submit
+  const handleNewsletterSubmit = (e) => {
+    e.preventDefault();
+    if (!newsletterEmail.trim()) return;
+    setNewsletterSubmitted(true);
+    setTimeout(() => setNewsletterSubmitted(false), 4000);
+    setNewsletterEmail('');
   };
 
-  // Demo images for trade opportunity cards - ảnh Đồ Sơn thực tế
-  const demoImages = [
-    '/images/doson_event.png',    // sự kiện kết nối doanh nghiệp
-    '/images/doson_seafood.png',  // hải sản đặc sản Đồ Sơn
-    '/images/doson_tourism.png'   // du lịch kết nối
-  ];
+  // Add to Calendar helper for events
+  const handleAddToCalendar = (eventTitle, eventDate) => {
+    const googleCalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(eventTitle)}&details=${encodeURIComponent('Sự kiện Đồ Sơn Today: ' + eventTitle)}&location=${encodeURIComponent('Đồ Sơn, Hải Phòng')}`;
+    window.open(googleCalUrl, '_blank');
+  };
 
   return (
     <div className="public-body">
+      {/* TopBar & Main Navbar */}
+      <TopBar />
       <Navbar />
 
-      {/* Decor background blobs */}
-      <div style={{ position: 'fixed', top: '-10%', left: '-5%', width: '50vw', height: '50vw', background: 'radial-gradient(circle, rgba(30,136,229,0.08) 0%, rgba(30,136,229,0) 70%)', zIndex: -1, pointerEvents: 'none', borderRadius: '50%' }}></div>
-      <div style={{ position: 'fixed', bottom: '-10%', right: '-5%', width: '50vw', height: '50vw', background: 'radial-gradient(circle, rgba(0,229,255,0.05) 0%, rgba(0,229,255,0) 70%)', zIndex: -1, pointerEvents: 'none', borderRadius: '50%' }}></div>
+      {/* Floating Utilities */}
+      <FloatingAIWidget />
+      <FloatingSpeedDial />
+      <MobileBottomNav />
+
+      {/* Background Ambient Glows */}
+      <div style={{ position: 'fixed', top: '-10%', left: '-5%', width: '50vw', height: '50vw', background: 'radial-gradient(circle, rgba(2,132,199,0.08) 0%, rgba(2,132,199,0) 70%)', zIndex: -1, pointerEvents: 'none', borderRadius: '50%' }}></div>
+      <div style={{ position: 'fixed', bottom: '-10%', right: '-5%', width: '50vw', height: '50vw', background: 'radial-gradient(circle, rgba(16,185,129,0.05) 0%, rgba(16,185,129,0) 70%)', zIndex: -1, pointerEvents: 'none', borderRadius: '50%' }}></div>
 
       <div className="public-container">
-        
-        {/* HERO SECTION */}
-        <div className="hero-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '3rem', marginTop: '3rem', marginBottom: '5rem', flexWrap: 'wrap' }}>
-          <div className="hero-left" style={{ flex: '1.2', minWidth: '320px' }}>
-            <div className="hero-badge">
-              <i className="ti ti-sparkles"></i> {t('hero_badge')}
+
+        {/* ==========================================
+            BLOCK 1 – BANNER CHÍNH & Ô TÌM KIẾM THÔNG MINH
+        ========================================== */}
+        <div className="hero-container" style={{ marginTop: '2.5rem', marginBottom: '4rem' }}>
+          <div style={{ textAlign: 'center', maxWidth: '850px', margin: '0 auto' }}>
+            
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: 'rgba(2, 132, 199, 0.1)', border: '1px solid rgba(2, 132, 199, 0.25)', color: 'var(--primary-dark)', padding: '4px 14px', borderRadius: '99px', fontSize: '12px', fontWeight: '700', marginBottom: '1.2rem' }}>
+              <i className="ti ti-sparkles"></i> DOSON.TODAY — CỔNG KẾT NỐI TÍCH HỢP TRÍ TUỆ NHÂN TẠO
             </div>
-            <h1 className="hero-title">
-              {t('hero_title').split(', ')[0] || ''},<br /><span>{t('hero_title').split(', ')[1] || ''}</span>
+
+            <h1 className="hero-title" style={{ fontSize: '42px', fontWeight: '800', lineHeight: '1.25', color: 'var(--text-primary)', marginBottom: '1rem' }}>
+              Doson.today – Kết nối Đồ Sơn <br />
+              <span style={{ background: 'linear-gradient(135deg, #0284C7 0%, #10B981 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                với Thế Giới
+              </span>
             </h1>
-            <p className="hero-desc">
-              {t('hero_desc')}
+
+            <p className="hero-desc" style={{ fontSize: '15px', color: 'var(--text-secondary)', maxWidth: '720px', margin: '0 auto 2rem', lineHeight: '1.6' }}>
+              Nền tảng kết nối cộng đồng, doanh nghiệp, du lịch, đầu tư và quảng bá Đồ Sơn tích hợp trí tuệ nhân tạo (AI). Cửa ngõ số hiện đại, thân thiện và giàu bản sắc.
             </p>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
-              <Link to="/register" className="btn btn-primary" style={{ padding: '12px 24px', fontSize: '14px', textDecoration: 'none' }}>
-                <i className="ti ti-arrow-up-right"></i> {t('hero_btn_register')}
-              </Link>
-              <Link to="/members" className="btn" style={{ padding: '12px 24px', fontSize: '14px', backgroundColor: 'rgba(12,35,64,0.06)', borderColor: 'var(--border-strong)', color: 'var(--primary-dark)', textDecoration: 'none' }}>
-                <i className="ti ti-search"></i> {t('hero_btn_explore')}
-              </Link>
-            </div>
-          </div>
-          
-          <div className="hero-right float-effect" style={{ flex: '1', minWidth: '320px', display: 'flex', justifyContent: 'center' }}>
-            <div className="hero-img-wrap">
-              <img src="/images/hero_network.png" alt="Mạng lưới kết nối Đồ Sơn" />
-              <div style={{ position: 'absolute', bottom: '12px', left: '12px', right: '12px', background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(8px)', padding: '10px 14px', borderRadius: 'var(--radius)', border: '1px solid rgba(12,35,64,0.1)', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'var(--emerald)', animation: 'pulse 2s infinite' }}></div>
-                <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-primary)' }}>{t('hero_realtime')}</span>
+
+            {/* Smart Search Box with quick suggestions */}
+            <div 
+              style={{
+                backgroundColor: 'var(--surface-2)',
+                border: '1px solid var(--border-strong)',
+                borderRadius: '16px',
+                padding: '12px 16px',
+                boxShadow: 'var(--shadow-lg)',
+                maxWidth: '680px',
+                margin: '0 auto 1.5rem',
+                textAlign: 'left'
+              }}
+            >
+              <div style={{ fontSize: '11.5px', fontWeight: '700', color: 'var(--primary)', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <i className="ti ti-search"></i> Ô TÌM KIẾM THÔNG MINH ĐỒ SƠN
+              </div>
+              
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input
+                  type="text"
+                  placeholder="Bạn muốn tìm gì ở Đồ Sơn? (Địa điểm, khách sạn, nhà hàng, doanh nghiệp, OCOP, cơ hội đầu tư...)"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') navigate('/search?q=' + encodeURIComponent(searchQuery)); }}
+                  style={{
+                    flex: 1,
+                    padding: '10px 14px',
+                    borderRadius: '8px',
+                    border: '1px solid var(--border-strong)',
+                    fontSize: '13px',
+                    backgroundColor: 'var(--surface-0)',
+                    color: 'var(--text-primary)',
+                    outline: 'none'
+                  }}
+                />
+                <button
+                  onClick={() => navigate('/search?q=' + encodeURIComponent(searchQuery))}
+                  className="btn btn-primary"
+                  style={{ padding: '0 20px', fontSize: '13px', whiteSpace: 'nowrap' }}
+                >
+                  <i className="ti ti-search"></i> Tìm kiếm
+                </button>
+              </div>
+
+              {/* Quick suggestions chips */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginTop: '10px', fontSize: '11px' }}>
+                <span style={{ color: 'var(--text-muted)', fontWeight: '600' }}>Gợi ý nhanh:</span>
+                {quickSearchKeywords.map((kw, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => { setSearchQuery(kw); navigate('/search?q=' + encodeURIComponent(kw)); }}
+                    style={{
+                      background: 'rgba(2, 132, 199, 0.08)',
+                      border: '1px solid rgba(2, 132, 199, 0.2)',
+                      color: 'var(--primary-dark)',
+                      padding: '2px 8px',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontSize: '11px',
+                      fontWeight: '500'
+                    }}
+                  >
+                    {kw}
+                  </button>
+                ))}
               </div>
             </div>
+
+            {/* Action buttons */}
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', flexWrap: 'wrap' }}>
+              <Link to="/search" className="btn btn-primary" style={{ padding: '12px 22px', fontSize: '13.5px', textDecoration: 'none' }}>
+                <i className="ti ti-compass"></i> Khám phá Đồ Sơn
+              </Link>
+              <Link to="/ai-chat" className="btn" style={{ padding: '12px 22px', fontSize: '13.5px', backgroundColor: 'rgba(2, 132, 199, 0.1)', borderColor: 'rgba(2, 132, 199, 0.3)', color: 'var(--primary-dark)', textDecoration: 'none', fontWeight: '700' }}>
+                <i className="ti ti-robot"></i> Hỏi Trợ lý AI
+              </Link>
+              <Link to="/register" className="btn" style={{ padding: '12px 22px', fontSize: '13.5px', backgroundColor: 'rgba(16, 185, 129, 0.1)', borderColor: 'rgba(16, 185, 129, 0.3)', color: 'var(--emerald-dark)', textDecoration: 'none', fontWeight: '700' }}>
+                <i className="ti ti-user-plus"></i> Trở thành thành viên
+              </Link>
+            </div>
           </div>
         </div>
 
-        {/* STATISTICS CARD GRID */}
-        <div className="stats-row" style={{ marginBottom: '5rem' }}>
-          <div className="glass-card stat-card">
-            <div className="stat-label">{t('stat_active_members')}</div>
-            <div className="stat-val">{stats.members || 20}+</div>
-            <div className="stat-sub" style={{ color: 'var(--text-muted)' }}>{t('stat_verified_companies')}</div>
-          </div>
-          <div className="glass-card stat-card">
-            <div className="stat-label">{t('stat_shared_opportunities')}</div>
-            <div className="stat-val">{stats.posts || 50}+</div>
-            <div className="stat-sub" style={{ color: 'var(--text-muted)' }}>{t('stat_new_connections')}</div>
-          </div>
-          <div className="glass-card stat-card">
-            <div className="stat-label">{t('stat_diverse_companies')}</div>
-            <div className="stat-val">1.2k+</div>
-            <div className="stat-sub" style={{ color: 'var(--text-muted)' }}>{t('stat_industries')}</div>
-          </div>
-          <div className="glass-card stat-card">
-            <div className="stat-label">{t('stat_trade_events')}</div>
-            <div className="stat-val">{stats.events || 5}+</div>
-            <div className="stat-sub" style={{ color: 'var(--text-muted)' }}>{t('stat_annual_meetings')}</div>
-          </div>
-        </div>
 
-        {/* MAIN SERVICES SECTION */}
-        <section id="features" style={{ marginBottom: '5rem' }}>
-          <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
-            <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--primary)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>{t('services_badge')}</div>
-            <h2 style={{ fontFamily: 'var(--font-title)', fontSize: '32px', fontWeight: 700, color: 'var(--text-primary)' }}>{t('services_title')}</h2>
-            <p style={{ fontSize: '14px', color: 'var(--text-secondary)', maxWidth: '600px', margin: '8px auto 0' }}>{t('services_desc')}</p>
+        {/* ==========================================
+            BLOCK 2 – LỐI VÀO NHANH THEO NHU CẦU (8 Ô CHỨC NĂNG)
+        ========================================== */}
+        <section style={{ marginBottom: '4rem' }}>
+          <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+            <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--primary)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>LỐI VÀO NHANH HỆ SINH THÁI</div>
+            <h2 style={{ fontFamily: 'var(--font-title)', fontSize: '24px', fontWeight: '700', color: 'var(--text-primary)', margin: '4px 0 0' }}>Xác định nhu cầu truy cập của bạn</h2>
           </div>
-          
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px' }}>
-            <div className="srv-card">
-              <div className="srv-icon"><i className="ti ti-users"></i></div>
-              <h3 className="srv-title">{t('service_1_title')}</h3>
-              <p className="srv-desc">{t('service_1_desc')}</p>
-            </div>
-            <div className="srv-card">
-              <div className="srv-icon" style={{ background: 'rgba(16, 185, 129, 0.1)', color: 'var(--emerald)' }}><i className="ti ti-list-details"></i></div>
-              <h3 className="srv-title">{t('service_2_title')}</h3>
-              <p className="srv-desc">{t('service_2_desc')}</p>
-            </div>
-            <div className="srv-card">
-              <div className="srv-icon" style={{ background: 'rgba(0, 229, 255, 0.1)', color: 'var(--neon-cyan)' }}><i className="ti ti-robot"></i></div>
-              <h3 className="srv-title">{t('service_3_title')}</h3>
-              <p className="srv-desc">{t('service_3_desc')}</p>
-            </div>
-            <div className="srv-card">
-              <div className="srv-icon" style={{ background: 'rgba(245, 158, 11, 0.1)', color: 'var(--amber)' }}><i className="ti ti-chart-dots"></i></div>
-              <h3 className="srv-title">{t('service_4_title')}</h3>
-              <p className="srv-desc">{t('service_4_desc')}</p>
-            </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+            {[
+              { title: 'Khám phá Đồ Sơn', desc: 'Văn hóa, di tích, lễ hội & danh thắng', icon: 'ti-map-pin', link: '/search?q=kham-pha', color: '#0284C7' },
+              { title: 'Lập hành trình du lịch', desc: 'Tour mẫu 1 ngày, 2N1Đ & tùy chỉnh AI', icon: 'ti-route', link: '#itinerary-block', color: '#10B981' },
+              { title: 'Tìm nơi lưu trú', desc: 'Khách sạn, Resort & Homestay ven biển', icon: 'ti-building-bed', link: '#tourism-block', color: '#F59E0B' },
+              { title: 'Tìm món ngon hải sản', desc: 'Nhà hàng & đặc sản chả cá thu Đồ Sơn', icon: 'ti-utensils', link: '#tourism-block', color: '#EF4444' },
+              { title: 'Tìm doanh nghiệp', desc: 'Danh bạ 1.200+ DN & hộ kinh doanh', icon: 'ti-briefcase', link: '/members', color: '#8B5CF6' },
+              { title: 'Sản phẩm địa phương', desc: 'Sản phẩm OCOP 4 sao & đặc sản Đồ Sơn', icon: 'ti-certificate', link: '#business-block', color: '#EC4899' },
+              { title: 'Cơ hội đầu tư', desc: 'Dự án hot, mặt bằng & tìm nhà đầu tư', icon: 'ti-chart-line', link: '#investment-block', color: '#06B6D4' },
+              { title: 'Kết nối cộng đồng', desc: 'Mạng lưới người Đồ Sơn xa quê & chuyên gia', icon: 'ti-users', link: '/members', color: '#10B981' }
+            ].map((item, idx) => (
+              <div 
+                key={idx}
+                onClick={() => {
+                  if (item.link.startsWith('#')) {
+                    const el = document.querySelector(item.link);
+                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                  } else {
+                    navigate(item.link);
+                  }
+                }}
+                className="glass-card"
+                style={{
+                  padding: '1.25rem',
+                  borderRadius: 'var(--radius)',
+                  cursor: 'pointer',
+                  transition: 'transform 0.2s, border-color 0.2s',
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '12px'
+                }}
+              >
+                <div style={{ width: '40px', height: '40px', borderRadius: '10px', backgroundColor: `${item.color}15`, color: item.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0 }}>
+                  <i className={`ti ${item.icon}`}></i>
+                </div>
+                <div>
+                  <h4 style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)', margin: '0 0 2px' }}>{item.title}</h4>
+                  <p style={{ fontSize: '11.5px', color: 'var(--text-secondary)', margin: 0, lineHeight: '1.4' }}>{item.desc}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </section>
 
-        {/* LATEST OPPORTUNITIES SECTION */}
-        <section id="posts" style={{ marginBottom: '5rem' }}>
-          <div style={{ marginBottom: '3rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1.5rem' }}>
-            <div>
-              <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--primary)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '6px' }}>{t('menu_opportunities')}</div>
-              <h2 style={{ fontFamily: 'var(--font-title)', fontSize: '32px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: 0 }}>{t('featured_projects_title')}</h2>
-            </div>
-            <Link to="/posts" className="btn" style={{ fontSize: '12px', padding: '8px 16px', backgroundColor: 'rgba(12,35,64,0.06)', borderColor: 'var(--border-strong)', color: 'var(--primary-dark)', textDecoration: 'none' }}>
-              {t('btn_view_all_posts')} <i className="ti ti-arrow-right"></i>
-            </Link>
-          </div>
 
-          <div className="opp-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
-            {loadingPosts ? (
-              <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>
-                <i className="ti ti-loader animate-spin" style={{ fontSize: '24px', display: 'block', margin: '0 auto 10px' }}></i> {t('loading_latest_opps')}
+        {/* ==========================================
+            BLOCK 3 – TRỢ LÝ AI DOSON.TODAY TRỰC TIẾP
+        ========================================== */}
+        <section style={{ marginBottom: '4rem' }}>
+          <div className="glass-card" style={{ padding: '2rem', borderRadius: 'var(--radius-lg)', background: 'linear-gradient(135deg, rgba(2, 132, 199, 0.08) 0%, rgba(16, 185, 129, 0.05) 100%)', border: '1px solid rgba(2, 132, 199, 0.2)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '1rem' }}>
+              <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: 'linear-gradient(135deg, #0284C7 0%, #0369A1 100%)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>
+                <i className="ti ti-robot"></i>
               </div>
-            ) : latestPosts.length > 0 ? (
-              latestPosts.map((p, idx) => {
-                const dateStr = p.created_at ? new Date(p.created_at).toLocaleDateString('vi-VN') : '11/06/2026';
-                const hasValidImage = p.image_url && p.image_url !== 'null' && p.image_url !== 'undefined' && p.image_url.trim() !== '';
-                const imgUrl = hasValidImage ? p.image_url : demoImages[idx % demoImages.length];
-                const companyName = p.company_name || 'Đồ Sơn Member';
-                return (
-                  <div className="opp-card" key={p.id} style={{ position: 'relative' }}>
-                    {p.is_featured === 1 && (
-                      <span style={{ position: 'absolute', top: '12px', right: '12px', fontSize: '9px', background: 'rgba(245, 158, 11, 0.15)', color: 'var(--amber)', border: '1px solid rgba(245,158,11,0.3)', padding: '2px 6px', borderRadius: '3px', textTransform: 'uppercase', fontWeight: 700, zIndex: 10 }}>
-                        {t('badge_featured')} <i className="ti ti-star-filled"></i>
-                      </span>
-                    )}
-                    <img src={imgUrl} className="opp-img" alt={p.title} />
-                    <div className="opp-content">
-                      <h3 className="opp-title">{p.title}</h3>
-                      <div className="opp-meta">
-                        <div className="av-circle" style={{ width: '20px', height: '20px', fontSize: '9px', border: 'none', background: 'var(--primary-glow)', color: 'var(--primary-light)' }}>
-                          {companyName.substring(0, 2).toUpperCase()}
-                        </div>
-                        <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{companyName}</span>
-                      </div>
-                      <div className="opp-foot">
-                        <span>{dateStr}</span>
-                        <button className="opp-btn" onClick={() => navigate('/posts/' + p.id)}>{t('btn_read_post')}</button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })
-            ) : (
-              <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
-                <i className="ti ti-news" style={{ fontSize: '24px', display: 'block', margin: '0 auto 10px' }}></i> {t('no_approved_opps')}
+              <div>
+                <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>TRỢ LÝ AI DOSON.TODAY</div>
+                <h3 style={{ fontFamily: 'var(--font-title)', fontSize: '20px', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>
+                  "Bạn muốn khám phá hoặc kết nối điều gì tại Đồ Sơn?"
+                </h3>
+              </div>
+            </div>
+
+            {/* Direct Input */}
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '1rem' }}>
+              <input 
+                type="text"
+                placeholder="Nhập câu hỏi bằng tiếng Việt hoặc tiếng Anh..."
+                value={homeAiQuery}
+                onChange={(e) => setHomeAiQuery(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleHomeAiAsk(); }}
+                style={{
+                  flex: 1,
+                  padding: '12px 16px',
+                  borderRadius: '10px',
+                  border: '1px solid var(--border-strong)',
+                  backgroundColor: 'var(--surface-2)',
+                  fontSize: '13px',
+                  color: 'var(--text-primary)',
+                  outline: 'none'
+                }}
+              />
+              <button 
+                onClick={() => handleHomeAiAsk()}
+                disabled={loadingAi}
+                className="btn btn-primary"
+                style={{ padding: '0 24px', fontSize: '13px' }}
+              >
+                {loadingAi ? <i className="ti ti-loader animate-spin"></i> : <><i className="ti ti-send"></i> Hỏi AI</>}
+              </button>
+            </div>
+
+            {/* AI Reply Display */}
+            {homeAiReply && (
+              <div style={{ backgroundColor: 'var(--surface-2)', border: '1px solid var(--border-strong)', borderRadius: '10px', padding: '14px 16px', marginBottom: '1rem', fontSize: '13px', lineHeight: '1.6', color: 'var(--text-primary)' }}>
+                <strong>🤖 Trợ lý AI trả lời:</strong><br />
+                {homeAiReply}
               </div>
             )}
-          </div>
-        </section>
 
-        {/* FEATURED MEMBERS SECTION */}
-        {!loadingMembers && featuredMembers.length > 0 && (
-          <section id="featured-members" style={{ marginBottom: '5rem' }}>
-            <div style={{ marginBottom: '3rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1.5rem' }}>
-              <div>
-                <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--amber-dark)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '6px' }}>{t('menu_members')}</div>
-                <h2 style={{ fontFamily: 'var(--font-title)', fontSize: '32px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: 0 }}>{t('featured_members_title')}</h2>
-              </div>
-              <Link to="/members" className="btn" style={{ fontSize: '12px', padding: '8px 16px', backgroundColor: 'rgba(12,35,64,0.06)', borderColor: 'var(--border-strong)', color: 'var(--primary-dark)', textDecoration: 'none' }}>
-                {t('btn_view_all_members')} <i className="ti ti-arrow-right"></i>
-              </Link>
-            </div>
-
-            <div className="opp-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
-              {featuredMembers.map((m) => {
-                const avatarColors = getMemberInitialsColors(m.name);
-                const initials = m.name ? m.name.split(' ').filter(Boolean).map(n => n[0]).join('').slice(0, 2).toUpperCase() : 'HV';
-                const tierBadge = m.tier === 'Platinum' ? '💎 Platinum' : m.tier === 'Gold' ? '🏅 Gold' : '🪙 Silver';
-                const tierClass = m.tier === 'Platinum' ? 'b-platinum' : m.tier === 'Gold' ? 'b-gold' : 'b-silver';
-                
-                return (
-                  <div className="glass-card" key={m.id} style={{ 
-                    position: 'relative', 
-                    borderRadius: '16px', 
-                    overflow: 'hidden', 
-                    border: '1px solid rgba(245,158,11,0.25)', 
-                    background: 'linear-gradient(135deg, rgba(245,158,11,0.05) 0%, rgba(255,255,255,0.01) 100%)',
-                    display: 'flex', 
-                    flexDirection: 'column',
-                    transition: 'transform 0.3s ease, border-color 0.3s ease',
+            {/* Sample Questions */}
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+              <span style={{ fontSize: '11.5px', color: 'var(--text-muted)', fontWeight: '600' }}>Câu hỏi gợi ý:</span>
+              {[
+                'Lập cho tôi lịch trình Đồ Sơn 2 ngày 1 đêm',
+                'Tìm nhà hàng hải sản phù hợp cho gia đình',
+                'Có sự kiện gì tại Đồ Sơn tuần này?',
+                'Giới thiệu cơ hội đầu tư tại Đồ Sơn'
+              ].map((sq, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => { setHomeAiQuery(sq); handleHomeAiAsk(sq); }}
+                  style={{
+                    background: 'var(--surface-0)',
+                    border: '1px solid var(--border-strong)',
+                    color: 'var(--text-secondary)',
+                    padding: '4px 10px',
+                    borderRadius: '6px',
+                    fontSize: '11.5px',
                     cursor: 'pointer'
                   }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-4px)';
-                    e.currentTarget.style.borderColor = 'rgba(245,158,11,0.45)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'none';
-                    e.currentTarget.style.borderColor = 'rgba(245,158,11,0.25)';
-                  }}
-                  onClick={() => navigate('/members')}
-                  >
-                    <div style={{ position: 'absolute', top: 0, right: 0, width: '80px', height: '80px', background: 'radial-gradient(circle, rgba(245,158,11,0.12) 0%, rgba(245,158,11,0) 70%)', pointerEvents: 'none' }} />
-
-                    <div style={{ height: '60px', background: `linear-gradient(135deg, ${avatarColors.bg} 0%, rgba(255,255,255,0) 100%)`, borderBottom: '1px solid rgba(255,255,255,0.05)' }}></div>
-                    <div style={{ padding: '1.5rem', marginTop: '-35px', display: 'flex', flexDirection: 'column', flex: 1, textAlign: 'left' }}>
-                      <div className="av-circle" style={{ background: avatarColors.bg, color: avatarColors.fg, width: '54px', height: '54px', fontSize: '16px', border: '3px solid var(--surface-1)', marginBottom: '12px', fontWeight: 700 }}>{initials}</div>
-                      
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
-                        <h3 style={{ fontFamily: 'var(--font-title)', fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', margin: 0, flex: 1 }}>{m.name}</h3>
-                        <span className={`badge ${tierClass}`} style={{ fontSize: '9px', padding: '2px 6px' }}>{tierBadge}</span>
-                      </div>
-
-                      <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                        <i className="ti ti-briefcase" style={{ color: 'var(--amber-dark)' }}></i> {m.industry || t('category_default')}
-                      </div>
-
-                      <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '15px', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{m.description || t('desc_default')}</p>
-                      
-                      <div style={{ borderTop: '1px solid var(--border)', paddingTop: '12px', marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}><i className="ti ti-map-pin"></i> {m.city || t('location_default')}</span>
-                        <span style={{ fontSize: '12px', color: 'var(--amber-dark)', fontWeight: 600 }}>{t('btn_contact')} <i className="ti ti-chevron-right"></i></span>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+                >
+                  💡 {sq}
+                </button>
+              ))}
             </div>
-          </section>
-        )}
+          </div>
+        </section>
 
-        {/* UPCOMING EVENTS SECTION */}
-        <section id="events" style={{ marginBottom: '5rem' }}>
-          <div style={{ marginBottom: '3rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1.5rem' }}>
+
+        {/* ==========================================
+            BLOCK 4 – ĐỒ SƠN HÔM NAY (TIN NHANH & THỜI TIẾT)
+        ========================================== */}
+        <section style={{ marginBottom: '4rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
+            
+            {/* Weather & Tourism Safety Card */}
+            <div className="glass-card" style={{ padding: '1.5rem', borderRadius: 'var(--radius)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--primary)', letterSpacing: '0.05em' }}>🌤 THỜI TIẾT & BIỂN ĐỒ SƠN</div>
+                <span style={{ fontSize: '10.5px', color: 'var(--emerald-dark)', fontWeight: '600', backgroundColor: 'var(--emerald-bg)', padding: '2px 8px', borderRadius: '99px' }}>An toàn tắm biển</span>
+              </div>
+              
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '1rem' }}>
+                <div style={{ fontSize: '42px', color: 'var(--amber)' }}><i className="ti ti-sun"></i></div>
+                <div>
+                  <div style={{ fontSize: '28px', fontWeight: '800', color: 'var(--text-primary)', lineHeight: '1' }}>28°C</div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Nắng nhẹ, gió biển 12 km/h</div>
+                </div>
+              </div>
+              <p style={{ fontSize: '11.5px', color: 'var(--text-muted)', margin: 0, borderTop: '1px solid var(--border)', paddingTop: '8px' }}>
+                ℹ️ Nguồn: Đài Khí tượng Thủy văn Hải Phòng — Cập nhật lúc 08:00 hôm nay.
+              </p>
+            </div>
+
+            {/* Live Today Announcement */}
+            <div className="glass-card" style={{ padding: '1.5rem', borderRadius: 'var(--radius)', gridColumn: 'span 2' }}>
+              <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--emerald-dark)', letterSpacing: '0.05em', marginBottom: '6px' }}>⚡ ĐỒ SƠN HÔM NAY — CẬP NHẬT NHANH</div>
+              <h3 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '8px' }}>
+                Khai mạc Chuỗi Sự Kiện Du Lịch Hè & Kết Nối Doanh Nghiệp Đồ Sơn 2026
+              </h3>
+              <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: '1.5', marginBottom: '1rem' }}>
+                Chào đón hàng ngàn du khách và hơn 200 doanh nghiệp đến tham dự triển lãm sản phẩm OCOP, thưởng thức ẩm thực hải sản và trải nghiệm dịch vụ du lịch Đồi Rồng.
+              </p>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11.5px', color: 'var(--text-muted)' }}>
+                <span>🕒 Cập nhật 2 giờ trước</span>
+                <Link to="/events" style={{ color: 'var(--primary)', fontWeight: '600', textDecoration: 'none' }}>Xem chi tiết sự kiện &gt;</Link>
+              </div>
+            </div>
+          </div>
+        </section>
+
+
+        {/* ==========================================
+            BLOCK 5 – KHÁM PHÁ ĐỒ SƠN (6 GIÁ TRỊ BẢN SẮC)
+        ========================================== */}
+        <section style={{ marginBottom: '4rem' }}>
+          <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+            <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--primary)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>BẢN SẮC ĐỊA PHƯƠNG</div>
+            <h2 style={{ fontFamily: 'var(--font-title)', fontSize: '26px', fontWeight: '700', color: 'var(--text-primary)' }}>Khám phá Đồ Sơn – Điểm đến giàu truyền thống</h2>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
+            {[
+              { title: 'Biển & Cảnh quan', desc: 'Bãi biển Đồ Sơn Khu 1, 2, 3, đảo Hòn Dấu và quần thể sinh thái Đồi Rồng.', img: '/images/hero_network.png' },
+              { title: 'Di tích & Lịch sử', desc: 'Bến K15 - điểm xuất phát Tàu Không Số huyền thoại, Tháp Tường Long, Biệt thự Bảo Đại.', img: '/images/doson_event.png' },
+              { title: 'Văn hóa & Lễ hội', desc: 'Lễ hội Chọi trâu Đồ Sơn - Di sản văn hóa phi vật thể quốc gia, Lễ hội Đền Bãi Tụ.', img: '/images/doson_seafood.png' },
+              { title: 'Con người Đồ Sơn', desc: 'Người dân miền biển kiên cường, nồng hậu, hiếu khách và sáng tạo.', img: '/images/doson_tourism.png' },
+              { title: 'Câu chuyện địa phương', desc: 'Những giai thoại truyền thuyết, dấu ấn thời gian và khát vọng vươn xa của Đồ Sơn.', img: '/images/hero_network.png' },
+              { title: 'Đồ Sơn Xưa & Nay', desc: 'Hành trình lột xác thành trung tâm du lịch - kinh tế hiện đại của Hải Phòng.', img: '/images/doson_event.png' }
+            ].map((c, idx) => (
+              <div key={idx} className="glass-card" style={{ padding: '1.25rem', borderRadius: 'var(--radius)' }}>
+                <h4 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '6px' }}>{c.title}</h4>
+                <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '1.5', margin: 0 }}>{c.desc}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+
+        {/* ==========================================
+            BLOCK 6 – DU LỊCH VÀ TRẢI NGHIỆM
+        ========================================== */}
+        <section id="tourism-block" style={{ marginBottom: '4rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
             <div>
-              <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--amber-dark)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '6px' }}>{t('menu_events')}</div>
-              <h2 style={{ fontFamily: 'var(--font-title)', fontSize: '32px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: 0 }}>{t('events_section_title')}</h2>
+              <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--primary)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>TRẢI NGHIỆM DU LỊCH</div>
+              <h2 style={{ fontFamily: 'var(--font-title)', fontSize: '26px', fontWeight: '700', color: 'var(--text-primary)' }}>Điểm đến, Lưu trú & Ẩm thực nổi bật</h2>
             </div>
-            <Link to="/events" className="btn" style={{ fontSize: '12px', padding: '8px 16px', backgroundColor: 'rgba(12,35,64,0.06)', borderColor: 'var(--border-strong)', color: 'var(--primary-dark)', textDecoration: 'none' }}>
-              {t('btn_view_all_events')} <i className="ti ti-arrow-right"></i>
+            <Link to="/search?q=du-lich" className="btn btn-primary" style={{ padding: '8px 16px', fontSize: '12px', textDecoration: 'none' }}>
+              Khám phá tất cả dịch vụ
             </Link>
           </div>
 
-          <div className="opp-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
-            {loadingEvents ? (
-              <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>
-                <i className="ti ti-loader animate-spin" style={{ fontSize: '24px', display: 'block', margin: '0 auto 10px' }}></i> {t('loading_events_list')}
-              </div>
-            ) : events.length > 0 ? (
-              events.map((e) => {
-                const dateStr = e.event_date ? new Date(e.event_date).toLocaleDateString('vi-VN') : '15/07/2026';
-                const statusLabel = e.status === 'upcoming' ? t('status_upcoming') : e.status === 'ongoing' ? t('status_ongoing') : e.status === 'completed' ? t('status_completed') : t('status_cancelled');
-                return (
-                  <div className="opp-card" key={e.id} style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '1.5rem', background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: '12px' }}>
-                    <div style={{ textAlign: 'left' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                        <span style={{ fontSize: '10px', background: e.status === 'upcoming' ? 'rgba(245,158,11,0.1)' : 'rgba(16,185,129,0.1)', color: e.status === 'upcoming' ? 'var(--amber)' : '#10B981', border: `1px solid ${e.status === 'upcoming' ? 'rgba(245,158,11,0.2)' : 'rgba(16,185,129,0.2)'}`, padding: '2px 8px', borderRadius: '4px', textTransform: 'uppercase', fontWeight: 600 }}>{statusLabel}</span>
-                        <button 
-                          onClick={(evt) => {
-                            evt.stopPropagation();
-                            handleToggleEventInterest(e.id);
-                          }}
-                          style={{ background: 'none', border: 'none', color: e.is_interested ? 'var(--amber-dark)' : 'var(--text-muted)', cursor: 'pointer', fontSize: '16px', outline: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                          title={e.is_interested ? "Bỏ quan tâm" : "Quan tâm sự kiện"}
-                        >
-                          <i className={e.is_interested ? "ti ti-star-filled" : "ti ti-star"}></i>
-                          <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{e.interest_count || 0}</span>
-                        </button>
-                      </div>
-                      <h3 className="opp-title" style={{ minHeight: 'unset', marginBottom: '8px', color: 'var(--text-primary)' }}>{e.title}</h3>
-                      <div style={{ fontSize: '11.5px', color: 'var(--text-secondary)', marginBottom: '4px' }}><i className="ti ti-calendar"></i> Ngày: {dateStr}</div>
-                      <div style={{ fontSize: '11.5px', color: 'var(--text-secondary)', marginBottom: '4px' }}><i className="ti ti-users"></i> Tổ chức: {e.organizer || 'Đồ Sơn'}</div>
-                      {!token && (
-                        <div style={{ fontSize: '11px', color: 'var(--rose)', marginTop: '8px', background: 'rgba(244,63,94,0.05)', padding: '6px', borderRadius: '4px', border: '1px dashed rgba(244,63,94,0.15)' }}>
-                          <i className="ti ti-lock"></i> {t('login_required_location')}
-                        </div>
-                      )}
-                    </div>
-                    <div style={{ borderTop: '1px solid var(--border)', paddingTop: '12px', marginTop: '16px', display: 'flex', justifyContent: 'flex-end' }}>
-                      <button className="opp-btn" onClick={() => openEventDetail(e)}>{t('btn_view_details')}</button>
-                    </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '20px' }}>
+            {[
+              { title: 'Khu du lịch Quốc tế Đồi Rồng (Dragon Ocean)', cat: 'Resort & Vui chơi', price: 'Từ 1.200.000 VNĐ', badge: 'Xác thực ✔', img: '/images/doson_tourism.png' },
+              { title: 'Nhà hàng Hải sản Vạn Hương Đồ Sơn', cat: 'Ẩm thực biển', price: '250.000 - 600.000 VNĐ', badge: 'Xác thực ✔', img: '/images/doson_seafood.png' },
+              { title: 'Đảo Hòn Dấu & Bến K15 Tàu Không Số', cat: 'Di tích & Danh thắng', price: 'Vé tham quan 50k', badge: 'Điểm đến tiêu biểu', img: '/images/hero_network.png' }
+            ].map((item, idx) => (
+              <div key={idx} className="glass-card" style={{ borderRadius: 'var(--radius)', overflow: 'hidden' }}>
+                <img src={item.img} alt={item.title} style={{ width: '100%', height: '150px', objectFit: 'cover' }} />
+                <div style={{ padding: '1rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                    <span style={{ fontSize: '10.5px', fontWeight: '700', color: 'var(--primary)', backgroundColor: 'rgba(2, 132, 199, 0.1)', padding: '2px 6px', borderRadius: '4px' }}>{item.cat}</span>
+                    <span style={{ fontSize: '10.5px', color: 'var(--emerald-dark)', fontWeight: '600' }}>{item.badge}</span>
                   </div>
-                );
-              })
-            ) : (
-              <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
-                <i className="ti ti-calendar" style={{ fontSize: '24px', display: 'block', margin: '0 auto 10px' }}></i> {t('no_upcoming_events')}
+                  <h4 style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '4px' }}>{item.title}</h4>
+                  <div style={{ fontSize: '12px', color: 'var(--amber-dark)', fontWeight: '600', marginBottom: '12px' }}>💰 {item.price}</div>
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    <Link to="/ai-chat?q=Cho toi biet chi tiet ve " className="btn" style={{ flex: 1, padding: '6px', fontSize: '11px', textAlign: 'center', textDecoration: 'none', backgroundColor: 'rgba(2,132,199,0.1)', color: 'var(--primary-dark)' }}>
+                      🤖 Hỏi AI
+                    </Link>
+                    <a href="#map-block" className="btn" style={{ padding: '6px 10px', fontSize: '11px', textDecoration: 'none', backgroundColor: 'var(--surface-0)', color: 'var(--text-secondary)' }}>
+                      📍 Chỉ đường
+                    </a>
+                  </div>
+                </div>
               </div>
+            ))}
+          </div>
+        </section>
+
+
+        {/* ==========================================
+            BLOCK 7 – HÀNH TRÌNH GỢI Ý
+        ========================================== */}
+        <section id="itinerary-block" style={{ marginBottom: '4rem' }}>
+          <div className="glass-card" style={{ padding: '2rem', borderRadius: 'var(--radius-lg)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+              <div>
+                <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--primary)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>GỢI Ý LỊCH TRÌNH</div>
+                <h2 style={{ fontFamily: 'var(--font-title)', fontSize: '24px', fontWeight: '700', color: 'var(--text-primary)' }}>Tour mẫu trải nghiệm Đồ Sơn</h2>
+              </div>
+              <Link to="/ai-chat?q=Lập lịch trình du lịch Đồ Sơn cá nhân hóa" className="btn btn-primary" style={{ padding: '8px 16px', fontSize: '12px', textDecoration: 'none' }}>
+                ✨ Tùy chỉnh lịch trình bằng AI
+              </Link>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px' }}>
+              {[
+                { name: 'Đồ Sơn 1 Ngày trọn vẹn', stops: 'Biển Khu 2 ➔ Tháp Tường Long ➔ Ăn hải sản Vạn Hương ➔ Hoàng hôn Hòn Dấu', duration: '1 Ngày (Sáng - Tối)' },
+                { name: 'Hành trình 2N1Đ Nghỉ dưỡng Đồi Rồng', stops: 'Check-in Dragon Ocean ➔ Công viên nước ➔ Biệt thự Bảo Đại ➔ Đêm nhạc biển', duration: '2 Ngày 1 Đêm' },
+                { name: 'Tour Khám phá Ẩm thực & OCOP Đồ Sơn', stops: 'Chợ hải sản Đồ Sơn ➔ Làng làm chả cá ➔ Vườn Táo Bàng ➔ Thưởng thức bún tôm', duration: '1/2 Ngày' }
+              ].map((it, idx) => (
+                <div key={idx} style={{ backgroundColor: 'var(--surface-0)', border: '1px solid var(--border-strong)', borderRadius: '12px', padding: '1.25rem' }}>
+                  <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--emerald-dark)', marginBottom: '4px' }}>⏱ {it.duration}</div>
+                  <h4 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '8px' }}>{it.name}</h4>
+                  <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '1.5', marginBottom: '1rem' }}>📍 {it.stops}</p>
+                  <button onClick={() => alert(`Lịch trình "${it.name}" đã được lưu vào danh sách cá nhân của bạn!`)} className="btn" style={{ width: '100%', padding: '6px', fontSize: '11.5px', backgroundColor: 'var(--surface-2)', color: 'var(--text-primary)' }}>
+                    💾 Lưu hành trình này
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+
+        {/* ==========================================
+            BLOCK 8 – DOANH NGHIỆP VÀ SẢN PHẨM TIÊU BIỂU (SHOWROOM SỐ)
+        ========================================== */}
+        <section id="business-block" style={{ marginBottom: '4rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+            <div>
+              <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--primary)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>SHOWROOM SỐ ĐỒ SƠN</div>
+              <h2 style={{ fontFamily: 'var(--font-title)', fontSize: '26px', fontWeight: '700', color: 'var(--text-primary)' }}>Doanh nghiệp & Sản phẩm OCOP tiêu biểu</h2>
+            </div>
+            <Link to="/members" className="btn btn-primary" style={{ padding: '8px 16px', fontSize: '12px', textDecoration: 'none' }}>
+              Xem toàn bộ danh bạ DN
+            </Link>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '20px' }}>
+            {[
+              { name: 'HTX Nông nghiệp Đồ Sơn - Táo Bàng OCOP 4★', type: 'Sản phẩm OCOP địa phương', badge: 'Hồ sơ đã xác thực ✔', desc: 'Đặc sản Táo Bàng ngọt thanh nổi tiếng Đồ Sơn, chuẩn vệ sinh an toàn thực phẩm.' },
+              { name: 'Công ty CP Du lịch & Dịch vụ Hải Phòng', type: 'Doanh nghiệp Tiêu biểu', badge: 'Thành viên Vàng ⭐', desc: 'Kinh doanh chuỗi nhà hàng, khách sạn và tour lữ hành nội địa Đồ Sơn.' },
+              { name: 'Cơ sở Chả Cá Thu & Nước Mắm Vạn Vân', type: 'Đặc sản truyền thống', badge: 'Hồ sơ đã xác thực ✔', desc: 'Nước mắm chắt Vạn Vân và chả cá thu Đồ Sơn nguyên chất không chất bảo quản.' }
+            ].map((b, idx) => (
+              <div key={idx} className="glass-card" style={{ padding: '1.25rem', borderRadius: 'var(--radius)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '10.5px', fontWeight: '700', color: 'var(--primary)', backgroundColor: 'rgba(2, 132, 199, 0.1)', padding: '2px 6px', borderRadius: '4px' }}>{b.type}</span>
+                  <span style={{ fontSize: '10.5px', color: 'var(--emerald-dark)', fontWeight: '600' }}>{b.badge}</span>
+                </div>
+                <h4 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '6px' }}>{b.name}</h4>
+                <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '1.5', marginBottom: '1rem' }}>{b.desc}</p>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <Link to="/members" className="btn btn-primary" style={{ flex: 1, padding: '6px', fontSize: '11.5px', textAlign: 'center', textDecoration: 'none' }}>Xem hồ sơ</Link>
+                  <a href="tel:0986354152" className="btn" style={{ padding: '6px 12px', fontSize: '11.5px', textDecoration: 'none', backgroundColor: 'var(--surface-0)', color: 'var(--text-secondary)' }}>Liên hệ</a>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+
+        {/* ==========================================
+            BLOCK 9 – CƠ HỘI ĐẦU TƯ VÀ HỢP TÁC
+        ========================================== */}
+        <section id="investment-block" style={{ marginBottom: '4rem' }}>
+          <div className="glass-card" style={{ padding: '2rem', borderRadius: 'var(--radius-lg)', background: 'linear-gradient(135deg, rgba(7, 22, 44, 0.95) 0%, rgba(12, 35, 64, 0.95) 100%)', color: '#E2F0FF' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+              <div>
+                <div style={{ fontSize: '11px', fontWeight: '700', color: '#38BDF8', letterSpacing: '0.08em', textTransform: 'uppercase' }}>XÚC TIẾN ĐẦU TƯ & HỢP TÁC</div>
+                <h2 style={{ fontFamily: 'var(--font-title)', fontSize: '24px', fontWeight: '700', color: '#fff', margin: 0 }}>Dự án & Cơ hội hợp tác kinh doanh</h2>
+              </div>
+              <Link to="/register" className="btn btn-primary" style={{ padding: '8px 16px', fontSize: '12px', textDecoration: 'none' }}>
+                ➕ Đăng đề xuất hợp tác
+              </Link>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
+              {[
+                { title: 'Tìm đối tác phân phối sản phẩm OCOP Táo Bàng Đồ Sơn', entity: 'HTX Nông nghiệp Đồ Sơn', target: 'Các chuỗi siêu thị, đại lý nông sản toàn quốc', deadline: '31/12/2026' },
+                { title: 'Hợp tác đầu tư chuỗi ki-ốt ẩm thực & kinh tế đêm Đồ Sơn', entity: 'Công ty Đầu tư Du lịch Đồ Sơn', target: 'Nhà đầu tư F&B, thương hiệu giải trí', deadline: '15/10/2026' },
+                { title: 'Cho thuê mặt bằng thương mại Khu 2 Đồ Sơn nhìn ra biển', entity: 'Ban Quản lý Hạ tầng Đồ Sơn', target: 'Doanh nghiệp lưu trú, quán cafe chuỗi', deadline: '30/09/2026' }
+              ].map((inv, idx) => (
+                <div key={idx} style={{ backgroundColor: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', padding: '1.25rem' }}>
+                  <div style={{ fontSize: '10.5px', color: '#38BDF8', fontWeight: '700', marginBottom: '4px' }}>🏢 {inv.entity}</div>
+                  <h4 style={{ fontSize: '14.5px', fontWeight: '700', color: '#fff', marginBottom: '8px' }}>{inv.title}</h4>
+                  <div style={{ fontSize: '11.5px', color: '#93B4D4', marginBottom: '4px' }}>🎯 Đối tượng: {inv.target}</div>
+                  <div style={{ fontSize: '11px', color: '#FCA5A5', marginBottom: '1rem' }}>⌛ Thời hạn: {inv.deadline}</div>
+                  <button onClick={() => alert(`Cảm ơn bạn đã gửi nhu cầu kết nối cho cơ hội "${inv.title}". Ban quản trị sẽ liên hệ trong 24h!`)} className="btn btn-primary" style={{ width: '100%', padding: '6px', fontSize: '11.5px' }}>
+                    🤝 Đề nghị kết nối ngay
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+
+        {/* ==========================================
+            BLOCK 10 – SỰ KIỆN VÀ LỄ HỘI
+        ========================================== */}
+        <section style={{ marginBottom: '4rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+            <div>
+              <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--primary)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>LỊCH SỰ KIỆN VÀ LỄ HỘI</div>
+              <h2 style={{ fontFamily: 'var(--font-title)', fontSize: '26px', fontWeight: '700', color: 'var(--text-primary)' }}>Sự kiện nổi bật sắp diễn ra</h2>
+            </div>
+            <Link to="/events" className="btn btn-primary" style={{ padding: '8px 16px', fontSize: '12px', textDecoration: 'none' }}>
+              Xem toàn bộ lịch sự kiện
+            </Link>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '20px' }}>
+            {events.length > 0 ? (
+              events.slice(0, 4).map((ev) => (
+                <div key={ev.id} className="glass-card" style={{ padding: '1.25rem', borderRadius: 'var(--radius)' }}>
+                  <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--emerald-dark)', backgroundColor: 'var(--emerald-bg)', padding: '2px 8px', borderRadius: '4px', display: 'inline-block', marginBottom: '8px' }}>
+                    📅 {ev.event_date ? new Date(ev.event_date).toLocaleDateString('vi-VN') : 'Sắp diễn ra'}
+                  </div>
+                  <h4 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '6px' }}>{ev.title}</h4>
+                  <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '1.4', marginBottom: '1rem', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{ev.description}</p>
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    <button onClick={() => handleAddToCalendar(ev.title, ev.event_date)} className="btn btn-primary" style={{ flex: 1, padding: '6px', fontSize: '11px' }}>
+                      📅 Thêm vào lịch
+                    </button>
+                    <Link to="/events" className="btn" style={{ padding: '6px 10px', fontSize: '11px', textDecoration: 'none', backgroundColor: 'var(--surface-0)', color: 'var(--text-secondary)' }}>
+                      Chi tiết
+                    </Link>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div style={{ padding: '1.5rem', color: 'var(--text-muted)' }}>Đang tải danh sách sự kiện Đồ Sơn...</div>
             )}
           </div>
         </section>
 
-        {/* MEMBERSHIP TIERS */}
-        <section id="tiers" style={{ marginBottom: '5rem' }}>
-          <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
-            <div style={{ fontSize: '11px', fontWeight: 700, color: 'var(--primary)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>{t('menu_tiers')}</div>
-            <h2 style={{ fontFamily: 'var(--font-title)', fontSize: '32px', fontWeight: 700, color: 'var(--text-primary)' }}>{t('pricing_section_title')}</h2>
-            <p style={{ fontSize: '14px', color: 'var(--text-secondary)', maxWidth: '600px', margin: '8px auto 0' }}>{t('pricing_section_desc')}</p>
+
+        {/* ==========================================
+            BLOCK 11 – CỘNG ĐỒNG DOSON.TODAY
+        ========================================== */}
+        <section id="community-block" style={{ marginBottom: '4rem' }}>
+          <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+            <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--primary)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>CỘNG ĐỒNG ĐỒ SƠN</div>
+            <h2 style={{ fontFamily: 'var(--font-title)', fontSize: '26px', fontWeight: '700', color: 'var(--text-primary)' }}>Mạng lưới thành viên & Người Đồ Sơn xa quê</h2>
           </div>
 
-          <div className="tiers-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
-            {/* Silver */}
-            <div className="pkg-card silver">
-              <div className="pkg-header">
-                <div className="pkg-name" style={{ color: 'var(--text-dark-secondary)' }}>{t('tier_silver')}</div>
-                <div className="pkg-price">{t('price_free')}</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '20px' }}>
+            {[
+              { title: 'Hội đồng Người Đồ Sơn xa quê', desc: 'Kết nối hàng ngàn người con Đồ Sơn đang sinh sống, làm việc tại Hà Nội, TP.HCM và nước ngoài.' },
+              { title: 'Mạng lưới Chuyên gia & Cố vấn', desc: 'Các chuyên gia du lịch, kinh tế, quy hoạch và công nghệ gốc Đồ Sơn đồng hành phát triển quê hương.' },
+              { title: 'CLB Doanh nhân & Nghệ nhân địa phương', desc: 'Giao lưu hợp tác thương mại, giữ gìn làng nghề truyền thống và nâng tầm thương hiệu Đồ Sơn.' }
+            ].map((com, idx) => (
+              <div key={idx} className="glass-card" style={{ padding: '1.5rem', borderRadius: 'var(--radius)' }}>
+                <h4 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '8px' }}>{com.title}</h4>
+                <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: '1.5', marginBottom: '1.2rem' }}>{com.desc}</p>
+                <Link to="/register" className="btn btn-primary" style={{ padding: '6px 14px', fontSize: '11.5px', textDecoration: 'none', display: 'inline-block' }}>
+                  Tham gia cộng đồng
+                </Link>
               </div>
-              <div className="pkg-list">
-                <div className="pkg-item"><i className="ti ti-check"></i> {t('silver_feat_1')}</div>
-                <div className="pkg-item"><i className="ti ti-check"></i> {t('silver_feat_2')}</div>
-                <div className="pkg-item"><i className="ti ti-check"></i> {t('silver_feat_3')}</div>
-                <div className="pkg-item"><i className="ti ti-check"></i> {t('silver_feat_4')}</div>
-              </div>
-              <Link to={getTiersLink()} className="btn" style={{ width: '100%', justifyContent: 'center', padding: '10px', backgroundColor: 'rgba(12,35,64,0.06)', borderColor: 'var(--border-strong)', color: 'var(--text-primary)', fontWeight: 600, textDecoration: 'none' }}>{getTiersButtonText()}</Link>
-            </div>
+            ))}
+          </div>
+        </section>
 
-            {/* Gold */}
-            <div className="pkg-card gold">
-              <div style={{ position: 'absolute', top: '12px', right: '12px', background: 'var(--amber)', color: '#000', fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '99px', textTransform: 'uppercase' }}>{t('label_popular')}</div>
-              <div className="pkg-header">
-                <div className="pkg-name" style={{ color: 'var(--amber)' }}>{t('tier_gold')}</div>
-                <div className="pkg-price" style={{ fontSize: '24px' }}>{t('price_gold_val')} <span>/ {t('pricing_per_year')}</span></div>
-              </div>
-              <div className="pkg-list">
-                <div className="pkg-item"><i className="ti ti-check"></i> {t('gold_feat_1')}</div>
-                <div className="pkg-item"><i className="ti ti-check"></i> {t('gold_feat_2')}</div>
-                <div className="pkg-item"><i className="ti ti-check"></i> {t('gold_feat_3')}</div>
-                <div className="pkg-item"><i className="ti ti-check"></i> {t('gold_feat_4')}</div>
-                <div className="pkg-item"><i className="ti ti-check"></i> {t('gold_feat_5')}</div>
-              </div>
-              <Link to={getTiersLink()} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '10px', fontWeight: 600, textDecoration: 'none' }}>{getTiersButtonText()}</Link>
-            </div>
 
-            {/* Platinum */}
-            <div className="pkg-card platinum">
-              <div style={{ position: 'absolute', top: '12px', right: '12px', background: 'var(--primary)', color: '#fff', fontSize: '10px', fontWeight: 700, padding: '2px 8px', borderRadius: '99px', textTransform: 'uppercase' }}>{t('label_elite')}</div>
-              <div className="pkg-header">
-                <div className="pkg-name" style={{ color: 'var(--primary-light)' }}>{t('tier_platinum')}</div>
-                <div className="pkg-price" style={{ fontSize: '24px' }}>{t('price_platinum_val')} <span>/ {t('pricing_per_year')}</span></div>
-              </div>
-              <div className="pkg-list">
-                <div className="pkg-item"><i className="ti ti-check"></i> {t('plat_feat_1')}</div>
-                <div className="pkg-item"><i className="ti ti-check"></i> {t('plat_feat_2')}</div>
-                <div className="pkg-item"><i className="ti ti-check"></i> {t('plat_feat_3')}</div>
-                <div className="pkg-item"><i className="ti ti-check"></i> {t('plat_feat_4')}</div>
-                <div className="pkg-item"><i className="ti ti-check"></i> {t('plat_feat_5')}</div>
-              </div>
-              <Link to={getTiersLink()} className="btn" style={{ width: '100%', justifyContent: 'center', padding: '10px', backgroundColor: 'rgba(2,132,199,0.1)', borderColor: 'var(--primary)', color: 'var(--primary-dark)', fontWeight: 600, textDecoration: 'none' }}>{getTiersButtonText()}</Link>
+        {/* ==========================================
+            BLOCK 12 – TIN TỨC VÀ CÂU CHUYỆN NỔI BẬT
+        ========================================== */}
+        <section style={{ marginBottom: '4rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+            <div>
+              <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--primary)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>TIN TỨC TIÊU ĐIỂM</div>
+              <h2 style={{ fontFamily: 'var(--font-title)', fontSize: '26px', fontWeight: '700', color: 'var(--text-primary)' }}>Bài viết & Câu chuyện nổi bật</h2>
             </div>
+            <Link to="/posts" className="btn btn-primary" style={{ padding: '8px 16px', fontSize: '12px', textDecoration: 'none' }}>
+              Tất cả tin tức
+            </Link>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '20px' }}>
+            {latestPosts.map((post) => (
+              <div key={post.id} className="glass-card" style={{ padding: '1.25rem', borderRadius: 'var(--radius)' }}>
+                <div style={{ fontSize: '10.5px', fontWeight: '700', color: 'var(--primary)', backgroundColor: 'rgba(2, 132, 199, 0.1)', padding: '2px 6px', borderRadius: '4px', display: 'inline-block', marginBottom: '6px' }}>
+                  {post.category_name || 'Tin tức'}
+                </div>
+                <h4 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '6px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{post.title}</h4>
+                <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '1.4', marginBottom: '1rem', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{post.content}</p>
+                <Link to={`/posts/${post.id}`} style={{ color: 'var(--primary)', fontWeight: '600', fontSize: '12px', textDecoration: 'none' }}>
+                  Đọc tiếp &gt;
+                </Link>
+              </div>
+            ))}
+          </div>
+        </section>
+
+
+        {/* ==========================================
+            BLOCK 13 – BẢN ĐỒ SỐ ĐỒ SƠN
+        ========================================== */}
+        <section id="map-block" style={{ marginBottom: '4rem' }}>
+          <DosonMap />
+        </section>
+
+
+        {/* ==========================================
+            BLOCK 14 – KẾT NỐI VỚI DOSON.TODAY (4 LUỒNG CHUYỂN ĐỔI)
+        ========================================== */}
+        <section style={{ marginBottom: '4rem' }}>
+          <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+            <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--primary)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>THAM GIA HỆ SINH THÁI</div>
+            <h2 style={{ fontFamily: 'var(--font-title)', fontSize: '26px', fontWeight: '700', color: 'var(--text-primary)' }}>Lựa chọn vai trò tham gia cùng Doson.today</h2>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px' }}>
+            {[
+              { role: 'Dành cho Cá nhân', desc: 'Đăng ký tài khoản thành viên để lưu lịch trình, tương tác AI và nhận ưu đãi.', btn: 'Đăng ký thành viên', link: '/register', color: '#0284C7' },
+              { role: 'Dành cho Doanh nghiệp', desc: 'Tạo hồ sơ doanh nghiệp, niêm yết sản phẩm OCOP và mở rộng thị trường.', btn: 'Tạo hồ sơ DN', link: '/register', color: '#10B981' },
+              { role: 'Dành cho Nhà đầu tư', desc: 'Tiếp cận các cơ hội đầu tư hạ tầng, du lịch và kết nối với đối tác địa phương.', btn: 'Gửi nhu cầu kết nối', link: '#investment-block', color: '#F59E0B' },
+              { role: 'Dành cho Người đóng góp', desc: 'Gửi bài viết, hình ảnh, câu chuyện bản sắc và sáng kiến phát triển Đồ Sơn.', btn: 'Đóng góp nội dung', link: '/register', color: '#8B5CF6' }
+            ].map((card, idx) => (
+              <div key={idx} className="glass-card" style={{ padding: '1.5rem', borderRadius: 'var(--radius)', textCenter: 'center', borderTop: `4px solid ${card.color}` }}>
+                <h4 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '8px' }}>{card.role}</h4>
+                <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '1.5', marginBottom: '1.2rem' }}>{card.desc}</p>
+                <Link to={card.link} className="btn btn-primary" style={{ width: '100%', padding: '8px', fontSize: '12px', textDecoration: 'none', display: 'block', textAlign: 'center' }}>
+                  {card.btn}
+                </Link>
+              </div>
+            ))}
+          </div>
+        </section>
+
+
+        {/* ==========================================
+            BLOCK 15 – ĐĂNG KÝ NHẬN BẢN TIN (NEWSLETTER)
+        ========================================== */}
+        <section id="newsletter-block" style={{ marginBottom: '4rem' }}>
+          <div className="glass-card" style={{ padding: '2.5rem', borderRadius: 'var(--radius-lg)', background: 'linear-gradient(135deg, #07162C 0%, #0C2340 100%)', color: '#E2F0FF', textAlign: 'center', maxWidth: '750px', margin: '0 auto' }}>
+            <div style={{ fontSize: '11px', fontWeight: '700', color: '#38BDF8', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '6px' }}>
+              📧 BẢN TIN CỦA DOSON.TODAY
+            </div>
+            <h2 style={{ fontFamily: 'var(--font-title)', fontSize: '24px', fontWeight: '700', color: '#fff', marginBottom: '8px' }}>
+              Cập nhật thông tin mới nhất từ Đồ Sơn
+            </h2>
+            <p style={{ fontSize: '13px', color: '#93B4D4', marginBottom: '1.5rem' }}>
+              Nhận bản tin sự kiện, ưu đãi du lịch, thông tin doanh nghiệp và cơ hội đầu tư định kỳ trực tiếp qua Email.
+            </p>
+
+            {/* Newsletter Form */}
+            <form onSubmit={handleNewsletterSubmit}>
+              <div style={{ display: 'flex', gap: '8px', maxWidth: '520px', margin: '0 auto 1rem' }}>
+                <input 
+                  type="email"
+                  placeholder="Nhập địa chỉ Email của bạn..."
+                  value={newsletterEmail}
+                  onChange={(e) => setNewsletterEmail(e.target.value)}
+                  required
+                  style={{
+                    flex: 1,
+                    padding: '12px 16px',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    backgroundColor: 'rgba(255,255,255,0.06)',
+                    color: '#fff',
+                    fontSize: '13px',
+                    outline: 'none'
+                  }}
+                />
+                <button type="submit" className="btn btn-primary" style={{ padding: '0 24px', fontSize: '13px', whiteSpace: 'nowrap' }}>
+                  Đăng ký ngay
+                </button>
+              </div>
+
+              {newsletterSubmitted && (
+                <div style={{ color: '#10B981', fontSize: '12.5px', fontWeight: '600', marginBottom: '1rem' }}>
+                  ✓ Cảm ơn bạn đã đăng ký nhận bản tin thành công!
+                </div>
+              )}
+
+              {/* Topic Selectors */}
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', flexWrap: 'wrap', fontSize: '11.5px', color: '#93B4D4' }}>
+                <span>Chủ đề quan tâm:</span>
+                <label style={{ cursor: 'pointer', color: '#D1E5F7' }}><input type="checkbox" defaultChecked /> Tin tức Đồ Sơn</label>
+                <label style={{ cursor: 'pointer', color: '#D1E5F7' }}><input type="checkbox" defaultChecked /> Du lịch & Sự kiện</label>
+                <label style={{ cursor: 'pointer', color: '#D1E5F7' }}><input type="checkbox" defaultChecked /> Doanh nghiệp & OCOP</label>
+                <label style={{ cursor: 'pointer', color: '#D1E5F7' }}><input type="checkbox" /> Cơ hội đầu tư</label>
+              </div>
+            </form>
+          </div>
+        </section>
+
+
+        {/* ==========================================
+            BLOCK 16 – ĐỐI TÁC ĐỒNG HÀNH
+        ========================================== */}
+        <section style={{ marginBottom: '4rem', textAlign: 'center' }}>
+          <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '1rem' }}>
+            ĐƠN VỊ SÁNG LẬP & ĐỐI TÁC ĐỒNG HÀNH
+          </div>
+          
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '2rem', flexWrap: 'wrap', opacity: 0.85 }}>
+            <div style={{ fontWeight: '700', fontSize: '15px', color: 'var(--text-primary)' }}>ADT GROUP</div>
+            <div style={{ fontWeight: '700', fontSize: '15px', color: 'var(--primary)' }}>DOSON TOURISM</div>
+            <div style={{ fontWeight: '700', fontSize: '15px', color: 'var(--emerald-dark)' }}>OCOP HẢI PHÒNG</div>
+            <div style={{ fontWeight: '700', fontSize: '15px', color: 'var(--amber-dark)' }}>HIỆP HỘI DOANH NGHIỆP ĐỒ SƠN</div>
           </div>
         </section>
 
       </div>
 
+      {/* Footer */}
       <Footer />
-
-
-
-      {/* Modal xem chi tiết sự kiện */}
-      {eventModalOpen && selectedEvent && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(8,14,30,0.85)', backdropFilter: 'blur(8px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem' }}>
-          <div className="glass-card" style={{ width: '100%', maxWidth: '550px', padding: '2rem', borderColor: 'var(--border-strong)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '12px' }}>
-              <h3 style={{ fontFamily: 'var(--font-title)', fontSize: '16px', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
-                <i className="ti ti-calendar-event" style={{ color: 'var(--amber-dark)' }}></i> {t('event_details_title')}
-              </h3>
-              <button onClick={() => setEventModalOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '18px', cursor: 'pointer' }}><i className="ti ti-x"></i></button>
-            </div>
-            
-            <div style={{ marginBottom: '1.5rem', maxHeight: '50vh', overflowY: 'auto', textAlign: 'left' }}>
-              <div style={{ marginBottom: '14px' }}>
-                <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--amber-dark)', fontWeight: 700 }}>{t('label_event_name')}</span>
-                <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', marginTop: '2px' }}>{selectedEvent.title}</div>
-              </div>
-              <div style={{ marginBottom: '14px' }}>
-                <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--amber-dark)', fontWeight: 700 }}>{t('label_organizer')}</span>
-                <div style={{ fontSize: '13px', color: 'var(--text-primary)', marginTop: '2px' }}>{selectedEvent.organizer || 'Đồ Sơn'}</div>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
-                <div>
-                  <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--amber-dark)', fontWeight: 700 }}>{t('label_event_date')}</span>
-                  <div style={{ fontSize: '13px', color: 'var(--text-primary)', marginTop: '2px' }}>{new Date(selectedEvent.event_date).toLocaleDateString('vi-VN')}</div>
-                </div>
-                <div>
-                  <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--amber-dark)', fontWeight: 700 }}>{t('label_max_capacity')}</span>
-                  <div style={{ fontSize: '13px', color: 'var(--text-primary)', marginTop: '2px' }}>{selectedEvent.capacity ? t('capacity_people')(selectedEvent.capacity) : t('capacity_unlimited')}</div>
-                </div>
-              </div>
-              <div style={{ marginBottom: '14px' }}>
-                <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--amber-dark)', fontWeight: 700 }}>{t('label_location')}</span>
-                <div style={{ fontSize: '13px', color: 'var(--text-primary)', marginTop: '2px' }}>{selectedEvent.location || t('location_default')}</div>
-              </div>
-              <div style={{ marginBottom: '14px' }}>
-                <span style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--amber-dark)', fontWeight: 700 }}>{t('label_event_description')}</span>
-                <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '6px', whiteSpace: 'pre-line', lineHeight: '1.6' }}>{selectedEvent.description || t('no_event_desc')}</div>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <button 
-                onClick={() => handleToggleEventInterest(selectedEvent.id)}
-                className="btn"
-                style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12.5px', background: selectedEvent.is_interested ? 'var(--amber)' : 'rgba(12,35,64,0.06)', color: selectedEvent.is_interested ? '#fff' : 'var(--text-primary)', borderColor: selectedEvent.is_interested ? 'var(--amber)' : 'var(--border-strong)', padding: '6px 16px', fontWeight: 600, cursor: 'pointer' }}
-              >
-                <i className={selectedEvent.is_interested ? "ti ti-star-filled" : "ti ti-star"}></i>
-                {selectedEvent.is_interested ? t('status_interested') : t('btn_interest')} ({selectedEvent.interest_count || 0})
-              </button>
-              <button className="btn btn-primary" onClick={() => setEventModalOpen(false)}>{t('btn_close')}</button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
+
 export default Home;
