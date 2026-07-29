@@ -202,7 +202,36 @@ db.query(`
         FOREIGN KEY (member_id) REFERENCES members(id) ON DELETE CASCADE
       ) ENGINE=InnoDB COMMENT='Thành viên quan tâm sự kiện'
     `);
-    console.log("✅ Bảng event_interests đã sẵn sàng");
+
+    // Tạo bảng user_bookmarks cho Giai đoạn 2
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS user_bookmarks (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        member_id INT NOT NULL,
+        item_type VARCHAR(50) NOT NULL COMMENT 'post/event/itinerary/place/member',
+        item_id VARCHAR(100) NOT NULL,
+        title VARCHAR(255) NOT NULL,
+        data JSON DEFAULT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY idx_member_item (member_id, item_type, item_id)
+      ) ENGINE=InnoDB COMMENT='Nội dung và hành trình đã lưu của thành viên'
+    `);
+
+    // Tạo bảng connect_requests cho Giai đoạn 2
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS connect_requests (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        sender_name VARCHAR(100) NOT NULL,
+        sender_email VARCHAR(255) NOT NULL,
+        sender_phone VARCHAR(20),
+        target_type VARCHAR(50) NOT NULL COMMENT 'opportunity/investment/member/ocop',
+        target_title VARCHAR(255) NOT NULL,
+        message TEXT,
+        status ENUM('pending','contacted','closed') DEFAULT 'pending',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB COMMENT='Yêu cầu kết nối đầu tư và hợp tác'
+    `);
+    console.log("✅ Bảng user_bookmarks & connect_requests đã sẵn sàng");
   } catch (err) {
     console.error('❌ Lỗi khởi tạo DB hội viên:', err.message);
   }
@@ -2250,6 +2279,119 @@ app.get('/api/debug-env', (req, res) => {
     timezone: process.env.TZ || 'N/A',
     time: new Date().toISOString()
   });
+});
+
+// ════════════════════════════════════════════
+// GIAI ĐOẠN 2 - BOOKMARKS, CONNECT & OCOP APIs
+// ════════════════════════════════════════════
+
+// Lấy danh sách nội dung/hành trình đã lưu của Hội viên
+app.get('/api/bookmarks', memberAuthMiddleware, async (req, res) => {
+  try {
+    const memberId = req.member.id;
+    const [rows] = await db.query(
+      'SELECT * FROM user_bookmarks WHERE member_id = ? ORDER BY created_at DESC',
+      [memberId]
+    );
+    res.json({ success: true, data: rows });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Lưu bài viết, sự kiện, địa điểm hoặc lịch trình du lịch
+app.post('/api/bookmarks', memberAuthMiddleware, async (req, res) => {
+  try {
+    const memberId = req.member.id;
+    const { item_type, item_id, title, data } = req.body;
+    if (!item_type || !item_id || !title) {
+      return res.status(400).json({ success: false, error: 'Thiếu thông tin nội dung cần lưu.' });
+    }
+
+    const dataJson = data ? JSON.stringify(data) : null;
+    await db.query(
+      `INSERT INTO user_bookmarks (member_id, item_type, item_id, title, data) 
+       VALUES (?, ?, ?, ?, ?) 
+       ON DUPLICATE KEY UPDATE title = VALUES(title), data = VALUES(data)`,
+      [memberId, item_type, String(item_id), title, dataJson]
+    );
+
+    res.json({ success: true, message: 'Đã lưu nội dung thành công!' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Xóa nội dung đã lưu
+app.delete('/api/bookmarks/:id', memberAuthMiddleware, async (req, res) => {
+  try {
+    const memberId = req.member.id;
+    const bookmarkId = req.params.id;
+    await db.query('DELETE FROM user_bookmarks WHERE id = ? AND member_id = ?', [bookmarkId, memberId]);
+    res.json({ success: true, message: 'Đã xóa khỏi danh sách đã lưu.' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Gửi yêu cầu kết nối đầu tư / hợp tác doanh nghiệp
+app.post('/api/connect-request', async (req, res) => {
+  try {
+    const { sender_name, sender_email, sender_phone, target_type, target_title, message } = req.body;
+    if (!sender_name || !sender_email || !target_title) {
+      return res.status(400).json({ success: false, error: 'Vui lòng điền đầy đủ họ tên, email và nội dung cần kết nối.' });
+    }
+
+    await db.query(
+      `INSERT INTO connect_requests (sender_name, sender_email, sender_phone, target_type, target_title, message)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [sender_name, sender_email, sender_phone || null, target_type || 'general', target_title, message || null]
+    );
+
+    res.json({ success: true, message: 'Yêu cầu kết nối của bạn đã được tiếp nhận. Ban quản trị sẽ liên hệ sớm nhất!' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// API Lấy danh sách sản phẩm OCOP & Đặc sản Đồ Sơn
+app.get('/api/products/ocop', (req, res) => {
+  const ocopProducts = [
+    {
+      id: 1,
+      name: 'Táo Bàng Đồ Sơn',
+      rating: 'OCOP 4 Sao ⭐⭐⭐⭐',
+      producer: 'HTX Nông nghiệp Đồ Sơn',
+      address: 'Phường Bàng La, Đồ Sơn, Hải Phòng',
+      price: '45.000 VNĐ / kg',
+      desc: 'Đặc sản Táo Bàng trồng tại vùng đất mặn Bàng La, Đồ Sơn có vị ngọt thanh đặc trưng, mọng nước, giòn rụm.',
+      cert: 'VietGAP & OCOP Cấp Tỉnh',
+      phone: '0986 354 152'
+    },
+    {
+      id: 2,
+      name: 'Chả Cá Thu Đồ Sơn Nguyên Chất',
+      rating: 'OCOP 4 Sao ⭐⭐⭐⭐',
+      producer: 'Cơ sở Chả cá biển Đồ Sơn',
+      address: 'Phường Vạn Hương, Đồ Sơn',
+      price: '220.000 VNĐ / kg',
+      desc: 'Chả cá thu giã tay nguyên chất từ cá thu tươi khai thác tại vùng biển Đồ Sơn, không pha tạp, dai ngon đậm đà.',
+      cert: 'An toàn thực phẩm & OCOP',
+      phone: '0912 333 444'
+    },
+    {
+      id: 3,
+      name: 'Nước Mắm Chắt Truyền Thống Vạn Vân',
+      rating: 'OCOP 5 Sao ⭐⭐⭐⭐⭐',
+      producer: 'Công ty Nước Mắm Vạn Vân',
+      address: 'Khu 1, Đồ Sơn, Hải Phòng',
+      price: '180.000 VNĐ / chai 500ml',
+      desc: 'Thương hiệu nước mắm nổi tiếng lịch sử Đồ Sơn từ cá cơm tươi và muối hạt ủ 18 tháng trong thùng gỗ sồi.',
+      cert: 'Di sản & OCOP Cấp Quốc Gia',
+      phone: '0901 111 222'
+    }
+  ];
+  res.json({ success: true, data: ocopProducts });
 });
 
 // ════════════════════════════════════════════

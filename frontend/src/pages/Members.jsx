@@ -14,14 +14,31 @@ export const Members = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTier, setSelectedTier] = useState('');
   const [selectedIndustry, setSelectedIndustry] = useState('');
+  const [activeCategoryTab, setActiveCategoryTab] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [membersPerPage, setMembersPerPage] = useState(12);
   const [error, setError] = useState('');
 
-  // Trạng thái dịch mô tả hội viên (map từ memberId sang text)
+  // Connection Request Modal State
+  const [connectModalOpen, setConnectModalOpen] = useState(false);
+  const [connectTarget, setConnectTarget] = useState(null);
+  const [connectForm, setConnectForm] = useState({ name: '', email: '', phone: '', message: '' });
+  const [connectSubmitting, setConnectSubmitting] = useState(false);
+  const [connectMsg, setConnectMsg] = useState('');
+
+  // Trạng thái dịch mô tả hội viên
   const [translatedDescs, setTranslatedDescs] = useState({});
   const [loadingTranslations, setLoadingTranslations] = useState({});
   const [memberTargetLangs, setMemberTargetLangs] = useState({});
+
+  const categoryTabs = [
+    { key: 'all', label: 'Tất cả thành viên', icon: 'ti-users' },
+    { key: 'featured', label: 'Doanh nghiệp tiêu biểu', icon: 'ti-star' },
+    { key: 'ocop', label: 'Sản phẩm OCOP', icon: 'ti-certificate' },
+    { key: 'expat', label: 'Người Đồ Sơn xa quê', icon: 'ti-world' },
+    { key: 'expert', label: 'Chuyên gia & Cố vấn', icon: 'ti-school' },
+    { key: 'artisan', label: 'Nghệ nhân địa phương', icon: 'ti-palette' }
+  ];
 
   const handleMemberTargetLangChange = (memberId, lang) => {
     setMemberTargetLangs(prev => ({ ...prev, [memberId]: lang }));
@@ -98,9 +115,10 @@ export const Members = () => {
             desc: m.description || 'Chưa có mô tả chi tiết hoạt động kinh doanh.',
             date: new Date(m.created_at).toLocaleDateString('vi-VN'),
             is_featured: m.is_featured,
-            city: m.city || 'Việt Nam',
+            city: m.city || 'Đồ Sơn, Hải Phòng',
             phone: m.phone || 'Chưa cập nhật',
-            contact_name: m.contact_name || 'Đại diện hội viên'
+            contact_name: m.contact_name || 'Đại diện hội viên',
+            category_group: m.industry?.includes('OCOP') ? 'ocop' : m.industry?.includes('Nghệ nhân') ? 'artisan' : m.industry?.includes('Cố vấn') ? 'expert' : m.tier === 'Platinum' ? 'featured' : 'all'
           };
         });
 
@@ -116,15 +134,86 @@ export const Members = () => {
     loadMembers();
   }, [token]);
 
-  // Extract unique industries for select dropdown
-  const uniqueIndustries = Array.from(new Set(members.map(m => m.industry).filter(Boolean)));
+  const handleBookmarkMember = async (m) => {
+    if (!token) {
+      alert('Vui lòng đăng nhập để lưu hội viên này vào tài khoản của bạn!');
+      return;
+    }
 
-  // Featured members (pinned top, max 3)
+    try {
+      const res = await fetch('/api/bookmarks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify({
+          item_type: 'member',
+          item_id: 'member_' + m.id,
+          title: m.name,
+          data: m
+        })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        alert(`✓ Đã lưu "${m.name}" vào Dashboard Hội viên của bạn!`);
+      } else {
+        alert(data.error || 'Không thể lưu hội viên.');
+      }
+    } catch (e) {
+      alert('Lỗi: ' + e.message);
+    }
+  };
+
+  const handleOpenConnectModal = (m) => {
+    setConnectTarget(m);
+    setConnectModalOpen(true);
+    setConnectMsg('');
+  };
+
+  const handleConnectSubmit = async (e) => {
+    e.preventDefault();
+    setConnectSubmitting(true);
+    setConnectMsg('');
+
+    try {
+      const res = await fetch('/api/connect-request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sender_name: connectForm.name,
+          sender_email: connectForm.email,
+          sender_phone: connectForm.phone,
+          target_type: 'member',
+          target_title: connectTarget ? connectTarget.name : 'Kết nối hội viên',
+          message: connectForm.message
+        })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setConnectMsg('✓ Yêu cầu kết nối đã được gửi tới Ban quản trị và Hội viên!');
+        setConnectForm({ name: '', email: '', phone: '', message: '' });
+      } else {
+        setConnectMsg(data.error || 'Gửi kết nối thất bại.');
+      }
+    } catch (err) {
+      setConnectMsg('Lỗi: ' + err.message);
+    } finally {
+      setConnectSubmitting(false);
+    }
+  };
+
+  const uniqueIndustries = Array.from(new Set(members.map(m => m.industry).filter(Boolean)));
   const featuredMembers = members.filter(m => m.is_featured === 1).slice(0, 3);
 
-  // Filtered and sorted main members list
   const filteredAndSortedMembers = members
     .filter(m => {
+      if (activeCategoryTab === 'featured' && m.tier !== 'Platinum' && m.is_featured !== 1) return false;
+      if (activeCategoryTab === 'ocop' && !m.industry.includes('OCOP') && !m.desc.includes('OCOP')) return false;
+      if (activeCategoryTab === 'expat' && !m.city.includes('Hà Nội') && !m.city.includes('nước ngoài')) return false;
+      if (activeCategoryTab === 'expert' && !m.industry.includes('Cố vấn') && !m.industry.includes('Chuyên gia')) return false;
+      if (activeCategoryTab === 'artisan' && !m.industry.includes('Nghệ nhân') && !m.desc.includes('truyền thống')) return false;
+
       if (searchQuery) {
         const q = searchQuery.toLowerCase();
         const matchSearch = 
@@ -148,7 +237,6 @@ export const Members = () => {
       return b.id - a.id;
     });
 
-  // Pagination bounds
   const indexOfLastMember = currentPage * membersPerPage;
   const indexOfFirstMember = indexOfLastMember - membersPerPage;
   const currentMembers = filteredAndSortedMembers.slice(indexOfFirstMember, indexOfLastMember);
@@ -158,24 +246,47 @@ export const Members = () => {
     <div className="public-body">
       <Navbar />
 
-      {/* Decorative background gradient blobs */}
       <div style={{ position: 'fixed', top: '-20%', left: '-10%', width: '50vw', height: '50vw', background: 'radial-gradient(circle, rgba(79,70,229,0.06) 0%, rgba(79,70,229,0) 70%)', zIndex: -1, pointerEvents: 'none', borderRadius: '50%' }}></div>
       <div style={{ position: 'fixed', bottom: '-20%', right: '-10%', width: '60vw', height: '60vw', background: 'radial-gradient(circle, rgba(16,185,129,0.04) 0%, rgba(16,185,129,0) 70%)', zIndex: -1, pointerEvents: 'none', borderRadius: '50%' }}></div>
 
       <div className="public-container" style={{ minHeight: '80vh', paddingBottom: '5rem', paddingTop: '2.5rem' }}>
         
-        {/* Title and Header */}
-        <div style={{ textAlign: 'left', marginBottom: '2rem' }}>
+        <div style={{ textAlign: 'left', marginBottom: '1.5rem' }}>
           <h1 style={{ fontFamily: 'var(--font-title)', fontSize: '28px', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '10px', margin: 0 }}>
             <i className="ti ti-users" style={{ color: 'var(--primary)' }}></i> {t('members_title')}
           </h1>
-          <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px', marginBlockEnd: 0 }}>{t('members_subtitle')}</p>
+          <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px', marginBlockEnd: 0 }}>Mạng lưới doanh nghiệp, hộ kinh doanh, người Đồ Sơn xa quê và nghệ nhân địa phương.</p>
+        </div>
+
+        {/* Phase 2 Category Group Tabs */}
+        <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '10px', marginBottom: '1.5rem' }}>
+          {categoryTabs.map(tab => (
+            <button
+              key={tab.key}
+              onClick={() => { setActiveCategoryTab(tab.key); setCurrentPage(1); }}
+              style={{
+                padding: '8px 16px',
+                borderRadius: '99px',
+                border: activeCategoryTab === tab.key ? '1px solid var(--primary)' : '1px solid var(--border-strong)',
+                backgroundColor: activeCategoryTab === tab.key ? 'rgba(2, 132, 199, 0.15)' : 'var(--surface-2)',
+                color: activeCategoryTab === tab.key ? 'var(--primary-dark)' : 'var(--text-secondary)',
+                fontWeight: activeCategoryTab === tab.key ? '700' : '500',
+                fontSize: '12px',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+            >
+              <i className={`ti ${tab.icon}`}></i> {tab.label}
+            </button>
+          ))}
         </div>
 
         {/* Filters bar */}
         <div className="glass-card" style={{ padding: '1.25rem', marginBottom: '2rem', display: 'flex', flexWrap: 'wrap', gap: '15px', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', flex: 1, minWidth: '280px' }}>
-            {/* Search Input */}
             <div style={{ position: 'relative', width: '240px' }}>
               <i className="ti ti-search" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', fontSize: '13px', color: 'var(--text-muted)' }}></i>
               <input 
@@ -187,7 +298,6 @@ export const Members = () => {
               />
             </div>
 
-            {/* Filter by Tier */}
             <select
               value={selectedTier}
               onChange={(e) => { setSelectedTier(e.target.value); setCurrentPage(1); }}
@@ -199,7 +309,6 @@ export const Members = () => {
               <option value="Silver">🪙 Silver</option>
             </select>
 
-            {/* Filter by Industry */}
             <select
               value={selectedIndustry}
               onChange={(e) => { setSelectedIndustry(e.target.value); setCurrentPage(1); }}
@@ -213,346 +322,106 @@ export const Members = () => {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--text-secondary)' }}>
-              <span>{t('label_show')}:</span>
-              <select
-                value={membersPerPage}
-                onChange={(e) => {
-                  setMembersPerPage(Number(e.target.value));
-                  setCurrentPage(1);
-                }}
-                style={{
-                  padding: '4px 8px',
-                  borderRadius: '6px',
-                  border: '1px solid var(--border-strong)',
-                  background: 'var(--surface-2)',
-                  color: 'var(--text-primary)',
-                  fontSize: '11.5px',
-                  cursor: 'pointer',
-                  outline: 'none'
-                }}
-              >
-                <option value="6">{t('members_per_page')(6)}</option>
-                <option value="12">{t('members_per_page')(12)}</option>
-                <option value="24">{t('members_per_page')(24)}</option>
-              </select>
-            </div>
             <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
               {t('found_members')(filteredAndSortedMembers.length)}
             </div>
             <Link to="/register" className="btn btn-primary" style={{ textDecoration: 'none', fontSize: '12.5px', padding: '8px 16px' }}>
-              <i className="ti ti-user-plus"></i> {t('btn_upgrade_now')}
+              <i className="ti ti-user-plus"></i> Đăng ký hồ sơ DN
             </Link>
           </div>
         </div>
 
-        {/* 1. TOP PINNED FEATURED MEMBERS */}
-        {!loading && !error && featuredMembers.length > 0 && currentPage === 1 && (
-          <div style={{ marginBottom: '3rem', background: 'rgba(245, 158, 11, 0.03)', border: '1px solid rgba(245,158,11,0.15)', borderRadius: '16px', padding: '1.5rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1.25rem', textAlign: 'left' }}>
-              <i className="ti ti-crown" style={{ color: 'var(--amber)', fontSize: '20px' }}></i>
-              <h2 style={{ fontFamily: 'var(--font-title)', fontSize: '16px', fontWeight: 700, color: 'var(--amber)', margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                {t('featured_members_header')}
-              </h2>
-            </div>
-            
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
-              {featuredMembers.map((m) => {
-                const initials = m.name.split(' ').filter(Boolean).map(n => n[0]).join('').slice(0, 2).toUpperCase();
-                const colors = getInitialsColors(m.name);
-                const tierBadge = m.tier === 'Platinum' ? '💎 ' + t('tier_platinum_members') : m.tier === 'Gold' ? '🏅 ' + t('tier_gold_members') : '🪙 ' + t('tier_silver_members');
-                const tierClass = m.tier === 'Platinum' ? 'b-platinum' : m.tier === 'Gold' ? 'b-gold' : 'b-silver';
-                
-                return (
-                  <div className="card" key={`feat-${m.id}`} style={{ border: '1px solid rgba(245,158,11,0.3)', boxShadow: '0 4px 20px rgba(245,158,11,0.08)', borderRadius: 'var(--radius-lg)', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', background: 'var(--surface-2)' }}>
-                    <div style={{ height: '60px', background: `linear-gradient(135deg, ${colors.bg} 0%, rgba(255,255,255,0) 100%)`, borderBottom: '1px solid var(--border)' }}></div>
-                    <div style={{ padding: '1.25rem', marginTop: '-35px', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                      <div className="av-circle" style={{ background: colors.bg, color: colors.fg, width: '54px', height: '54px', fontSize: '16px', border: '3px solid var(--surface-2)', marginBottom: '12px', fontWeight: 750 }}>{initials}</div>
-                      <h3 style={{ fontFamily: 'var(--font-title)', fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px', lineHeight: 1.3, textAlign: 'left', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        {m.name}
-                        <i className="ti ti-star-filled" style={{ color: 'var(--amber-dark)', fontSize: '14px' }}></i>
-                      </h3>
-                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <i className="ti ti-briefcase" style={{ color: 'var(--amber-dark)' }}></i> {m.industry}
-                      </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-                        <p style={{ 
-                          fontSize: '12px', 
-                          color: 'var(--text-secondary)', 
-                          lineHeight: 1.6, 
-                          marginBottom: '8px', 
-                          textAlign: 'left', 
-                          display: '-webkit-box', 
-                          WebkitLineClamp: 3, 
-                          WebkitBoxOrient: 'vertical', 
-                          overflow: 'hidden' 
-                        }}>
-                          {translatedDescs[`feat-${m.id}`] ? translatedDescs[`feat-${m.id}`] : m.desc}
-                        </p>
-                        {m.desc && m.desc.trim() !== '' && (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px' }}>
-                            <select
-                              value={memberTargetLangs[`feat-${m.id}`] || (currentLang === 'vi' ? 'en' : currentLang)}
-                              onChange={(e) => handleMemberTargetLangChange(`feat-${m.id}`, e.target.value)}
-                              style={{
-                                background: 'var(--surface-2)',
-                                border: '1px solid var(--border-strong)',
-                                borderRadius: '4px',
-                                color: 'var(--text-primary)',
-                                fontSize: '10px',
-                                padding: '2px 4px',
-                                outline: 'none',
-                                cursor: 'pointer'
-                              }}
-                            >
-                              <option value="en">🇬🇧 EN</option>
-                              <option value="vi">🇻🇳 VI</option>
-                              <option value="ja">🇯🇵 JA</option>
-                              <option value="zh">🇨🇳 ZH</option>
-                            </select>
-                            <button
-                              onClick={() => handleTranslateMember(`feat-${m.id}`, m.desc)}
-                              disabled={loadingTranslations[`feat-${m.id}`]}
-                              style={{
-                                background: 'none',
-                                border: 'none',
-                                color: translatedDescs[`feat-${m.id}`] ? 'var(--emerald)' : 'var(--neon-cyan)',
-                                fontSize: '10.5px',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '3px',
-                                fontWeight: 600,
-                                padding: 0,
-                                outline: 'none'
-                              }}
-                            >
-                              <i className={loadingTranslations[`feat-${m.id}`] ? "ti ti-loader animate-spin" : "ti ti-language"}></i>
-                              {loadingTranslations[`feat-${m.id}`] ? '...' : translatedDescs[`feat-${m.id}`] ? t('translate_view_original_short') : 'Dịch AI'}
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                      
-                      {/* Contact Info Block */}
-                      {m.email !== '***@***.***' ? (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left', marginTop: '8px', padding: '8px 10px', background: 'var(--surface-0)', borderRadius: '6px', fontSize: '11.5px', border: '1px solid var(--border)' }}>
-                          <div style={{ color: 'var(--text-primary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            <i className="ti ti-user" style={{ color: 'var(--amber-dark)' }}></i> {m.contact_name}
-                          </div>
-                          <div style={{ color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            <i className="ti ti-mail" style={{ color: 'var(--amber-dark)' }}></i> {m.email}
-                          </div>
-                          <div style={{ color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            <i className="ti ti-phone" style={{ color: 'var(--amber-dark)' }}></i> {m.phone}
-                          </div>
-                        </div>
-                      ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left', marginTop: '8px', padding: '8px 10px', background: 'var(--surface-0)', borderRadius: '6px', fontSize: '11.5px', border: '1px dashed var(--border-strong)' }}>
-                          <div style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            <i className="ti ti-lock"></i> {t('contact_login_required')}
-                          </div>
-                        </div>
-                      )}
-
-                      <div style={{ borderTop: '1px solid var(--border)', paddingTop: '12px', marginTop: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span className={`badge ${tierClass}`}>{tierBadge}</span>
-                        <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}><i className="ti ti-map-pin"></i> {m.city || t('location_default')}</span>
-                      </div>
+        {/* Members Cards List */}
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>
+            <i className="ti ti-loader animate-spin" style={{ fontSize: '24px', display: 'block', margin: '0 auto 10px' }}></i>
+            {t('loading_members')}
+          </div>
+        ) : currentMembers.length > 0 ? (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px', marginBottom: '3rem' }}>
+            {currentMembers.map((m) => {
+              const tierBadge = m.tier === 'Platinum' ? '💎 Platinum' : m.tier === 'Gold' ? '🏅 Gold' : '🪙 Silver';
+              return (
+                <div className="card" key={m.id} style={{ borderRadius: 'var(--radius-lg)', padding: '1.25rem', display: 'flex', flexDirection: 'column', background: 'var(--surface-2)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+                    <div className="av-circle" style={{ background: m.bg, color: m.fg, width: '48px', height: '48px', fontSize: '15px', fontWeight: 700 }}>{m.initials}</div>
+                    <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                      <span style={{ fontSize: '10.5px', fontWeight: 700, padding: '2px 8px', borderRadius: '99px', backgroundColor: 'var(--surface-0)', color: 'var(--primary)' }}>
+                        {tierBadge}
+                      </span>
+                      <button onClick={() => handleBookmarkMember(m)} style={{ background: 'none', border: 'none', color: '#EF4444', cursor: 'pointer', fontSize: '16px' }} title="Lưu hội viên vào tài khoản">
+                        ❤️
+                      </button>
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
 
-        {/* 2. MAIN MEMBERS DIRECTORY LIST */}
-        {loading ? (
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '5rem' }}>
-            <div style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
-              <i className="ti ti-loader animate-spin" style={{ fontSize: '28px', display: 'block', margin: '0 auto 10px' }}></i> {t('loading_members')}
-            </div>
-          </div>
-        ) : error ? (
-          <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
-            <i className="ti ti-alert-triangle" style={{ fontSize: '24px', display: 'block', marginBottom: '8px', color: 'var(--rose)' }}></i> Lỗi tải dữ liệu hội viên: {error}
-          </div>
-        ) : filteredAndSortedMembers.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '5rem' }} className="glass-card">
-            <i className="ti ti-search" style={{ fontSize: '32px', display: 'block', marginBottom: '10px', color: 'var(--text-muted)' }}></i>
-            <span style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>{t('no_members_found')}</span>
+                  <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '4px' }}>{m.name}</h3>
+                  <div style={{ fontSize: '11.5px', color: 'var(--text-muted)', marginBottom: '8px' }}>📍 {m.city} • 💼 {m.industry}</div>
+                  <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '1.5', flex: 1, marginBottom: '1rem', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{m.desc}</p>
+                  
+                  <div style={{ borderTop: '1px solid var(--border)', paddingTop: '10px', display: 'flex', gap: '8px' }}>
+                    <button onClick={() => handleOpenConnectModal(m)} className="btn btn-primary" style={{ flex: 1, padding: '6px', fontSize: '11.5px' }}>
+                      🤝 Gửi kết nối
+                    </button>
+                    <a href={`mailto:${m.email}`} className="btn" style={{ padding: '6px 12px', fontSize: '11.5px', backgroundColor: 'var(--surface-0)', color: 'var(--text-secondary)', textDecoration: 'none' }}>
+                      ✉️ Email
+                    </a>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         ) : (
-          <div>
-            <div id="members-list" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
-              {currentMembers.map((m) => {
-                const tierBadge = m.tier === 'Platinum' ? '💎 ' + t('tier_platinum_members') : m.tier === 'Gold' ? '🏅 ' + t('tier_gold_members') : '🪙 ' + t('tier_silver_members');
-                const tierClass = m.tier === 'Platinum' ? 'b-platinum' : m.tier === 'Gold' ? 'b-gold' : 'b-silver';
-                
-                return (
-                  <div className="card" key={m.id} style={{ boxShadow: 'var(--shadow)', transition: 'var(--transition)', borderRadius: 'var(--radius-lg)', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-                    <div style={{ height: '60px', background: `linear-gradient(135deg, ${m.bg} 0%, rgba(255,255,255,0) 100%)`, borderBottom: '1px solid var(--border)' }}></div>
-                    <div style={{ padding: '1.25rem', marginTop: '-35px', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                      <div className="av-circle" style={{ background: m.bg, color: m.fg, width: '54px', height: '54px', fontSize: '16px', border: '3px solid var(--surface-2)', marginBottom: '12px', fontWeight: 600 }}>{m.initials}</div>
-                      <h3 style={{ fontFamily: 'var(--font-title)', fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px', lineHeight: 1.3, textAlign: 'left' }}>{m.name}</h3>
-                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <i className="ti ti-briefcase" style={{ color: 'var(--amber-dark)' }}></i> {m.industry}
-                      </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-                        <p style={{ 
-                          fontSize: '12px', 
-                          color: 'var(--text-secondary)', 
-                          lineHeight: 1.6, 
-                          marginBottom: '8px', 
-                          textAlign: 'left', 
-                          display: '-webkit-box', 
-                          WebkitLineClamp: 3, 
-                          WebkitBoxOrient: 'vertical', 
-                          overflow: 'hidden' 
-                        }}>
-                          {translatedDescs[m.id] ? translatedDescs[m.id] : m.desc}
-                        </p>
-                        {m.desc && m.desc.trim() !== '' && (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px' }}>
-                            <select
-                              value={memberTargetLangs[m.id] || (currentLang === 'vi' ? 'en' : currentLang)}
-                              onChange={(e) => handleMemberTargetLangChange(m.id, e.target.value)}
-                              style={{
-                                background: 'var(--surface-2)',
-                                border: '1px solid var(--border-strong)',
-                                borderRadius: '4px',
-                                color: 'var(--text-primary)',
-                                fontSize: '10px',
-                                padding: '2px 4px',
-                                outline: 'none',
-                                cursor: 'pointer'
-                              }}
-                            >
-                              <option value="en">🇬🇧 EN</option>
-                              <option value="vi">🇻🇳 VI</option>
-                              <option value="ja">🇯🇵 JA</option>
-                              <option value="zh">🇨🇳 ZH</option>
-                            </select>
-                            <button
-                              onClick={() => handleTranslateMember(m.id, m.desc)}
-                              disabled={loadingTranslations[m.id]}
-                              style={{
-                                background: 'none',
-                                border: 'none',
-                                color: translatedDescs[m.id] ? 'var(--emerald)' : 'var(--neon-cyan)',
-                                fontSize: '10.5px',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '3px',
-                                fontWeight: 600,
-                                padding: 0,
-                                outline: 'none'
-                              }}
-                            >
-                              <i className={loadingTranslations[m.id] ? "ti ti-loader animate-spin" : "ti ti-language"}></i>
-                              {loadingTranslations[m.id] ? '...' : translatedDescs[m.id] ? t('translate_view_original_short') : 'Dịch AI'}
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                      
-                      {/* Contact Info Block */}
-                      {m.email !== '***@***.***' ? (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left', marginTop: '8px', padding: '8px 10px', background: 'var(--surface-0)', borderRadius: '6px', fontSize: '11.5px', border: '1px solid var(--border)' }}>
-                          <div style={{ color: 'var(--text-primary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            <i className="ti ti-user" style={{ color: 'var(--amber-dark)' }}></i> {m.contact_name}
-                          </div>
-                          <div style={{ color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            <i className="ti ti-mail" style={{ color: 'var(--amber-dark)' }}></i> {m.email}
-                          </div>
-                          <div style={{ color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            <i className="ti ti-phone" style={{ color: 'var(--amber-dark)' }}></i> {m.phone}
-                          </div>
-                        </div>
-                      ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'left', marginTop: '8px', padding: '8px 10px', background: 'var(--surface-0)', borderRadius: '6px', fontSize: '11.5px', border: '1px dashed var(--border-strong)' }}>
-                          <div style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            <i className="ti ti-lock"></i> {t('contact_login_required')}
-                          </div>
-                        </div>
-                      )}
-
-                      <div style={{ borderTop: '1px solid var(--border)', paddingTop: '12px', marginTop: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span className={`badge ${tierClass}`}>{tierBadge}</span>
-                        <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}><i className="ti ti-map-pin"></i> {m.city || t('location_default')}</span>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* PAGINATION */}
-            {totalPages > 1 && (
-              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', marginTop: '3rem' }}>
-                <button 
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                  className="btn"
-                  style={{
-                    padding: '6px 12px',
-                    fontSize: '12.5px',
-                    borderRadius: '6px',
-                    backgroundColor: 'rgba(12,35,64,0.06)',
-                    color: currentPage === 1 ? 'var(--text-muted)' : 'var(--text-primary)',
-                    cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
-                    border: '1px solid var(--border-strong)'
-                  }}
-                >
-                  <i className="ti ti-chevron-left"></i> {t('btn_back_prev')}
-                </button>
-
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((pg) => (
-                  <button
-                    key={pg}
-                    onClick={() => setCurrentPage(pg)}
-                    className="btn"
-                    style={{
-                      padding: '6px 12px',
-                      fontSize: '12.5px',
-                      borderRadius: '6px',
-                      backgroundColor: currentPage === pg ? 'var(--primary)' : 'rgba(12,35,64,0.06)',
-                      borderColor: currentPage === pg ? 'var(--primary)' : 'var(--border-strong)',
-                      color: currentPage === pg ? '#fff' : 'var(--text-primary)',
-                      fontWeight: currentPage === pg ? '700' : 'normal',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    {pg}
-                  </button>
-                ))}
-
-                <button 
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages}
-                  className="btn"
-                  style={{
-                    padding: '6px 12px',
-                    fontSize: '12.5px',
-                    borderRadius: '6px',
-                    backgroundColor: 'rgba(12,35,64,0.06)',
-                    color: currentPage === totalPages ? 'var(--text-muted)' : 'var(--text-primary)',
-                    cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
-                    border: '1px solid var(--border-strong)'
-                  }}
-                >
-                  {t('btn_go_next')} <i className="ti ti-chevron-right"></i>
-                </button>
-              </div>
-            )}
+          <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>
+            Không tìm thấy hội viên phù hợp.
           </div>
         )}
       </div>
+
+      {/* Connection Modal */}
+      {connectModalOpen && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(7,22,44,0.75)', backdropFilter: 'blur(8px)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+          <div style={{ backgroundColor: '#0C2340', border: '1px solid rgba(56,189,248,0.3)', borderRadius: '16px', padding: '24px', maxWidth: '500px', width: '100%', color: '#E2F0FF' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#fff', margin: 0 }}>Gửi nhu cầu kết nối: {connectTarget?.name}</h3>
+              <button onClick={() => setConnectModalOpen(false)} style={{ background: 'none', border: 'none', color: '#93B4D4', cursor: 'pointer', fontSize: '18px' }}><i className="ti ti-x"></i></button>
+            </div>
+
+            {connectMsg && (
+              <div style={{ backgroundColor: 'rgba(16,185,129,0.15)', color: '#10B981', padding: '8px 12px', borderRadius: '8px', fontSize: '12px', marginBottom: '1rem' }}>
+                {connectMsg}
+              </div>
+            )}
+
+            <form onSubmit={handleConnectSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div>
+                <label style={{ fontSize: '11.5px', color: '#93B4D4', display: 'block', marginBottom: '4px' }}>Họ và tên của bạn *</label>
+                <input type="text" required value={connectForm.name} onChange={(e) => setConnectForm({ ...connectForm, name: e.target.value })} style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.15)', backgroundColor: 'rgba(255,255,255,0.06)', color: '#fff', fontSize: '12px' }} />
+              </div>
+              <div>
+                <label style={{ fontSize: '11.5px', color: '#93B4D4', display: 'block', marginBottom: '4px' }}>Email liên hệ *</label>
+                <input type="email" required value={connectForm.email} onChange={(e) => setConnectForm({ ...connectForm, email: e.target.value })} style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.15)', backgroundColor: 'rgba(255,255,255,0.06)', color: '#fff', fontSize: '12px' }} />
+              </div>
+              <div>
+                <label style={{ fontSize: '11.5px', color: '#93B4D4', display: 'block', marginBottom: '4px' }}>Số điện thoại</label>
+                <input type="text" value={connectForm.phone} onChange={(e) => setConnectForm({ ...connectForm, phone: e.target.value })} style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.15)', backgroundColor: 'rgba(255,255,255,0.06)', color: '#fff', fontSize: '12px' }} />
+              </div>
+              <div>
+                <label style={{ fontSize: '11.5px', color: '#93B4D4', display: 'block', marginBottom: '4px' }}>Nội dung mong muốn kết nối</label>
+                <textarea rows="3" required value={connectForm.message} onChange={(e) => setConnectForm({ ...connectForm, message: e.target.value })} placeholder="VD: Muốn tìm hiểu hợp tác phân phối hoặc mua sắm số lượng lớn..." style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.15)', backgroundColor: 'rgba(255,255,255,0.06)', color: '#fff', fontSize: '12px' }}></textarea>
+              </div>
+
+              <button type="submit" disabled={connectSubmitting} className="btn btn-primary" style={{ padding: '10px', fontSize: '13px', marginTop: '8px' }}>
+                {connectSubmitting ? <i className="ti ti-loader animate-spin"></i> : 'Gửi yêu cầu kết nối ngay'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
 
       <Footer />
     </div>
   );
 };
+
 export default Members;
