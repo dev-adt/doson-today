@@ -11,15 +11,15 @@ export const GPTFloatingBubble = () => {
         @keyframes gptPulseBreathing {
           0% {
             transform: translateY(-50%) scale(1);
-            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7), 0 8px 24px rgba(0, 0, 0, 0.3);
+            filter: drop-shadow(0 4px 10px rgba(16, 185, 129, 0.35));
           }
           50% {
-            transform: translateY(-50%) scale(1.08);
-            box-shadow: 0 0 25px 8px rgba(16, 185, 129, 0.5), 0 12px 28px rgba(0, 0, 0, 0.4);
+            transform: translateY(-50%) scale(1.1);
+            filter: drop-shadow(0 0 20px rgba(16, 185, 129, 0.75));
           }
           100% {
             transform: translateY(-50%) scale(1);
-            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7), 0 8px 24px rgba(0, 0, 0, 0.3);
+            filter: drop-shadow(0 4px 10px rgba(16, 185, 129, 0.35));
           }
         }
 
@@ -34,8 +34,8 @@ export const GPTFloatingBubble = () => {
 
         .gpt-floating-bubble:hover {
           animation-play-state: paused;
-          transform: translateY(-50%) scale(1.12) !important;
-          box-shadow: 0 0 30px 12px rgba(16, 185, 129, 0.6), 0 14px 32px rgba(0, 0, 0, 0.45) !important;
+          transform: translateY(-50%) scale(1.18) !important;
+          filter: drop-shadow(0 0 25px rgba(16, 185, 129, 0.95)) !important;
         }
       `}</style>
 
@@ -50,7 +50,7 @@ export const GPTFloatingBubble = () => {
           <div
             style={{
               position: 'absolute',
-              right: '66px',
+              right: '72px',
               whiteSpace: 'nowrap',
               backgroundColor: '#0C2340',
               color: '#38BDF8',
@@ -71,36 +71,35 @@ export const GPTFloatingBubble = () => {
           </div>
         )}
 
-        {/* Floating Bubble Circle Button */}
+        {/* Floating Bubble Circle Button - Clean Transparent Container */}
         <a
           href={targetUrl}
           target="_blank"
           rel="noopener noreferrer"
           style={{
-            width: '56px',
-            height: '56px',
-            borderRadius: '50%',
-            background: 'linear-gradient(135deg, #0C2340 0%, #07162C 100%)',
+            width: '64px',
+            height: '64px',
+            background: 'transparent',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             textDecoration: 'none',
-            border: '2px solid rgba(56, 189, 248, 0.6)',
-            position: 'relative',
-            padding: '3px',
-            boxSizing: 'border-box'
+            border: 'none',
+            outline: 'none',
+            position: 'relative'
           }}
           title="Mở Custom ChatGPT Đồ Sơn Today"
         >
-          {/* Transparent AI Robot Avatar Image */}
+          {/* Transparent AI Robot Avatar Image without background box */}
           <img 
             src="/ai_robot_avatar.png" 
             alt="AI Robot Avatar"
             style={{
               width: '100%',
               height: '100%',
-              objectFit: 'cover',
-              borderRadius: '50%'
+              objectFit: 'contain',
+              background: 'transparent',
+              border: 'none'
             }}
           />
 
@@ -108,17 +107,17 @@ export const GPTFloatingBubble = () => {
           <span
             style={{
               position: 'absolute',
-              bottom: '-2px',
-              right: '-2px',
+              bottom: '2px',
+              right: '2px',
               backgroundColor: '#10B981',
               color: '#FFFFFF',
-              fontSize: '8px',
+              fontSize: '8.5px',
               fontWeight: '800',
               padding: '2px 5px',
               borderRadius: '6px',
               border: '1px solid #07162C',
               lineHeight: 1,
-              boxShadow: '0 2px 4px rgba(0,0,0,0.3)'
+              boxShadow: '0 2px 6px rgba(0,0,0,0.4)'
             }}
           >
             GPT
