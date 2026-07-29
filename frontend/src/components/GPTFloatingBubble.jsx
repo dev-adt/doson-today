@@ -11,15 +11,15 @@ export const GPTFloatingBubble = () => {
         @keyframes gptPulseBreathing {
           0% {
             transform: translateY(-50%) scale(1);
-            box-shadow: 0 0 0 0 rgba(16, 163, 127, 0.7), 0 8px 24px rgba(0, 0, 0, 0.25);
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7), 0 8px 24px rgba(0, 0, 0, 0.3);
           }
           50% {
             transform: translateY(-50%) scale(1.08);
-            box-shadow: 0 0 25px 8px rgba(16, 163, 127, 0.4), 0 12px 28px rgba(0, 0, 0, 0.35);
+            box-shadow: 0 0 25px 8px rgba(16, 185, 129, 0.5), 0 12px 28px rgba(0, 0, 0, 0.4);
           }
           100% {
             transform: translateY(-50%) scale(1);
-            box-shadow: 0 0 0 0 rgba(16, 163, 127, 0.7), 0 8px 24px rgba(0, 0, 0, 0.25);
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7), 0 8px 24px rgba(0, 0, 0, 0.3);
           }
         }
 
@@ -35,7 +35,7 @@ export const GPTFloatingBubble = () => {
         .gpt-floating-bubble:hover {
           animation-play-state: paused;
           transform: translateY(-50%) scale(1.12) !important;
-          box-shadow: 0 0 30px 12px rgba(16, 163, 127, 0.6), 0 14px 32px rgba(0, 0, 0, 0.4) !important;
+          box-shadow: 0 0 30px 12px rgba(16, 185, 129, 0.6), 0 14px 32px rgba(0, 0, 0, 0.45) !important;
         }
       `}</style>
 
@@ -50,21 +50,20 @@ export const GPTFloatingBubble = () => {
           <div
             style={{
               position: 'absolute',
-              right: '62px',
+              right: '66px',
               whiteSpace: 'nowrap',
               backgroundColor: '#0C2340',
-              color: '#10B981',
-              border: '1px solid rgba(16, 185, 129, 0.4)',
+              color: '#38BDF8',
+              border: '1px solid rgba(56, 189, 248, 0.4)',
               padding: '6px 14px',
               borderRadius: '20px',
               fontSize: '12px',
               fontWeight: '700',
-              boxShadow: '0 8px 20px rgba(0,0,0,0.3)',
+              boxShadow: '0 8px 20px rgba(0,0,0,0.4)',
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              pointerEvents: 'none',
-              animation: 'fadeIn 0.2s ease-out'
+              pointerEvents: 'none'
             }}
           >
             <span>🤖 ChatGPT Đồ Sơn Today</span>
@@ -78,37 +77,48 @@ export const GPTFloatingBubble = () => {
           target="_blank"
           rel="noopener noreferrer"
           style={{
-            width: '52px',
-            height: '52px',
+            width: '56px',
+            height: '56px',
             borderRadius: '50%',
-            background: 'linear-gradient(135deg, #10A37F 0%, #047857 100%)',
-            color: '#FFFFFF',
+            background: 'linear-gradient(135deg, #0C2340 0%, #07162C 100%)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             textDecoration: 'none',
-            border: '2px solid rgba(255, 255, 255, 0.35)',
-            position: 'relative'
+            border: '2px solid rgba(56, 189, 248, 0.6)',
+            position: 'relative',
+            padding: '3px',
+            boxSizing: 'border-box'
           }}
           title="Mở Custom ChatGPT Đồ Sơn Today"
         >
-          {/* OpenAI / ChatGPT Sparkle Icon */}
-          <i className="ti ti-sparkles" style={{ fontSize: '24px' }}></i>
+          {/* Transparent AI Robot Avatar Image */}
+          <img 
+            src="/ai_robot_avatar.png" 
+            alt="AI Robot Avatar"
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              borderRadius: '50%'
+            }}
+          />
 
-          {/* Mini GPT badge dot */}
+          {/* Mini GPT badge */}
           <span
             style={{
               position: 'absolute',
               bottom: '-2px',
               right: '-2px',
-              backgroundColor: '#38BDF8',
-              color: '#07162C',
+              backgroundColor: '#10B981',
+              color: '#FFFFFF',
               fontSize: '8px',
               fontWeight: '800',
-              padding: '2px 4px',
+              padding: '2px 5px',
               borderRadius: '6px',
-              border: '1px solid #0C2340',
-              lineHeight: 1
+              border: '1px solid #07162C',
+              lineHeight: 1,
+              boxShadow: '0 2px 4px rgba(0,0,0,0.3)'
             }}
           >
             GPT
