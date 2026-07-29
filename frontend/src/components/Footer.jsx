@@ -27,8 +27,8 @@ export const Footer = () => {
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '11.5px', color: '#D1E5F7', marginBottom: '1rem' }}>
               <div>📍 26 TT23 KĐT Văn Phú, Phường Kiến Hưng, Hà Nội</div>
-              <div>📍 Văn phòng Đồ Sơn: Quận Đồ Sơn, TP. Hải Phòng</div>
-              <div>✉️ info@adtgroup.net</div>
+              <div>📍 Văn phòng Đồ Sơn: Phường Đồ Sơn, TP. Hải Phòng</div>
+              <div>✉️ info@doson.today</div>
               <div>📞 0986 354 152</div>
             </div>
             <div style={{ display: 'flex', gap: '8px' }}>

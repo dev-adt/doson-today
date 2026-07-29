@@ -389,7 +389,7 @@ export const MemberDashboard = () => {
                 <span className={`badge ${userTier === 'Platinum' ? 'b-platinum' : userTier === 'Gold' ? 'b-gold' : 'b-silver'}`} style={{ marginRight: '8px' }}>
                   {userTier === 'Platinum' ? '💎 ' + t('tier_platinum') : userTier === 'Gold' ? '🏅 ' + t('tier_gold') : '🪙 ' + t('tier_silver')}
                 </span>
-                {profileData.tier_expires_at && userTier !== 'Silver' && (
+                {profileData.tier_expires_at && userTier !== 'Silver' && !isNaN(new Date(profileData.tier_expires_at).getTime()) && (
                   <span style={{ fontSize: '11px', color: 'var(--text-muted)', backgroundColor: 'rgba(255,255,255,0.05)', padding: '4px 10px', borderRadius: '4px', marginRight: '8px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                     <i className="ti ti-calendar-event"></i> {t('tier_expiry_label')}: {new Date(profileData.tier_expires_at).toLocaleDateString('vi-VN')}
                   </span>

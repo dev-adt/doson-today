@@ -1569,11 +1569,22 @@ export const LanguageProvider = ({ children }) => {
     return localStorage.getItem('Đồ Sơn_lang') || 'vi';
   });
 
-  const t = (key) => {
+  const t = (key, ...args) => {
     const langObj = LANGS[currentLang] || LANGS.vi;
-    const value = langObj[key] || LANGS.vi[key];
-    if (typeof value === 'function') return value;
-    return value || key;
+    const rawVal = (langObj && langObj[key] !== undefined) 
+      ? langObj[key] 
+      : ((LANGS.vi && LANGS.vi[key] !== undefined) ? LANGS.vi[key] : key);
+
+    if (typeof rawVal === 'function') {
+      if (args.length > 0) return rawVal(...args);
+      return rawVal;
+    }
+
+    const strVal = String(rawVal !== undefined ? rawVal : key);
+    const safeFn = (...fnArgs) => strVal;
+    safeFn.toString = () => strVal;
+    safeFn.valueOf = () => strVal;
+    return safeFn;
   };
 
   const changeLang = (lang) => {
