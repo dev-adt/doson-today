@@ -598,11 +598,11 @@ export const Home = () => {
             BLOCK 9 – CƠ HỘI ĐẦU TƯ VÀ HỢP TÁC
         ========================================== */}
         <section id="investment-block" style={{ marginBottom: '4rem' }}>
-          <div className="glass-card" style={{ padding: '2rem', borderRadius: 'var(--radius-lg)', background: 'linear-gradient(135deg, rgba(7, 22, 44, 0.95) 0%, rgba(12, 35, 64, 0.95) 100%)', color: '#E2F0FF' }}>
+          <div className="glass-card dark-glass-card" style={{ padding: '2rem', borderRadius: 'var(--radius-lg)', background: 'linear-gradient(135deg, #07162C 0%, #0C2340 100%)', color: '#E2F0FF' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
               <div>
                 <div style={{ fontSize: '11px', fontWeight: '700', color: '#38BDF8', letterSpacing: '0.08em', textTransform: 'uppercase' }}>XÚC TIẾN ĐẦU TƯ & HỢP TÁC</div>
-                <h2 style={{ fontFamily: 'var(--font-title)', fontSize: '24px', fontWeight: '700', color: '#fff', margin: 0 }}>Dự án & Cơ hội hợp tác kinh doanh</h2>
+                <h2 style={{ fontFamily: 'var(--font-title)', fontSize: '24px', fontWeight: '700', color: '#FFFFFF', margin: 0 }}>Dự án & Cơ hội hợp tác kinh doanh</h2>
               </div>
               <Link to="/register" className="btn btn-primary" style={{ padding: '8px 16px', fontSize: '12px', textDecoration: 'none' }}>
                 ➕ Đăng đề xuất hợp tác
@@ -615,10 +615,10 @@ export const Home = () => {
                 { title: 'Hợp tác đầu tư chuỗi ki-ốt ẩm thực & kinh tế đêm Đồ Sơn', entity: 'Công ty Đầu tư Du lịch Đồ Sơn', target: 'Nhà đầu tư F&B, thương hiệu giải trí', deadline: '15/10/2026' },
                 { title: 'Cho thuê mặt bằng thương mại Khu 2 Đồ Sơn nhìn ra biển', entity: 'Ban Quản lý Hạ tầng Đồ Sơn', target: 'Doanh nghiệp lưu trú, quán cafe chuỗi', deadline: '30/09/2026' }
               ].map((inv, idx) => (
-                <div key={idx} style={{ backgroundColor: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', padding: '1.25rem' }}>
+                <div key={idx} style={{ backgroundColor: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '12px', padding: '1.25rem' }}>
                   <div style={{ fontSize: '10.5px', color: '#38BDF8', fontWeight: '700', marginBottom: '4px' }}>🏢 {inv.entity}</div>
-                  <h4 style={{ fontSize: '14.5px', fontWeight: '700', color: '#fff', marginBottom: '8px' }}>{inv.title}</h4>
-                  <div style={{ fontSize: '11.5px', color: '#93B4D4', marginBottom: '4px' }}>🎯 Đối tượng: {inv.target}</div>
+                  <h4 style={{ fontSize: '14.5px', fontWeight: '700', color: '#FFFFFF', marginBottom: '8px' }}>{inv.title}</h4>
+                  <div style={{ fontSize: '11.5px', color: '#CBD5E1', marginBottom: '4px' }}>🎯 Đối tượng: {inv.target}</div>
                   <div style={{ fontSize: '11px', color: '#FCA5A5', marginBottom: '1rem' }}>⌛ Thời hạn: {inv.deadline}</div>
                   <button onClick={() => alert(`Cảm ơn bạn đã gửi nhu cầu kết nối cho cơ hội "${inv.title}". Ban quản trị sẽ liên hệ trong 24h!`)} className="btn btn-primary" style={{ width: '100%', padding: '6px', fontSize: '11.5px' }}>
                     🤝 Đề nghị kết nối ngay

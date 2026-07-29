@@ -2486,138 +2486,163 @@ select option {
 }
 
 /* ============================================================
-   GLOBAL PUBLIC PAGE COLOR OVERRIDE
-   Override mọi màu chữ trắng hardcoded trong các trang public
-   để đảm bảo hiển thị đúng trên nền sáng xanh biển.
-   Áp dụng cho mọi phần tử trong .public-body
+   GLOBAL PUBLIC PAGE & DASHBOARD COLOR OVERRIDE
+   Đảm bảo 100% chữ hiển thị sắc nét, độ tương phản cao:
+   - Thẻ sáng: Nền trắng/xanh nhạt, chữ xanh đen đậm #0C2340
+   - Thẻ tối: Nền xanh đen #07162C, chữ trắng #FFFFFF
+   - Form inputs & labels: Nền sáng #FFFFFF, nhãn & chữ #0C2340
    ============================================================ */
 
-/* Input fields: override nền tối thành nền sáng */
+/* Form Input & Label styling trong public body & dashboard */
+.public-body label,
+.public-body .fg label,
+.dash-card label,
+.glass-card label {
+  color: #0C2340 !important;
+  font-weight: 700 !important;
+  font-size: 13px !important;
+  margin-bottom: 6px !important;
+  display: inline-block !important;
+}
+
 .public-body input[type="text"],
 .public-body input[type="email"],
 .public-body input[type="password"],
 .public-body input[type="number"],
 .public-body input[type="search"],
 .public-body input[type="tel"],
+.public-body input[type="date"],
 .public-body textarea,
-.public-body select {
-  background-color: var(--surface-2) !important;
-  color: var(--text-primary) !important;
-  border-color: var(--border-strong) !important;
+.public-body select,
+.dash-card input,
+.dash-card select,
+.dash-card textarea {
+  background-color: #FFFFFF !important;
+  color: #0C2340 !important;
+  border: 1px solid #CBD5E1 !important;
+  border-radius: 8px !important;
 }
+
 .public-body input::placeholder,
 .public-body textarea::placeholder {
-  color: var(--text-muted) !important;
+  color: #64748B !important;
 }
 
-/* Glass card trong public body: nền trắng trong suốt */
-.public-body .glass-card {
-  background: var(--glass-bg) !important;
-  border-color: var(--border) !important;
-  color: var(--text-secondary) !important;
+.public-body input:focus,
+.public-body select:focus,
+.public-body textarea:focus {
+  border-color: #0284C7 !important;
+  background-color: #FFFFFF !important;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15) !important;
 }
 
-/* opp-card trong public body */
+/* Public Light Glass Cards */
+.public-body .glass-card:not(.dark-glass-card) {
+  background: rgba(255, 255, 255, 0.92) !important;
+  border: 1px solid #CBD5E1 !important;
+  color: #2C4A6F !important;
+  box-shadow: 0 8px 24px -8px rgba(12, 35, 64, 0.08) !important;
+}
+
+.public-body .glass-card:not(.dark-glass-card) h1,
+.public-body .glass-card:not(.dark-glass-card) h2,
+.public-body .glass-card:not(.dark-glass-card) h3,
+.public-body .glass-card:not(.dark-glass-card) h4,
+.public-body .glass-card:not(.dark-glass-card) h5 {
+  color: #0C2340 !important;
+}
+
+/* Explicit Dark Glass Cards (như Block 9 Xúc tiến đầu tư, AI Chat header) */
+.public-body .glass-card.dark-glass-card {
+  background: linear-gradient(135deg, #07162C 0%, #0C2340 100%) !important;
+  border: 1px solid rgba(56, 189, 248, 0.3) !important;
+  color: #E2F0FF !important;
+}
+
+.public-body .glass-card.dark-glass-card h1,
+.public-body .glass-card.dark-glass-card h2,
+.public-body .glass-card.dark-glass-card h3,
+.public-body .glass-card.dark-glass-card h4 {
+  color: #FFFFFF !important;
+}
+
+.public-body .glass-card.dark-glass-card label {
+  color: #E2F0FF !important;
+}
+
+/* Opportunity cards & Member cards */
 .public-body .opp-card {
-  background: var(--surface-2) !important;
-  border-color: var(--border) !important;
+  background: #FFFFFF !important;
+  border: 1px solid #CBD5E1 !important;
+  color: #2C4A6F !important;
 }
 
-/* Stat card trong public body */
+.public-body .opp-card h4,
+.public-body .opp-card .opp-title {
+  color: #0C2340 !important;
+}
+
+.public-body .opp-card:hover {
+  border-color: #0284C7 !important;
+  box-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.15) !important;
+}
+
+/* Member Dashboard Cards */
+.public-body .dash-card {
+  background: #FFFFFF !important;
+  border: 1px solid #CBD5E1 !important;
+  color: #2C4A6F !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 12px rgba(12, 35, 64, 0.04) !important;
+}
+
+.public-body .card-title {
+  color: #0C2340 !important;
+  border-bottom: 1px solid #E2E8F0 !important;
+  font-weight: 700 !important;
+}
+
+/* Stat Cards */
 .public-body .stat-val {
-  color: var(--primary-dark) !important;
-}
-.public-body .stat-label {
-  color: var(--text-primary) !important;
+  color: #0369A1 !important;
+  font-weight: 800 !important;
 }
 
-/* Package card (pricing tiers) */
-.public-body .pkg-item {
-  color: var(--text-secondary) !important;
-}
-.public-body .pkg-item i {
-  color: var(--emerald-dark) !important;
+.public-body .stat-lbl {
+  color: #475569 !important;
+  font-weight: 600 !important;
 }
 
-/* Service card */
-.public-body .srv-card {
-  background: var(--surface-2) !important;
-  border-color: var(--border) !important;
-}
-.public-body .srv-card:hover {
-  border-color: var(--primary) !important;
-}
-
-/* Modal overlay background: giữ tối cho dễ nhìn */
-/* (intentionally NOT overriding modal overlay backgrounds) */
-
-/* Search/filter tag buttons */
+/* Search/Filter Chips */
 .public-body .filter-tag,
 .public-body .category-tag {
-  background: var(--surface-0) !important;
-  color: var(--text-secondary) !important;
-  border-color: var(--border) !important;
+  background: #E2F0FF !important;
+  color: #0C2340 !important;
+  border: 1px solid #CBD5E1 !important;
+  font-weight: 600 !important;
 }
+
 .public-body .filter-tag.active,
 .public-body .category-tag.active {
-  background: var(--primary) !important;
-  color: #ffffff !important;
-  border-color: var(--primary) !important;
+  background: #0284C7 !important;
+  color: #FFFFFF !important;
+  border-color: #0284C7 !important;
 }
 
-/* Member/Post card hover border */
-.public-body .opp-card:hover {
-  border-color: var(--primary) !important;
+/* Modal Overlay & Card Styling */
+.public-body .modal-card,
+.public-body div[style*="position: fixed"][style*="zIndex: 9999"] .glass-card {
+  background-color: #FFFFFF !important;
+  border: 1px solid #CBD5E1 !important;
+  color: #0C2340 !important;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.35) !important;
 }
 
-/* Section divider lines */
-.public-body [style*="rgba(255,255,255,0.05)"],
-.public-body [style*="rgba(255, 255, 255, 0.05)"] {
-  border-color: var(--border) !important;
+.public-body select option {
+  background-color: #FFFFFF !important;
+  color: #0C2340 !important;
 }
 
-/* AI Chat public area */
-.public-body .chat-container,
-.public-body .chat-messages {
-  background: var(--surface-2) !important;
-  color: var(--text-primary) !important;
-}
-
-/* Post item trong Member Dashboard */
-.public-body .post-item {
-  background: var(--surface-0) !important;
-  border-color: var(--border-strong) !important;
-}
-.public-body .post-item:hover {
-  background: var(--surface-1) !important;
-}
-
-/* Dashboard hội viên cards */
-.public-body .dash-card {
-  background: var(--surface-2) !important;
-  border-color: var(--border) !important;
-  color: var(--text-secondary) !important;
-}
-.public-body .card-title {
-  color: var(--text-primary) !important;
-  border-bottom-color: var(--border) !important;
-}
-.public-body .fg label {
-  color: var(--text-secondary) !important;
-}
-.public-body .fg input,
-.public-body .fg select,
-.public-body .fg textarea {
-  background-color: var(--surface-0) !important;
-  border: 1px solid var(--border-strong) !important;
-  color: var(--text-primary) !important;
-}
-.public-body .fg input:focus,
-.public-body .fg select:focus,
-.public-body .fg textarea:focus {
-  border-color: var(--primary) !important;
-  background-color: var(--surface-2) !important;
-}
 
 /* Responsive Mobile Bottom Nav & Mega Menu Utilities */
 @media (max-width: 768px) {
