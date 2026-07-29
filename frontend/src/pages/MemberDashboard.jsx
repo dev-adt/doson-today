@@ -30,7 +30,6 @@ export const MemberDashboard = () => {
   const [loadingBookmarks, setLoadingBookmarks] = useState(false);
   const [loading, setLoading] = useState(true);
   const [editingPostId, setEditingPostId] = useState(null);
-  const [uploadingImage, setUploadingImage] = useState(false);
   const [updatingProfile, setUpdatingProfile] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
 
@@ -57,6 +56,7 @@ export const MemberDashboard = () => {
   const [creatingPost, setCreatingPost] = useState(false);
 
   const loadBookmarks = async () => {
+    if (!token) return;
     setLoadingBookmarks(true);
     try {
       const res = await fetch('/api/bookmarks', {
@@ -88,6 +88,7 @@ export const MemberDashboard = () => {
   };
 
   const loadDashboardData = async () => {
+    if (!token) return;
     try {
       const res = await fetch('/api/member/dashboard', {
         headers: getAuthHeaders()
@@ -117,7 +118,7 @@ export const MemberDashboard = () => {
             tier_expires_at: m.tier_expires_at || null,
             pending_tier_upgrade: m.pending_tier_upgrade || null
           });
-          setDbStats(data.stats);
+          setDbStats(data.stats || { total_posts: 0, approved_posts: 0, pending_posts: 0, total_views: 0 });
           setMemberPosts(data.posts || []);
         }
       }
@@ -154,9 +155,9 @@ export const MemberDashboard = () => {
       });
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || t('error_occurred'));
+        throw new Error(data.error || 'Lỗi cập nhật hồ sơ');
       }
-      setMessage({ text: t('profile_update_success'), type: 'success' });
+      setMessage({ text: 'Cập nhật hồ sơ thành công!', type: 'success' });
       setProfileData(prev => ({ ...prev, password: '' }));
       loadDashboardData();
     } catch (err) {
@@ -202,29 +203,8 @@ export const MemberDashboard = () => {
     }
   };
 
-  const handleRequestUpgrade = async (targetTier) => {
-    if (!confirm(t('upgrade_confirm_msg')(targetTier))) return;
-
-    try {
-      const res = await fetch('/api/member/upgrade', {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ tier: targetTier })
-      });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        alert(t('upgrade_request_success'));
-        loadDashboardData();
-      } else {
-        alert(data.error || t('upgrade_request_fail'));
-      }
-    } catch (err) {
-      alert(t('error_occurred') + ': ' + err.message);
-    }
-  };
-
   const handleDeletePost = async (id, title) => {
-    if (!confirm(t('delete_post_confirm')(title))) return;
+    if (!confirm(`Bạn có chắc muốn xóa bài "${title}"?`)) return;
     try {
       const res = await fetch(`/api/posts/${id}`, {
         method: 'DELETE',
@@ -239,114 +219,7 @@ export const MemberDashboard = () => {
     }
   };
 
-  const handleNewPostChange = (e) => {
-    const { id, value, type, checked } = e.target;
-    setNewPostData(prev => ({
-      ...prev,
-      [id]: type === 'checkbox' ? (checked ? 1 : 0) : value
-    }));
-  };
-
-  const handleStartEditPost = async (id) => {
-    try {
-      const res = await fetch(`/api/posts/${id}`, {
-        headers: getAuthHeaders()
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.success) {
-          const p = data.data;
-          let parsedTags = '';
-          if (p.tags) {
-            try {
-              const tagsArray = typeof p.tags === 'string' ? JSON.parse(p.tags) : p.tags;
-              parsedTags = Array.isArray(tagsArray) ? tagsArray.join(', ') : '';
-            } catch (err) {
-              parsedTags = '';
-            }
-          }
-          let formattedDeadline = '';
-          if (p.deadline) {
-            formattedDeadline = new Date(p.deadline).toISOString().substring(0, 10);
-          }
-          setNewPostData({
-            title: p.title || '',
-            summary: p.summary || '',
-            body: p.body || '',
-            type: p.type || t('type_find_partner'),
-            category: p.category || '',
-            tags: parsedTags,
-            contact_info: p.contact_info || '',
-            deadline: formattedDeadline,
-            image_url: p.image_url || '',
-            featured_requested: p.featured_requested || 0
-          });
-          setEditingPostId(id);
-          setModalOpen(true);
-        }
-      }
-    } catch (e) {
-      alert(t('error_occurred') + ': ' + e.message);
-    }
-  };
-
-  const handleSubmitAction = async (isDraft) => {
-    if (!newPostData.title) {
-      alert(t('alert_enter_title'));
-      return;
-    }
-    if (!newPostData.body) {
-      alert(t('alert_enter_body'));
-      return;
-    }
-    if (!newPostData.contact_info) {
-      alert(t('alert_enter_contact'));
-      return;
-    }
-
-    setCreatingPost(true);
-    try {
-      const tagsArray = newPostData.tags 
-        ? newPostData.tags.split(',').map(t => t.trim()).filter(Boolean)
-        : [];
-
-      const payload = {
-        ...newPostData,
-        tags: tagsArray,
-        isDraft
-      };
-
-      const url = editingPostId ? `/api/posts/${editingPostId}` : '/api/posts';
-      const method = editingPostId ? 'PUT' : 'POST';
-
-      const res = await fetch(url, {
-        method,
-        headers: getAuthHeaders(),
-        body: JSON.stringify(payload)
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || t('error_occurred'));
-      }
-
-      alert(isDraft ? t('save_draft_success') : t('publish_post_success'));
-      setModalOpen(false);
-      setEditingPostId(null);
-      setNewPostData({
-        title: '', summary: '', body: '', type: t('type_find_partner'),
-        category: '', tags: '', contact_info: '', deadline: '', image_url: '',
-        featured_requested: 0
-      });
-      loadDashboardData();
-    } catch (err) {
-      alert(err.message);
-    } finally {
-      setCreatingPost(false);
-    }
-  };
-
-  const userStatus = profileData.status || user?.status || 'pending';
+  const userStatus = profileData.status || user?.status || 'approved';
   const userTier = profileData.tier || user?.tier || 'Silver';
 
   return (
@@ -361,31 +234,23 @@ export const MemberDashboard = () => {
             <div style={{ textAlign: 'left' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <h1 style={{ fontFamily: 'var(--font-title)', fontSize: '24px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
-                  {t('dashboard_title')}
+                  Bảng Điều Khiển Hội Viên
                 </h1>
                 <span className={`badge ${userTier === 'Platinum' ? 'b-platinum' : userTier === 'Gold' ? 'b-gold' : 'b-silver'}`}>
                   {userTier === 'Platinum' ? '💎 Platinum' : userTier === 'Gold' ? '🏅 Gold' : '🪙 Silver'}
                 </span>
               </div>
               <p style={{ fontSize: '12.5px', color: 'var(--text-muted)', margin: '4px 0 0' }}>
-                {t('manage_account_desc')(profileData.name)}
+                Quản lý thông tin hồ sơ doanh nghiệp & bài viết đăng tải {profileData.name ? `— ${profileData.name}` : ''}
               </p>
             </div>
             
             <button 
-              onClick={() => {
-                setEditingPostId(null);
-                setNewPostData({
-                  title: '', summary: '', body: '', type: t('type_find_partner'),
-                  category: '', tags: '', contact_info: '', deadline: '', image_url: ''
-                });
-                setModalOpen(true);
-              }}
+              onClick={() => navigate('/posts')}
               className="btn btn-primary"
               style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-              disabled={userStatus !== 'approved'}
             >
-              <i className="ti ti-plus"></i> {t('btn_create_new_post')}
+              <i className="ti ti-plus"></i> Đăng bài kết nối giao thương
             </button>
           </div>
         </div>
@@ -393,29 +258,9 @@ export const MemberDashboard = () => {
         <div className="dash-container" style={{ textAlign: 'left' }}>
           {/* Left Column: Edit profile */}
           <div>
-            {userStatus === 'pending' && (
-              <div className="status-banner pending">
-                <i className="ti ti-clock status-icon"></i>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: '14px' }}>{t('pending_account_status_title')}</div>
-                  <div style={{ fontSize: '12px', marginTop: '2px' }}>{t('pending_account_status_desc')}</div>
-                </div>
-              </div>
-            )}
-
-            {userStatus === 'approved' && (
-              <div className="status-banner approved">
-                <i className="ti ti-circle-check status-icon"></i>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: '14px' }}>{t('approved_account_status_title')}</div>
-                  <div style={{ fontSize: '12px', marginTop: '2px' }}>{t('approved_account_status_desc')}</div>
-                </div>
-              </div>
-            )}
-
             <div className="dash-card">
               <div className="card-title">
-                <i className="ti ti-edit"></i> {t('update_profile_title')}
+                <i className="ti ti-edit"></i> Cập nhật thông tin hồ sơ
               </div>
 
               {message.text && (
@@ -432,26 +277,26 @@ export const MemberDashboard = () => {
               <form onSubmit={handleProfileSubmit}>
                 <div className="form-grid">
                   <div className="fg">
-                    <label>{t('label_company_name')}</label>
+                    <label>Tên Doanh nghiệp / Hội viên *</label>
                     <input type="text" id="name" value={profileData.name} onChange={handleProfileChange} required />
                   </div>
                   <div className="fg">
-                    <label>{t('label_tax_code')}</label>
+                    <label>Mã số thuế</label>
                     <input type="text" id="tax_code" value={profileData.tax_code} onChange={handleProfileChange} />
                   </div>
                   <div className="fg">
-                    <label>{t('label_industry')}</label>
+                    <label>Lĩnh vực / Ngành nghề</label>
                     <input type="text" id="industry" value={profileData.industry} onChange={handleProfileChange} />
                   </div>
                   <div className="fg">
-                    <label>{t('label_address')}</label>
+                    <label>Địa chỉ hoạt động</label>
                     <input type="text" id="address" value={profileData.address} onChange={handleProfileChange} />
                   </div>
                 </div>
 
                 <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'flex-end' }}>
                   <button type="submit" className="btn btn-primary" disabled={updatingProfile}>
-                    {updatingProfile ? <><i className="ti ti-loader animate-spin"></i> {t('btn_saving')}</> : <><i className="ti ti-save"></i> {t('btn_save_profile')}</>}
+                    {updatingProfile ? <><i className="ti ti-loader animate-spin"></i> Đang lưu...</> : <><i className="ti ti-save"></i> Lưu cập nhật</>}
                   </button>
                 </div>
               </form>
@@ -496,17 +341,17 @@ export const MemberDashboard = () => {
             {/* Published Posts */}
             <div className="dash-card">
               <div className="card-title">
-                <i className="ti ti-list-details"></i> {t('my_published_posts_title')}
+                <i className="ti ti-list-details"></i> Bài viết & Cơ hội đã đăng
               </div>
 
               {memberPosts.length === 0 ? (
                 <div style={{ padding: '2rem 1rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '12px' }}>
-                  {t('no_posts_published')}
+                  Bạn chưa xuất bản bài viết nào.
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {memberPosts.map(p => (
-                    <div className="post-item" key={p.id}>
+                    <div className="post-item" key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', backgroundColor: 'var(--surface-0)', borderRadius: '8px', border: '1px solid var(--border-strong)' }}>
                       <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
                         <div style={{ fontWeight: '600', fontSize: '13px', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                           {p.title}

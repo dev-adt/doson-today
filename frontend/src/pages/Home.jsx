@@ -310,9 +310,379 @@ export const Home = () => {
           </div>
         </section>
 
+        {/* BLOCK 4 – ĐỒ SƠN HÔM NAY (TIN NHANH & THỜI TIẾT) */}
+        <section style={{ marginBottom: '4rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
+            <div className="glass-card" style={{ padding: '1.5rem', borderRadius: 'var(--radius)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--primary)', letterSpacing: '0.05em' }}>🌤 THỜI TIẾT & BIỂN ĐỒ SƠN</div>
+                <span style={{ fontSize: '10.5px', color: 'var(--emerald-dark)', fontWeight: '600', backgroundColor: 'var(--emerald-bg)', padding: '2px 8px', borderRadius: '99px' }}>An toàn tắm biển</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '1rem' }}>
+                <div style={{ fontSize: '42px', color: 'var(--amber)' }}><i className="ti ti-sun"></i></div>
+                <div>
+                  <div style={{ fontSize: '28px', fontWeight: '800', color: 'var(--text-primary)', lineHeight: '1' }}>28°C</div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Nắng nhẹ, gió biển 12 km/h</div>
+                </div>
+              </div>
+              <p style={{ fontSize: '11.5px', color: 'var(--text-muted)', margin: 0, borderTop: '1px solid var(--border)', paddingTop: '8px' }}>
+                ℹ️ Nguồn: Đài Khí tượng Thủy văn Hải Phòng.
+              </p>
+            </div>
+
+            <div className="glass-card" style={{ padding: '1.5rem', borderRadius: 'var(--radius)', gridColumn: 'span 2' }}>
+              <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--emerald-dark)', letterSpacing: '0.05em', marginBottom: '6px' }}>⚡ ĐỒ SƠN HÔM NAY — CẬP NHẬT NHANH</div>
+              <h3 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '8px' }}>
+                Khai mạc Chuỗi Sự Kiện Du Lịch Hè & Kết Nối Doanh Nghiệp Đồ Sơn 2026
+              </h3>
+              <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: '1.5', marginBottom: '1rem' }}>
+                Chào đón hàng ngàn du khách và hơn 200 doanh nghiệp tham dự triển lãm OCOP và thưởng thức ẩm thực hải sản.
+              </p>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11.5px', color: 'var(--text-muted)' }}>
+                <span>🕒 Cập nhật 2 giờ trước</span>
+                <Link to="/events" style={{ color: 'var(--primary)', fontWeight: '600', textDecoration: 'none' }}>Xem chi tiết sự kiện &gt;</Link>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* BLOCK 5 – KHÁM PHÁ ĐỒ SƠN (6 GIÁ TRỊ BẢN SẮC) */}
+        <section style={{ marginBottom: '4rem' }}>
+          <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+            <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--primary)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>BẢN SẮC ĐỊA PHƯƠNG</div>
+            <h2 style={{ fontFamily: 'var(--font-title)', fontSize: '26px', fontWeight: '700', color: 'var(--text-primary)' }}>Khám phá Đồ Sơn – Điểm đến giàu truyền thống</h2>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
+            {[
+              { title: 'Biển & Cảnh quan', desc: 'Bãi biển Đồ Sơn Khu 1, 2, 3, đảo Hòn Dấu và quần thể sinh thái Đồi Rồng.' },
+              { title: 'Di tích & Lịch sử', desc: 'Bến K15 - điểm xuất phát Tàu Không Số huyền thoại, Tháp Tường Long, Biệt thự Bảo Đại.' },
+              { title: 'Văn hóa & Lễ hội', desc: 'Lễ hội Chọi trâu Đồ Sơn - Di sản văn hóa phi vật thể quốc gia, Lễ hội Đền Bãi Tụ.' },
+              { title: 'Con người Đồ Sơn', desc: 'Người dân miền biển kiên cường, nồng hậu, hiếu khách và sáng tạo.' },
+              { title: 'Câu chuyện địa phương', desc: 'Những giai thoại truyền thuyết, dấu ấn thời gian và khát vọng vươn xa của Đồ Sơn.' },
+              { title: 'Đồ Sơn Xưa & Nay', desc: 'Hành trình lột xác thành trung tâm du lịch - kinh tế hiện đại của Hải Phòng.' }
+            ].map((c, idx) => (
+              <div key={idx} className="glass-card" style={{ padding: '1.25rem', borderRadius: 'var(--radius)' }}>
+                <h4 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '6px' }}>{c.title}</h4>
+                <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '1.5', margin: 0 }}>{c.desc}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* BLOCK 6 – DU LỊCH VÀ TRẢI NGHIỆM */}
+        <section id="tourism-block" style={{ marginBottom: '4rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+            <div>
+              <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--primary)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>TRẢI NGHIỆM DU LỊCH</div>
+              <h2 style={{ fontFamily: 'var(--font-title)', fontSize: '26px', fontWeight: '700', color: 'var(--text-primary)' }}>Điểm đến, Lưu trú & Ẩm thực nổi bật</h2>
+            </div>
+            <Link to="/search?q=du-lich" className="btn btn-primary" style={{ padding: '8px 16px', fontSize: '12px', textDecoration: 'none' }}>
+              Khám phá tất cả dịch vụ
+            </Link>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '20px' }}>
+            {[
+              { title: 'Khu du lịch Quốc tế Đồi Rồng (Dragon Ocean)', cat: 'Resort & Vui chơi', price: 'Từ 1.200.000 VNĐ', badge: 'Xác thực ✔' },
+              { title: 'Nhà hàng Hải sản Vạn Hương Đồ Sơn', cat: 'Ẩm thực biển', price: '250.000 - 600.000 VNĐ', badge: 'Xác thực ✔' },
+              { title: 'Đảo Hòn Dấu & Bến K15 Tàu Không Số', cat: 'Di tích & Danh thắng', price: 'Vé tham quan 50k', badge: 'Điểm đến tiêu biểu' }
+            ].map((item, idx) => (
+              <div key={idx} className="glass-card" style={{ padding: '1.25rem', borderRadius: 'var(--radius)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <span style={{ fontSize: '10.5px', fontWeight: '700', color: 'var(--primary)', backgroundColor: 'rgba(2, 132, 199, 0.1)', padding: '2px 6px', borderRadius: '4px' }}>{item.cat}</span>
+                  <span style={{ fontSize: '10.5px', color: 'var(--emerald-dark)', fontWeight: '600' }}>{item.badge}</span>
+                </div>
+                <h4 style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '4px' }}>{item.title}</h4>
+                <div style={{ fontSize: '12px', color: 'var(--amber-dark)', fontWeight: '600', marginBottom: '12px' }}>💰 {item.price}</div>
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  <Link to="/ai-chat?q=Cho toi biet chi tiet ve " className="btn" style={{ flex: 1, padding: '6px', fontSize: '11px', textAlign: 'center', textDecoration: 'none', backgroundColor: 'rgba(2,132,199,0.1)', color: 'var(--primary-dark)' }}>
+                    🤖 Hỏi AI
+                  </Link>
+                  <a href="#map-block" className="btn" style={{ padding: '6px 10px', fontSize: '11px', textDecoration: 'none', backgroundColor: 'var(--surface-0)', color: 'var(--text-secondary)' }}>
+                    📍 Chỉ đường
+                  </a>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* BLOCK 7 – HÀNH TRÌNH GỢI Ý */}
+        <section id="itinerary-block" style={{ marginBottom: '4rem' }}>
+          <div className="glass-card" style={{ padding: '2rem', borderRadius: 'var(--radius-lg)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+              <div>
+                <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--primary)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>GỢI Ý LỊCH TRÌNH</div>
+                <h2 style={{ fontFamily: 'var(--font-title)', fontSize: '24px', fontWeight: '700', color: 'var(--text-primary)' }}>Tour mẫu trải nghiệm Đồ Sơn</h2>
+              </div>
+              <button onClick={() => setItineraryModalOpen(true)} className="btn btn-primary" style={{ padding: '8px 16px', fontSize: '12px' }}>
+                ✨ Tùy chỉnh lịch trình bằng AI
+              </button>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px' }}>
+              {[
+                { name: 'Đồ Sơn 1 Ngày trọn vẹn', stops: 'Biển Khu 2 ➔ Tháp Tường Long ➔ Ăn hải sản Vạn Hương ➔ Hoàng hôn Hòn Dấu', duration: '1 Ngày (Sáng - Tối)' },
+                { name: 'Hành trình 2N1Đ Nghỉ dưỡng Đồi Rồng', stops: 'Check-in Dragon Ocean ➔ Công viên nước ➔ Biệt thự Bảo Đại ➔ Đêm nhạc biển', duration: '2 Ngày 1 Đêm' },
+                { name: 'Tour Khám phá Ẩm thực & OCOP Đồ Sơn', stops: 'Chợ hải sản Đồ Sơn ➔ Làng làm chả cá ➔ Vườn Táo Bàng ➔ Thưởng thức bún tôm', duration: '1/2 Ngày' }
+              ].map((it, idx) => (
+                <div key={idx} style={{ backgroundColor: 'var(--surface-0)', border: '1px solid var(--border-strong)', borderRadius: '12px', padding: '1.25rem' }}>
+                  <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--emerald-dark)', marginBottom: '4px' }}>⏱ {it.duration}</div>
+                  <h4 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '8px' }}>{it.name}</h4>
+                  <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '1.5', marginBottom: '1rem' }}>📍 {it.stops}</p>
+                  <button onClick={() => setItineraryModalOpen(true)} className="btn" style={{ width: '100%', padding: '6px', fontSize: '11.5px', backgroundColor: 'var(--surface-2)', color: 'var(--text-primary)' }}>
+                    💾 Lưu hành trình này
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* BLOCK 8 – DOANH NGHIỆP VÀ SẢN PHẨM TIÊU BIỂU (SHOWROOM SỐ) */}
+        <section id="business-block" style={{ marginBottom: '4rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+            <div>
+              <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--primary)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>SHOWROOM SỐ ĐỒ SƠN</div>
+              <h2 style={{ fontFamily: 'var(--font-title)', fontSize: '26px', fontWeight: '700', color: 'var(--text-primary)' }}>Doanh nghiệp & Sản phẩm OCOP tiêu biểu</h2>
+            </div>
+            <button onClick={() => setOcopModalOpen(true)} className="btn btn-primary" style={{ padding: '8px 16px', fontSize: '12px' }}>
+              Xem toàn bộ Sản phẩm OCOP
+            </button>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '20px' }}>
+            {[
+              { name: 'HTX Nông nghiệp Đồ Sơn - Táo Bàng OCOP 4★', type: 'Sản phẩm OCOP địa phương', badge: 'Hồ sơ đã xác thực ✔', desc: 'Đặc sản Táo Bàng ngọt thanh nổi tiếng Đồ Sơn, chuẩn vệ sinh an toàn thực phẩm.' },
+              { name: 'Công ty CP Du lịch & Dịch vụ Hải Phòng', type: 'Doanh nghiệp Tiêu biểu', badge: 'Thành viên Vàng ⭐', desc: 'Kinh doanh chuỗi nhà hàng, khách sạn và tour lữ hành nội địa Đồ Sơn.' },
+              { name: 'Cơ sở Chả Cá Thu & Nước Mắm Vạn Vân', type: 'Đặc sản truyền thống', badge: 'Hồ sơ đã xác thực ✔', desc: 'Nước mắm chắt Vạn Vân và chả cá thu Đồ Sơn nguyên chất không chất bảo quản.' }
+            ].map((b, idx) => (
+              <div key={idx} className="glass-card" style={{ padding: '1.25rem', borderRadius: 'var(--radius)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '10.5px', fontWeight: '700', color: 'var(--primary)', backgroundColor: 'rgba(2, 132, 199, 0.1)', padding: '2px 6px', borderRadius: '4px' }}>{b.type}</span>
+                  <span style={{ fontSize: '10.5px', color: 'var(--emerald-dark)', fontWeight: '600' }}>{b.badge}</span>
+                </div>
+                <h4 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '6px' }}>{b.name}</h4>
+                <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '1.5', marginBottom: '1rem' }}>{b.desc}</p>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <Link to="/members" className="btn btn-primary" style={{ flex: 1, padding: '6px', fontSize: '11.5px', textAlign: 'center', textDecoration: 'none' }}>Xem hồ sơ</Link>
+                  <a href="tel:0986354152" className="btn" style={{ padding: '6px 12px', fontSize: '11.5px', textDecoration: 'none', backgroundColor: 'var(--surface-0)', color: 'var(--text-secondary)' }}>Liên hệ</a>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* BLOCK 9 – CƠ HỘI ĐẦU TƯ VÀ HỢP TÁC */}
+        <section id="investment-block" style={{ marginBottom: '4rem' }}>
+          <div className="glass-card" style={{ padding: '2rem', borderRadius: 'var(--radius-lg)', background: 'linear-gradient(135deg, rgba(7, 22, 44, 0.95) 0%, rgba(12, 35, 64, 0.95) 100%)', color: '#E2F0FF' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+              <div>
+                <div style={{ fontSize: '11px', fontWeight: '700', color: '#38BDF8', letterSpacing: '0.08em', textTransform: 'uppercase' }}>XÚC TIẾN ĐẦU TƯ & HỢP TÁC</div>
+                <h2 style={{ fontFamily: 'var(--font-title)', fontSize: '24px', fontWeight: '700', color: '#fff', margin: 0 }}>Dự án & Cơ hội hợp tác kinh doanh</h2>
+              </div>
+              <Link to="/posts" className="btn btn-primary" style={{ padding: '8px 16px', fontSize: '12px', textDecoration: 'none' }}>
+                ➕ Đăng đề xuất hợp tác
+              </Link>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
+              {[
+                { title: 'Tìm đối tác phân phối sản phẩm OCOP Táo Bàng Đồ Sơn', entity: 'HTX Nông nghiệp Đồ Sơn', target: 'Các chuỗi siêu thị, đại lý nông sản toàn quốc', deadline: '31/12/2026' },
+                { title: 'Hợp tác đầu tư chuỗi ki-ốt ẩm thực & kinh tế đêm Đồ Sơn', entity: 'Công ty Đầu tư Du lịch Đồ Sơn', target: 'Nhà đầu tư F&B, thương hiệu giải trí', deadline: '15/10/2026' },
+                { title: 'Cho thuê mặt bằng thương mại Khu 2 Đồ Sơn nhìn ra biển', entity: 'Ban Quản lý Hạ tầng Đồ Sơn', target: 'Doanh nghiệp lưu trú, quán cafe chuỗi', deadline: '30/09/2026' }
+              ].map((inv, idx) => (
+                <div key={idx} style={{ backgroundColor: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', padding: '1.25rem' }}>
+                  <div style={{ fontSize: '10.5px', color: '#38BDF8', fontWeight: '700', marginBottom: '4px' }}>🏢 {inv.entity}</div>
+                  <h4 style={{ fontSize: '14.5px', fontWeight: '700', color: '#fff', marginBottom: '8px' }}>{inv.title}</h4>
+                  <div style={{ fontSize: '11.5px', color: '#93B4D4', marginBottom: '4px' }}>🎯 Đối tượng: {inv.target}</div>
+                  <div style={{ fontSize: '11px', color: '#FCA5A5', marginBottom: '1rem' }}>⌛ Thời hạn: {inv.deadline}</div>
+                  <Link to="/posts" className="btn btn-primary" style={{ display: 'block', padding: '6px', fontSize: '11.5px', textAlign: 'center', textDecoration: 'none' }}>
+                    🤝 Đề nghị kết nối ngay
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* BLOCK 10 – SỰ KIỆN VÀ LỄ HỘI */}
+        <section style={{ marginBottom: '4rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+            <div>
+              <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--primary)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>LỊCH SỰ KIỆN VÀ LỄ HỘI</div>
+              <h2 style={{ fontFamily: 'var(--font-title)', fontSize: '26px', fontWeight: '700', color: 'var(--text-primary)' }}>Sự kiện nổi bật sắp diễn ra</h2>
+            </div>
+            <Link to="/events" className="btn btn-primary" style={{ padding: '8px 16px', fontSize: '12px', textDecoration: 'none' }}>
+              Xem toàn bộ lịch sự kiện
+            </Link>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '20px' }}>
+            {events.length > 0 ? (
+              events.slice(0, 4).map((ev) => (
+                <div key={ev.id} className="glass-card" style={{ padding: '1.25rem', borderRadius: 'var(--radius)' }}>
+                  <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--emerald-dark)', backgroundColor: 'var(--emerald-bg)', padding: '2px 8px', borderRadius: '4px', display: 'inline-block', marginBottom: '8px' }}>
+                    📅 {ev.event_date ? new Date(ev.event_date).toLocaleDateString('vi-VN') : 'Sắp diễn ra'}
+                  </div>
+                  <h4 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '6px' }}>{ev.title}</h4>
+                  <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '1.4', marginBottom: '1rem', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{ev.description}</p>
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    <button onClick={() => handleAddToCalendar(ev.title, ev.event_date)} className="btn btn-primary" style={{ flex: 1, padding: '6px', fontSize: '11px' }}>
+                      📅 Thêm vào lịch
+                    </button>
+                    <Link to="/events" className="btn" style={{ padding: '6px 10px', fontSize: '11px', textDecoration: 'none', backgroundColor: 'var(--surface-0)', color: 'var(--text-secondary)' }}>
+                      Chi tiết
+                    </Link>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div style={{ padding: '1.5rem', color: 'var(--text-muted)' }}>Đang tải danh sách sự kiện Đồ Sơn...</div>
+            )}
+          </div>
+        </section>
+
+        {/* BLOCK 11 – CỘNG ĐỒNG DOSON.TODAY */}
+        <section id="community-block" style={{ marginBottom: '4rem' }}>
+          <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+            <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--primary)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>CỘNG ĐỒNG ĐỒ SƠN</div>
+            <h2 style={{ fontFamily: 'var(--font-title)', fontSize: '26px', fontWeight: '700', color: 'var(--text-primary)' }}>Mạng lưới thành viên & Người Đồ Sơn xa quê</h2>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '20px' }}>
+            {[
+              { title: 'Hội đồng Người Đồ Sơn xa quê', desc: 'Kết nối hàng ngàn người con Đồ Sơn đang sinh sống, làm việc tại Hà Nội, TP.HCM và nước ngoài.' },
+              { title: 'Mạng lưới Chuyên gia & Cố vấn', desc: 'Các chuyên gia du lịch, kinh tế, quy hoạch và công nghệ gốc Đồ Sơn đồng hành phát triển quê hương.' },
+              { title: 'CLB Doanh nhân & Nghệ nhân địa phương', desc: 'Giao lưu hợp tác thương mại, giữ gìn làng nghề truyền thống và nâng tầm thương hiệu Đồ Sơn.' }
+            ].map((com, idx) => (
+              <div key={idx} className="glass-card" style={{ padding: '1.5rem', borderRadius: 'var(--radius)' }}>
+                <h4 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '8px' }}>{com.title}</h4>
+                <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: '1.5', marginBottom: '1.2rem' }}>{com.desc}</p>
+                <Link to="/members" className="btn btn-primary" style={{ padding: '6px 14px', fontSize: '11.5px', textDecoration: 'none', display: 'inline-block' }}>
+                  Tham gia cộng đồng
+                </Link>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* BLOCK 12 – TIN TỨC VÀ CÂU CHUYỆN NỔI BẬT */}
+        <section style={{ marginBottom: '4rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+            <div>
+              <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--primary)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>TIN TỨC TIÊU ĐIỂM</div>
+              <h2 style={{ fontFamily: 'var(--font-title)', fontSize: '26px', fontWeight: '700', color: 'var(--text-primary)' }}>Bài viết & Câu chuyện nổi bật</h2>
+            </div>
+            <Link to="/posts" className="btn btn-primary" style={{ padding: '8px 16px', fontSize: '12px', textDecoration: 'none' }}>
+              Tất cả tin tức
+            </Link>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '20px' }}>
+            {latestPosts.map((post) => (
+              <div key={post.id} className="glass-card" style={{ padding: '1.25rem', borderRadius: 'var(--radius)' }}>
+                <div style={{ fontSize: '10.5px', fontWeight: '700', color: 'var(--primary)', backgroundColor: 'rgba(2, 132, 199, 0.1)', padding: '2px 6px', borderRadius: '4px', display: 'inline-block', marginBottom: '6px' }}>
+                  {post.category_name || 'Tin tức'}
+                </div>
+                <h4 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '6px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{post.title}</h4>
+                <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '1.4', marginBottom: '1rem', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{post.summary || post.body}</p>
+                <Link to={`/posts/${post.id}`} style={{ color: 'var(--primary)', fontWeight: '600', fontSize: '12px', textDecoration: 'none' }}>
+                  Đọc tiếp &gt;
+                </Link>
+              </div>
+            ))}
+          </div>
+        </section>
+
         {/* BLOCK 13 – BẢN ĐỒ SỐ ĐỒ SƠN */}
         <section id="map-block" style={{ marginBottom: '4rem' }}>
           <DosonMap />
+        </section>
+
+        {/* BLOCK 14 – KẾT NỐI VỚI DOSON.TODAY (4 LUỒNG CHUYỂN ĐỔI) */}
+        <section style={{ marginBottom: '4rem' }}>
+          <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+            <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--primary)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>THAM GIA HỆ SINH THÁI</div>
+            <h2 style={{ fontFamily: 'var(--font-title)', fontSize: '26px', fontWeight: '700', color: 'var(--text-primary)' }}>Lựa chọn vai trò tham gia cùng Doson.today</h2>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px' }}>
+            {[
+              { role: 'Dành cho Cá nhân', desc: 'Đăng ký tài khoản thành viên để lưu lịch trình, tương tác AI và nhận ưu đãi.', btn: 'Đăng ký thành viên', link: '/register', color: '#0284C7' },
+              { role: 'Dành cho Doanh nghiệp', desc: 'Tạo hồ sơ doanh nghiệp, niêm yết sản phẩm OCOP và mở rộng thị trường.', btn: 'Tạo hồ sơ DN', link: '/register', color: '#10B981' },
+              { role: 'Dành cho Nhà đầu tư', desc: 'Tiếp cận các cơ hội đầu tư hạ tầng, du lịch và kết nối với đối tác địa phương.', btn: 'Gửi nhu cầu kết nối', link: '#investment-block', color: '#F59E0B' },
+              { role: 'Dành cho Người đóng góp', desc: 'Gửi bài viết, hình ảnh, câu chuyện bản sắc và sáng kiến phát triển Đồ Sơn.', btn: 'Đóng góp nội dung', link: '/register', color: '#8B5CF6' }
+            ].map((card, idx) => (
+              <div key={idx} className="glass-card" style={{ padding: '1.5rem', borderRadius: 'var(--radius)', borderTop: `4px solid ${card.color}` }}>
+                <h4 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '8px' }}>{card.role}</h4>
+                <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '1.5', marginBottom: '1.2rem' }}>{card.desc}</p>
+                <Link to={card.link} className="btn btn-primary" style={{ width: '100%', padding: '8px', fontSize: '12px', textDecoration: 'none', display: 'block', textAlign: 'center' }}>
+                  {card.btn}
+                </Link>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* BLOCK 15 – ĐĂNG KÝ NHẬN BẢN TIN (NEWSLETTER) */}
+        <section id="newsletter-block" style={{ marginBottom: '4rem' }}>
+          <div className="glass-card" style={{ padding: '2.5rem', borderRadius: 'var(--radius-lg)', background: 'linear-gradient(135deg, #07162C 0%, #0C2340 100%)', color: '#E2F0FF', textAlign: 'center', maxWidth: '750px', margin: '0 auto' }}>
+            <div style={{ fontSize: '11px', fontWeight: '700', color: '#38BDF8', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '6px' }}>
+              📧 BẢN TIN CỦA DOSON.TODAY
+            </div>
+            <h2 style={{ fontFamily: 'var(--font-title)', fontSize: '24px', fontWeight: '700', color: '#fff', marginBottom: '8px' }}>
+              Cập nhật thông tin mới nhất từ Đồ Sơn
+            </h2>
+            <p style={{ fontSize: '13px', color: '#93B4D4', marginBottom: '1.5rem' }}>
+              Nhận bản tin sự kiện, ưu đãi du lịch, thông tin doanh nghiệp và cơ hội đầu tư định kỳ trực tiếp qua Email.
+            </p>
+
+            <form onSubmit={handleNewsletterSubmit}>
+              <div style={{ display: 'flex', gap: '8px', maxWidth: '520px', margin: '0 auto 1rem' }}>
+                <input 
+                  type="email"
+                  placeholder="Nhập địa chỉ Email của bạn..."
+                  value={newsletterEmail}
+                  onChange={(e) => setNewsletterEmail(e.target.value)}
+                  required
+                  style={{ flex: 1, padding: '12px 16px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.2)', backgroundColor: 'rgba(255,255,255,0.06)', color: '#fff', fontSize: '13px', outline: 'none' }}
+                />
+                <button type="submit" className="btn btn-primary" style={{ padding: '0 24px', fontSize: '13px', whiteSpace: 'nowrap' }}>
+                  Đăng ký ngay
+                </button>
+              </div>
+
+              {newsletterSubmitted && (
+                <div style={{ color: '#10B981', fontSize: '12.5px', fontWeight: '600', marginBottom: '1rem' }}>
+                  ✓ Cảm ơn bạn đã đăng ký nhận bản tin thành công!
+                </div>
+              )}
+
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', flexWrap: 'wrap', fontSize: '11.5px', color: '#93B4D4' }}>
+                <span>Chủ đề quan tâm:</span>
+                <label style={{ cursor: 'pointer', color: '#D1E5F7' }}><input type="checkbox" defaultChecked /> Tin tức Đồ Sơn</label>
+                <label style={{ cursor: 'pointer', color: '#D1E5F7' }}><input type="checkbox" defaultChecked /> Du lịch & Sự kiện</label>
+                <label style={{ cursor: 'pointer', color: '#D1E5F7' }}><input type="checkbox" defaultChecked /> Doanh nghiệp & OCOP</label>
+                <label style={{ cursor: 'pointer', color: '#D1E5F7' }}><input type="checkbox" /> Cơ hội đầu tư</label>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        {/* BLOCK 16 – ĐỐI TÁC ĐỒNG HÀNH */}
+        <section style={{ marginBottom: '4rem', textAlign: 'center' }}>
+          <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '1rem' }}>
+            ĐƠN VỊ SÁNG LẬP & ĐỐI TÁC ĐỒNG HÀNH
+          </div>
+          
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '2rem', flexWrap: 'wrap', opacity: 0.85 }}>
+            <div style={{ fontWeight: '700', fontSize: '15px', color: 'var(--text-primary)' }}>ADT GROUP</div>
+            <div style={{ fontWeight: '700', fontSize: '15px', color: 'var(--primary)' }}>DOSON TOURISM</div>
+            <div style={{ fontWeight: '700', fontSize: '15px', color: 'var(--emerald-dark)' }}>OCOP HẢI PHÒNG</div>
+            <div style={{ fontWeight: '700', fontSize: '15px', color: 'var(--amber-dark)' }}>HIỆP HỘI DOANH NGHIỆP ĐỒ SƠN</div>
+          </div>
         </section>
 
       </div>
