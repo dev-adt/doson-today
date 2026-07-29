@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -166,18 +167,17 @@ export const DosonMap = () => {
   ];
 
   // Helper function to setup Leaflet map locked strictly to Đồ Sơn bounds
-  const createLeafletMap = (containerElement, isFullscreenMap = false) => {
+  const createLeafletMap = (containerElement) => {
     if (!window.L || !containerElement) return null;
     const L = window.L;
 
-    // Centered at Đồ Sơn
     const map = L.map(containerElement, {
       center: [20.700, 106.785],
       zoom: 13,
       minZoom: 12,
       maxZoom: 18,
       zoomControl: true,
-      maxBoundsViscosity: 1.0 // Strict elastic wall preventing panning outside Đồ Sơn
+      maxBoundsViscosity: 1.0 // Hard wall preventing panning outside Đồ Sơn
     });
 
     // CartoDB Voyager Tile Layer
@@ -215,8 +215,8 @@ export const DosonMap = () => {
 
         // LOCK MAP STRICTLY TO ĐỒ SƠN GEOJSON BOUNDS
         const bounds = geoLayer.getBounds();
-        map.fitBounds(bounds, { padding: [15, 15] });
-        map.setMaxBounds(bounds.pad(0.12)); // Only allow panning within 12% margin around Đồ Sơn
+        map.fitBounds(bounds, { padding: [20, 20] });
+        map.setMaxBounds(bounds.pad(0.12));
       })
       .catch(err => console.error("Lỗi nạp file GeoJSON Đồ Sơn:", err));
 
@@ -328,15 +328,29 @@ export const DosonMap = () => {
     };
   }, []);
 
-  // Initialize Fullscreen Map when modal opens
+  // Initialize Fullscreen Map with invalidateSize & body scroll lock
   useEffect(() => {
     if (isFullscreen) {
-      setTimeout(() => {
-        if (fullscreenMapContainerRef.current && !fullscreenMapInstanceRef.current) {
-          fullscreenMapInstanceRef.current = createLeafletMap(fullscreenMapContainerRef.current, true);
+      document.body.style.overflow = 'hidden';
+
+      const timer = setTimeout(() => {
+        if (fullscreenMapContainerRef.current) {
+          if (!fullscreenMapInstanceRef.current) {
+            fullscreenMapInstanceRef.current = createLeafletMap(fullscreenMapContainerRef.current);
+          }
+          if (fullscreenMapInstanceRef.current) {
+            fullscreenMapInstanceRef.current.invalidateSize();
+            if (geoJsonLayerRef.current) {
+              const bounds = geoJsonLayerRef.current.getBounds();
+              fullscreenMapInstanceRef.current.fitBounds(bounds, { padding: [20, 20] });
+            }
+          }
         }
-      }, 100);
+      }, 150);
+
+      return () => clearTimeout(timer);
     } else {
+      document.body.style.overflow = '';
       if (fullscreenMapInstanceRef.current) {
         fullscreenMapInstanceRef.current.remove();
         fullscreenMapInstanceRef.current = null;
@@ -599,19 +613,19 @@ export const DosonMap = () => {
         )}
       </div>
 
-      {/* FULLSCREEN MAP MODAL OVERLAY */}
-      {isFullscreen && (
+      {/* FULLSCREEN MAP PORTAL OVERLAY - MOUNTED DIRECTLY TO DOCUMENT.BODY */}
+      {isFullscreen && createPortal(
         <div style={{
           position: 'fixed',
           top: 0,
           left: 0,
-          right: 0,
-          bottom: 0,
+          width: '100vw',
+          height: '100vh',
           backgroundColor: '#07162C',
-          zIndex: 99999,
+          zIndex: 999999,
           display: 'flex',
           flexDirection: 'column',
-          animation: 'fadeIn 0.2s ease-out'
+          boxSizing: 'border-box'
         }}>
           {/* Fullscreen Header Controls */}
           <div style={{
@@ -622,13 +636,14 @@ export const DosonMap = () => {
             alignItems: 'center',
             justifyContent: 'space-between',
             flexWrap: 'wrap',
-            gap: '12px'
+            gap: '12px',
+            flexShrink: 0
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <i className="ti ti-map-2" style={{ fontSize: '20px', color: '#38BDF8' }}></i>
               <div>
-                <div style={{ fontSize: '15px', fontWeight: '800', color: '#FFFFFF' }}>BẢN ĐỒ SỐ ĐỒ SƠN — CHẾ ĐỘ TOÀN MÀN HÌNH</div>
-                <div style={{ fontSize: '11px', color: '#93B4D4' }}>Khóa giới hạn bán đảo Đồ Sơn & hiển thị ranh giới GeoJSON chính xác</div>
+                <div style={{ fontSize: '15px', fontWeight: '800', color: '#FFFFFF' }}>BẢN ĐỒ SỐ ĐỒ SƠN — CHẾ ĐỘ TOÀN MÀN HÌNH CHÍNH XÁC</div>
+                <div style={{ fontSize: '11px', color: '#93B4D4' }}>Khóa giới hạn bán đảo Đồ Sơn & hiển thị ranh giới GeoJSON chuẩn xác</div>
               </div>
             </div>
 
@@ -636,7 +651,7 @@ export const DosonMap = () => {
               <button 
                 onClick={handleGetLocation}
                 className="btn"
-                style={{ padding: '6px 12px', fontSize: '12px', backgroundColor: 'rgba(16,185,129,0.15)', color: '#10B981', borderColor: 'rgba(16,185,129,0.4)' }}
+                style={{ padding: '6px 12px', fontSize: '12px', backgroundColor: 'rgba(16,185,129,0.15)', color: '#10B981', borderColor: 'rgba(16,185,129,0.4)', cursor: 'pointer' }}
               >
                 <i className="ti ti-current-location"></i> GPS Định Vị
               </button>
@@ -644,7 +659,7 @@ export const DosonMap = () => {
               <button 
                 onClick={() => setIsFullscreen(false)}
                 className="btn"
-                style={{ padding: '6px 16px', fontSize: '12px', backgroundColor: 'rgba(239,68,68,0.15)', color: '#FCA5A5', borderColor: 'rgba(239,68,68,0.4)' }}
+                style={{ padding: '6px 16px', fontSize: '12px', backgroundColor: 'rgba(239,68,68,0.15)', color: '#FCA5A5', borderColor: 'rgba(239,68,68,0.4)', cursor: 'pointer' }}
               >
                 <i className="ti ti-minimize"></i> Thu Nhỏ (Thoát)
               </button>
@@ -652,7 +667,7 @@ export const DosonMap = () => {
           </div>
 
           {/* Fullscreen Layer Chips */}
-          <div style={{ padding: '10px 20px', backgroundColor: '#07192F', display: 'flex', gap: '8px', overflowX: 'auto' }}>
+          <div style={{ padding: '10px 20px', backgroundColor: '#07192F', display: 'flex', gap: '8px', overflowX: 'auto', flexShrink: 0 }}>
             {categories.map(c => (
               <button
                 key={c.key}
@@ -675,7 +690,7 @@ export const DosonMap = () => {
           </div>
 
           {/* Fullscreen Map Viewport Container */}
-          <div style={{ flex: 1, position: 'relative', width: '100%' }}>
+          <div style={{ flex: 1, position: 'relative', width: '100%', height: '100%' }}>
             <div 
               ref={fullscreenMapContainerRef}
               style={{ width: '100%', height: '100%', background: '#091E3A' }}
@@ -696,7 +711,7 @@ export const DosonMap = () => {
                   padding: '14px 18px',
                   color: '#E2F0FF',
                   boxShadow: '0 12px 36px rgba(0,0,0,0.7)',
-                  zIndex: 100000
+                  zIndex: 1000000
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
@@ -715,7 +730,7 @@ export const DosonMap = () => {
                   <button 
                     onClick={() => handleSavePinBookmark(selectedPin)}
                     className="btn"
-                    style={{ padding: '6px 12px', fontSize: '12px', backgroundColor: 'rgba(239,68,68,0.15)', color: '#FCA5A5', borderColor: 'rgba(239,68,68,0.3)' }}
+                    style={{ padding: '6px 12px', fontSize: '12px', backgroundColor: 'rgba(239,68,68,0.15)', color: '#FCA5A5', borderColor: 'rgba(239,68,68,0.3)', cursor: 'pointer' }}
                   >
                     ❤️ Lưu địa điểm
                   </button>
@@ -725,7 +740,7 @@ export const DosonMap = () => {
                       navigate('/ai-chat?q=' + encodeURIComponent(`Hướng dẫn chi tiết di chuyển tới ${selectedPin.title}`));
                     }}
                     className="btn btn-primary"
-                    style={{ padding: '6px 14px', fontSize: '12px' }}
+                    style={{ padding: '6px 14px', fontSize: '12px', cursor: 'pointer' }}
                   >
                     <i className="ti ti-robot"></i> Hỏi Trợ lý AI
                   </button>
@@ -733,7 +748,8 @@ export const DosonMap = () => {
               </div>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
