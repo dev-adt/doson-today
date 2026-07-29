@@ -86,7 +86,7 @@ export const MemberDashboard = () => {
             tier_expires_at: m.tier_expires_at || null,
             pending_tier_upgrade: m.pending_tier_upgrade || null
           });
-          setDbStats(data.stats);
+          setDbStats(data.stats || { total_posts: 0, approved_posts: 0, pending_posts: 0, total_views: 0 });
           setMemberPosts(data.posts || []);
         }
       }
@@ -94,6 +94,43 @@ export const MemberDashboard = () => {
       console.error("Error loading member dashboard data", e);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadBookmarks = async () => {
+    if (!token) return;
+    setLoadingBookmarks(true);
+    try {
+      const res = await fetch('/api/bookmarks', {
+        headers: getAuthHeaders()
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          setBookmarks(data.bookmarks || []);
+        }
+      }
+    } catch (e) {
+      console.error("Error loading member bookmarks", e);
+    } finally {
+      setLoadingBookmarks(false);
+    }
+  };
+
+  const handleDeleteBookmark = async (bookmarkId) => {
+    try {
+      const res = await fetch(`/api/bookmarks/${bookmarkId}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setBookmarks(prev => prev.filter(b => b.id !== bookmarkId));
+      } else {
+        alert(data.error || 'Không thể xóa bookmark.');
+      }
+    } catch (e) {
+      alert('Lỗi: ' + e.message);
     }
   };
 
@@ -126,7 +163,6 @@ export const MemberDashboard = () => {
         throw new Error(data.error || t('error_occurred'));
       }
       setMessage({ text: t('profile_update_success'), type: 'success' });
-      // Clear password input
       setProfileData(prev => ({ ...prev, password: '' }));
       loadDashboardData();
     } catch (err) {
@@ -218,44 +254,6 @@ export const MemberDashboard = () => {
       ...prev,
       [id]: value
     }));
-  };
-
-  const handleFileUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    if (file.size > 2 * 1024 * 1024) {
-      alert(t('err_image_size'));
-      return;
-    }
-
-    setUploadingImage(true);
-    const reader = new FileReader();
-    reader.onloadend = async () => {
-      try {
-        const base64Data = reader.result.split(',')[1];
-        const res = await fetch('/api/upload', {
-          method: 'POST',
-          headers: getAuthHeaders(),
-          body: JSON.stringify({
-            fileName: file.name,
-            fileType: file.type,
-            base64Data
-          })
-        });
-        const data = await res.json();
-        if (res.ok && data.success) {
-          setNewPostData(prev => ({ ...prev, image_url: data.url }));
-        } else {
-          alert(data.error || t('error_occurred'));
-        }
-      } catch (err) {
-        alert(t('error_occurred') + ': ' + err.message);
-      } finally {
-        setUploadingImage(false);
-      }
-    };
-    reader.readAsDataURL(file);
   };
 
   const handleStartEditPost = async (id) => {
@@ -362,9 +360,9 @@ export const MemberDashboard = () => {
 
   if (loading) {
     return (
-      <div style={{ height: '100vh', backgroundColor: '#0F172A', color: '#F8FAFC', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-        <i className="ti ti-loader animate-spin" style={{ fontSize: '32px', marginBottom: '12px', color: '#1E88E5' }}></i>
-        <div style={{ fontSize: '13px', color: '#64748B' }}>Đang tải dữ liệu Dashboard...</div>
+      <div style={{ height: '100vh', backgroundColor: 'var(--bg-base)', color: 'var(--text-primary)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+        <i className="ti ti-loader animate-spin" style={{ fontSize: '36px', marginBottom: '16px', color: 'var(--primary)' }}></i>
+        <div style={{ fontSize: '14px', color: 'var(--text-secondary)', fontWeight: '600' }}>Đang tải dữ liệu Dashboard Hội viên...</div>
       </div>
     );
   }
@@ -383,24 +381,24 @@ export const MemberDashboard = () => {
           <div className="public-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1.5rem' }}>
             <div style={{ textAlign: 'left' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <h1 style={{ fontFamily: 'var(--font-title)', fontSize: '24px', fontWeight: 800, color: '#fff', margin: 0 }}>
+                <h1 style={{ fontFamily: 'var(--font-title)', fontSize: '24px', fontWeight: 800, color: '#ffffff', margin: 0 }}>
                   {t('dashboard_title')}
                 </h1>
                 <span className={`badge ${userTier === 'Platinum' ? 'b-platinum' : userTier === 'Gold' ? 'b-gold' : 'b-silver'}`} style={{ marginRight: '8px' }}>
                   {userTier === 'Platinum' ? '💎 ' + t('tier_platinum') : userTier === 'Gold' ? '🏅 ' + t('tier_gold') : '🪙 ' + t('tier_silver')}
                 </span>
                 {profileData.tier_expires_at && userTier !== 'Silver' && !isNaN(new Date(profileData.tier_expires_at).getTime()) && (
-                  <span style={{ fontSize: '11px', color: 'var(--text-muted)', backgroundColor: 'rgba(255,255,255,0.05)', padding: '4px 10px', borderRadius: '4px', marginRight: '8px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <span style={{ fontSize: '11px', color: '#93B4D4', backgroundColor: 'rgba(255,255,255,0.08)', padding: '4px 10px', borderRadius: '4px', marginRight: '8px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                     <i className="ti ti-calendar-event"></i> {t('tier_expiry_label')}: {new Date(profileData.tier_expires_at).toLocaleDateString('vi-VN')}
                   </span>
                 )}
                 {profileData.pending_tier_upgrade && (
-                  <span style={{ fontSize: '11px', color: 'var(--amber)', backgroundColor: 'rgba(245,158,11,0.08)', border: '1px dashed rgba(245,158,11,0.3)', padding: '4px 10px', borderRadius: '4px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <span style={{ fontSize: '11px', color: '#F59E0B', backgroundColor: 'rgba(245,158,11,0.12)', border: '1px dashed rgba(245,158,11,0.4)', padding: '4px 10px', borderRadius: '4px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                     <i className="ti ti-loader animate-spin" style={{ fontSize: '10px' }}></i> {t('pending_upgrade_status')(profileData.pending_tier_upgrade)}
                   </span>
                 )}
               </div>
-              <p style={{ fontSize: '12.5px', color: 'var(--text-muted)', margin: '4px 0 0' }}>
+              <p style={{ fontSize: '12.5px', color: '#93B4D4', margin: '4px 0 0' }}>
                 {t('manage_account_desc')(profileData.name)}
               </p>
             </div>
@@ -431,8 +429,8 @@ export const MemberDashboard = () => {
               <div className="status-banner pending">
                 <i className="ti ti-clock status-icon"></i>
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: '14px' }}>{t('pending_account_status_title')}</div>
-                  <div style={{ fontSize: '12px', marginTop: '2px' }}>{t('pending_account_status_desc')}</div>
+                  <div style={{ fontWeight: 700, fontSize: '14px', color: 'var(--amber-dark)' }}>{t('pending_account_status_title')}</div>
+                  <div style={{ fontSize: '12px', marginTop: '2px', color: 'var(--text-secondary)' }}>{t('pending_account_status_desc')}</div>
                 </div>
               </div>
             )}
@@ -441,8 +439,8 @@ export const MemberDashboard = () => {
               <div className="status-banner approved">
                 <i className="ti ti-circle-check status-icon"></i>
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: '14px' }}>{t('approved_account_status_title')}</div>
-                  <div style={{ fontSize: '12px', marginTop: '2px' }}>{t('approved_account_status_desc')}</div>
+                  <div style={{ fontWeight: 700, fontSize: '14px', color: 'var(--emerald-dark)' }}>{t('approved_account_status_title')}</div>
+                  <div style={{ fontSize: '12px', marginTop: '2px', color: 'var(--text-secondary)' }}>{t('approved_account_status_desc')}</div>
                 </div>
               </div>
             )}
@@ -451,23 +449,23 @@ export const MemberDashboard = () => {
               <div className="status-banner rejected">
                 <i className="ti ti-circle-x status-icon"></i>
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: '14px' }}>{t('rejected_account_status_title')}</div>
-                  <div style={{ fontSize: '12px', marginTop: '2px' }}>{t('rejected_account_status_desc')}</div>
+                  <div style={{ fontWeight: 700, fontSize: '14px', color: 'var(--rose-dark)' }}>{t('rejected_account_status_title')}</div>
+                  <div style={{ fontSize: '12px', marginTop: '2px', color: 'var(--text-secondary)' }}>{t('rejected_account_status_desc')}</div>
                 </div>
               </div>
             )}
 
             <div className="dash-card">
-              <div className="card-title">
-                <i className="ti ti-edit"></i> {t('update_profile_title')}
+              <div className="card-title" style={{ color: 'var(--text-primary)', fontWeight: '700' }}>
+                <i className="ti ti-edit" style={{ color: 'var(--primary)' }}></i> {t('update_profile_title')}
               </div>
 
               {message.text && (
                 <div style={{
                   background: message.type === 'success' ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)',
-                  border: `1px solid ${message.type === 'success' ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}`,
-                  color: message.type === 'success' ? '#A7F3D0' : '#FCA5A5',
-                  padding: '10px 14px', borderRadius: '8px', marginBottom: '1.5rem', fontSize: '13px'
+                  border: `1px solid ${message.type === 'success' ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)'}`,
+                  color: message.type === 'success' ? 'var(--emerald-dark)' : 'var(--rose-dark)',
+                  padding: '10px 14px', borderRadius: '8px', marginBottom: '1.5rem', fontSize: '13px', fontWeight: '600'
                 }}>
                   {message.text}
                 </div>
@@ -476,125 +474,71 @@ export const MemberDashboard = () => {
               <form onSubmit={handleProfileSubmit}>
                 <div className="form-grid">
                   <div className="fg">
-                    <label>{t('label_company_name')}</label>
-                    <input type="text" id="name" value={profileData.name} onChange={handleProfileChange} required />
+                    <label style={{ color: 'var(--text-primary)', fontWeight: '600' }}>{t('label_company_name')}</label>
+                    <input type="text" id="name" value={profileData.name} onChange={handleProfileChange} required style={{ color: 'var(--text-primary)', backgroundColor: '#FFFFFF', border: '1px solid #CBD5E1' }} />
                   </div>
                   <div className="fg">
-                    <label>{t('label_tax_code')}</label>
-                    <input type="text" id="tax_code" value={profileData.tax_code} onChange={handleProfileChange} />
+                    <label style={{ color: 'var(--text-primary)', fontWeight: '600' }}>{t('label_tax_code')}</label>
+                    <input type="text" id="tax_code" value={profileData.tax_code} onChange={handleProfileChange} style={{ color: 'var(--text-primary)', backgroundColor: '#FFFFFF', border: '1px solid #CBD5E1' }} />
                   </div>
                   <div className="fg">
-                    <label>{t('label_business_license')}</label>
-                    <input type="text" id="license" value={profileData.license} onChange={handleProfileChange} />
+                    <label style={{ color: 'var(--text-primary)', fontWeight: '600' }}>{t('label_business_license')}</label>
+                    <input type="text" id="license" value={profileData.license} onChange={handleProfileChange} style={{ color: 'var(--text-primary)', backgroundColor: '#FFFFFF', border: '1px solid #CBD5E1' }} />
                   </div>
                   <div className="fg">
-                    <label>{t('label_industry')}</label>
-                    <input type="text" id="industry" value={profileData.industry} onChange={handleProfileChange} />
+                    <label style={{ color: 'var(--text-primary)', fontWeight: '600' }}>{t('label_industry')}</label>
+                    <input type="text" id="industry" value={profileData.industry} onChange={handleProfileChange} style={{ color: 'var(--text-primary)', backgroundColor: '#FFFFFF', border: '1px solid #CBD5E1' }} />
                   </div>
                   <div className="fg">
-                    <label>{t('label_employee_scale')}</label>
-                    <input type="text" id="size" value={profileData.size} onChange={handleProfileChange} />
+                    <label style={{ color: 'var(--text-primary)', fontWeight: '600' }}>{t('label_employee_scale')}</label>
+                    <input type="text" id="size" value={profileData.size} onChange={handleProfileChange} style={{ color: 'var(--text-primary)', backgroundColor: '#FFFFFF', border: '1px solid #CBD5E1' }} />
                   </div>
                   <div className="fg">
-                    <label>{t('label_website')}</label>
-                    <input type="text" id="website" value={profileData.website} onChange={handleProfileChange} />
+                    <label style={{ color: 'var(--text-primary)', fontWeight: '600' }}>{t('label_website')}</label>
+                    <input type="text" id="website" value={profileData.website} onChange={handleProfileChange} style={{ color: 'var(--text-primary)', backgroundColor: '#FFFFFF', border: '1px solid #CBD5E1' }} />
                   </div>
                   <div className="fg">
-                    <label>{t('label_address')}</label>
-                    <input type="text" id="address" value={profileData.address} onChange={handleProfileChange} />
+                    <label style={{ color: 'var(--text-primary)', fontWeight: '600' }}>{t('label_address')}</label>
+                    <input type="text" id="address" value={profileData.address} onChange={handleProfileChange} style={{ color: 'var(--text-primary)', backgroundColor: '#FFFFFF', border: '1px solid #CBD5E1' }} />
                   </div>
                   <div className="fg">
-                    <label>{t('label_city')}</label>
-                    <input type="text" id="city" list="cities-list" value={profileData.city || ''} onChange={handleProfileChange} placeholder={t('label_city')} />
+                    <label style={{ color: 'var(--text-primary)', fontWeight: '600' }}>{t('label_city')}</label>
+                    <input type="text" id="city" list="cities-list" value={profileData.city || ''} onChange={handleProfileChange} placeholder={t('label_city')} style={{ color: 'var(--text-primary)', backgroundColor: '#FFFFFF', border: '1px solid #CBD5E1' }} />
                     <datalist id="cities-list">
-                      <option value="An Giang" />
-                      <option value="Bà Rịa - Vũng Tàu" />
-                      <option value="Bắc Giang" />
-                      <option value="Bắc Kạn" />
-                      <option value="Bạc Liêu" />
-                      <option value="Bắc Ninh" />
-                      <option value="Bến Tre" />
-                      <option value="Bình Định" />
-                      <option value="Bình Dương" />
-                      <option value="Bình Phước" />
-                      <option value="Bình Thuận" />
-                      <option value="Cà Mau" />
-                      <option value="Cần Thơ" />
-                      <option value="Cao Bằng" />
-                      <option value="Đà Nẵng" />
-                      <option value="Đắk Lắk" />
-                      <option value="Đắk Nông" />
-                      <option value="Điện Biên" />
-                      <option value="Đồng Nai" />
-                      <option value="Đồng Tháp" />
-                      <option value="Gia Lai" />
-                      <option value="Hà Giang" />
-                      <option value="Hà Nam" />
-                      <option value="Hà Nội" />
-                      <option value="Hà Tĩnh" />
-                      <option value="Hải Dương" />
                       <option value="Hải Phòng" />
-                      <option value="Hậu Giang" />
-                      <option value="Hòa Bình" />
-                      <option value="Hưng Yên" />
-                      <option value="Khánh Hòa" />
-                      <option value="Kiên Giang" />
-                      <option value="Kon Tum" />
-                      <option value="Lai Châu" />
-                      <option value="Lâm Đồng" />
-                      <option value="Lạng Sơn" />
-                      <option value="Lào Cai" />
-                      <option value="Long An" />
-                      <option value="Nam Định" />
-                      <option value="Nghệ An" />
-                      <option value="Ninh Bình" />
-                      <option value="Ninh Thuận" />
-                      <option value="Phú Thọ" />
-                      <option value="Phú Yên" />
-                      <option value="Quảng Bình" />
-                      <option value="Quảng Nam" />
-                      <option value="Quảng Ngãi" />
-                      <option value="Quảng Ninh" />
-                      <option value="Quảng Trị" />
-                      <option value="Sóc Trăng" />
-                      <option value="Sơn La" />
-                      <option value="Tây Ninh" />
-                      <option value="Thái Bình" />
-                      <option value="Thái Nguyên" />
-                      <option value="Thanh Hóa" />
-                      <option value="Thừa Thiên Huế" />
-                      <option value="Tiền Giang" />
+                      <option value="Hà Nội" />
                       <option value="TP Hồ Chí Minh" />
-                      <option value="Trà Vinh" />
-                      <option value="Tuyên Quang" />
-                      <option value="Vĩnh Long" />
-                      <option value="Vĩnh Phúc" />
-                      <option value="Yên Bái" />
+                      <option value="Đà Nẵng" />
+                      <option value="Quảng Ninh" />
+                      <option value="Hải Dương" />
+                      <option value="Hà Nam" />
+                      <option value="Nam Định" />
+                      <option value="Thái Bình" />
                     </datalist>
                   </div>
                   <div className="fg">
-                    <label>{t('label_social_media')}</label>
-                    <input type="text" id="social" value={profileData.social} onChange={handleProfileChange} />
+                    <label style={{ color: 'var(--text-primary)', fontWeight: '600' }}>{t('label_social_media')}</label>
+                    <input type="text" id="social" value={profileData.social} onChange={handleProfileChange} style={{ color: 'var(--text-primary)', backgroundColor: '#FFFFFF', border: '1px solid #CBD5E1' }} />
                   </div>
                   <div className="fg">
-                    <label>{t('label_contact_person')}</label>
-                    <input type="text" id="contact_name" value={profileData.contact_name} onChange={handleProfileChange} />
+                    <label style={{ color: 'var(--text-primary)', fontWeight: '600' }}>{t('label_contact_person')}</label>
+                    <input type="text" id="contact_name" value={profileData.contact_name} onChange={handleProfileChange} style={{ color: 'var(--text-primary)', backgroundColor: '#FFFFFF', border: '1px solid #CBD5E1' }} />
                   </div>
                   <div className="fg">
-                    <label>{t('label_contact_position')}</label>
-                    <input type="text" id="contact_pos" value={profileData.contact_pos} onChange={handleProfileChange} />
+                    <label style={{ color: 'var(--text-primary)', fontWeight: '600' }}>{t('label_contact_position')}</label>
+                    <input type="text" id="contact_pos" value={profileData.contact_pos} onChange={handleProfileChange} style={{ color: 'var(--text-primary)', backgroundColor: '#FFFFFF', border: '1px solid #CBD5E1' }} />
                   </div>
                   <div className="fg">
-                    <label>{t('label_phone_number')}</label>
-                    <input type="text" id="phone" value={profileData.phone} onChange={handleProfileChange} />
+                    <label style={{ color: 'var(--text-primary)', fontWeight: '600' }}>{t('label_phone_number')}</label>
+                    <input type="text" id="phone" value={profileData.phone} onChange={handleProfileChange} style={{ color: 'var(--text-primary)', backgroundColor: '#FFFFFF', border: '1px solid #CBD5E1' }} />
                   </div>
                   <div className="fg" style={{ gridColumn: 'span 2' }}>
-                    <label>{t('label_joining_goal')}</label>
-                    <input type="text" id="goal" value={profileData.goal} onChange={handleProfileChange} />
+                    <label style={{ color: 'var(--text-primary)', fontWeight: '600' }}>{t('label_joining_goal')}</label>
+                    <input type="text" id="goal" value={profileData.goal} onChange={handleProfileChange} style={{ color: 'var(--text-primary)', backgroundColor: '#FFFFFF', border: '1px solid #CBD5E1' }} />
                   </div>
                   <div className="fg" style={{ gridColumn: 'span 2' }}>
-                    <label>{t('label_short_description')}</label>
-                    <textarea id="description" value={profileData.description} onChange={handleProfileChange} style={{ height: '80px', resize: 'vertical' }} />
+                    <label style={{ color: 'var(--text-primary)', fontWeight: '600' }}>{t('label_short_description')}</label>
+                    <textarea id="description" value={profileData.description} onChange={handleProfileChange} style={{ height: '80px', resize: 'vertical', color: 'var(--text-primary)', backgroundColor: '#FFFFFF', border: '1px solid #CBD5E1' }} />
                   </div>
                 </div>
 
@@ -608,16 +552,16 @@ export const MemberDashboard = () => {
 
             {/* Thẻ Đổi Mật Khẩu Riêng Biệt */}
             <div className="dash-card" style={{ marginTop: '1.5rem' }}>
-              <div className="card-title">
-                <i className="ti ti-key"></i> Đổi mật khẩu bảo mật
+              <div className="card-title" style={{ color: 'var(--text-primary)', fontWeight: '700' }}>
+                <i className="ti ti-key" style={{ color: 'var(--primary)' }}></i> Đổi mật khẩu bảo mật
               </div>
 
               {passMessage.text && (
                 <div style={{
                   background: passMessage.type === 'success' ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)',
-                  border: `1px solid ${passMessage.type === 'success' ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}`,
-                  color: passMessage.type === 'success' ? '#A7F3D0' : '#FCA5A5',
-                  padding: '10px 14px', borderRadius: '8px', marginBottom: '1.5rem', fontSize: '13px'
+                  border: `1px solid ${passMessage.type === 'success' ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)'}`,
+                  color: passMessage.type === 'success' ? 'var(--emerald-dark)' : 'var(--rose-dark)',
+                  padding: '10px 14px', borderRadius: '8px', marginBottom: '1.5rem', fontSize: '13px', fontWeight: '600'
                 }}>
                   {passMessage.text}
                 </div>
@@ -626,14 +570,14 @@ export const MemberDashboard = () => {
               <form onSubmit={handlePasswordSubmit}>
                 <div className="form-grid" style={{ gridTemplateColumns: '1fr' }}>
                   <div className="fg" style={{ marginBottom: '1rem' }}>
-                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '12.5px', fontWeight: 600 }}>Mật khẩu hiện tại (cũ) <span style={{ color: 'var(--rose)' }}>*</span></label>
+                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '12.5px', fontWeight: 600, color: 'var(--text-primary)' }}>Mật khẩu hiện tại (cũ) <span style={{ color: 'var(--rose)' }}>*</span></label>
                     <div style={{ position: 'relative' }}>
                       <input
                         type={showPassMap.old ? "text" : "password"}
                         value={passwordForm.oldPassword}
                         onChange={(e) => setPasswordForm(prev => ({ ...prev, oldPassword: e.target.value }))}
                         required
-                        style={{ width: '100%', padding: '9px 40px 9px 12px', borderRadius: '8px', border: '1px solid #D8E2EF', fontSize: '13px', outline: 'none' }}
+                        style={{ width: '100%', padding: '9px 40px 9px 12px', borderRadius: '8px', border: '1px solid #CBD5E1', color: 'var(--text-primary)', backgroundColor: '#FFFFFF', fontSize: '13px', outline: 'none' }}
                       />
                       <button
                         type="button"
@@ -646,7 +590,7 @@ export const MemberDashboard = () => {
                   </div>
 
                   <div className="fg" style={{ marginBottom: '1rem' }}>
-                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '12.5px', fontWeight: 600 }}>Mật khẩu mới <span style={{ color: 'var(--rose)' }}>*</span></label>
+                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '12.5px', fontWeight: 600, color: 'var(--text-primary)' }}>Mật khẩu mới <span style={{ color: 'var(--rose)' }}>*</span></label>
                     <div style={{ position: 'relative' }}>
                       <input
                         type={showPassMap.new ? "text" : "password"}
@@ -654,7 +598,7 @@ export const MemberDashboard = () => {
                         onChange={(e) => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
                         required
                         placeholder="Tối thiểu 8 ký tự"
-                        style={{ width: '100%', padding: '9px 40px 9px 12px', borderRadius: '8px', border: '1px solid #D8E2EF', fontSize: '13px', outline: 'none' }}
+                        style={{ width: '100%', padding: '9px 40px 9px 12px', borderRadius: '8px', border: '1px solid #CBD5E1', color: 'var(--text-primary)', backgroundColor: '#FFFFFF', fontSize: '13px', outline: 'none' }}
                       />
                       <button
                         type="button"
@@ -667,7 +611,7 @@ export const MemberDashboard = () => {
                   </div>
 
                   <div className="fg" style={{ marginBottom: '1rem' }}>
-                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '12.5px', fontWeight: 600 }}>Xác nhận mật khẩu mới <span style={{ color: 'var(--rose)' }}>*</span></label>
+                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '12.5px', fontWeight: 600, color: 'var(--text-primary)' }}>Xác nhận mật khẩu mới <span style={{ color: 'var(--rose)' }}>*</span></label>
                     <div style={{ position: 'relative' }}>
                       <input
                         type={showPassMap.confirm ? "text" : "password"}
@@ -675,7 +619,7 @@ export const MemberDashboard = () => {
                         onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmNewPassword: e.target.value }))}
                         required
                         placeholder="Nhập lại mật khẩu mới"
-                        style={{ width: '100%', padding: '9px 40px 9px 12px', borderRadius: '8px', border: '1px solid #D8E2EF', fontSize: '13px', outline: 'none' }}
+                        style={{ width: '100%', padding: '9px 40px 9px 12px', borderRadius: '8px', border: '1px solid #CBD5E1', color: 'var(--text-primary)', backgroundColor: '#FFFFFF', fontSize: '13px', outline: 'none' }}
                       />
                       <button
                         type="button"
@@ -700,15 +644,15 @@ export const MemberDashboard = () => {
           {/* Right Column: Statistics & opportunities list */}
           <div>
             {userTier !== 'Platinum' && (
-              <div className="dash-card" style={{ padding: '1.25rem', border: '1px solid rgba(245,158,11,0.2)', background: 'linear-gradient(to bottom, rgba(245,158,11,0.02), rgba(0,0,0,0))', marginBottom: '1rem' }}>
-                <div className="card-title" style={{ color: 'var(--amber)', marginBottom: '0.75rem' }}>
+              <div className="dash-card" style={{ padding: '1.25rem', border: '1px solid rgba(245,158,11,0.3)', background: 'rgba(245,158,11,0.05)', marginBottom: '1rem' }}>
+                <div className="card-title" style={{ color: 'var(--amber-dark)', marginBottom: '0.75rem', fontWeight: 700 }}>
                   <i className="ti ti-arrow-big-up-lines"></i> {t('upgrade_tier_title')}
                 </div>
                 <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '12px', lineHeight: '1.5' }}>
                   {t('upgrade_tier_desc')}
                 </p>
                 {profileData.pending_tier_upgrade ? (
-                  <div style={{ padding: '8px 12px', background: 'rgba(245,158,11,0.06)', borderRadius: '8px', border: '1px solid rgba(245,158,11,0.2)', fontSize: '11.5px', color: 'var(--amber)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <div style={{ padding: '8px 12px', background: 'rgba(245,158,11,0.1)', borderRadius: '8px', border: '1px solid rgba(245,158,11,0.3)', fontSize: '11.5px', color: 'var(--amber-dark)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <i className="ti ti-clock"></i> {t('upgrade_request_pending_prefix')}: {profileData.pending_tier_upgrade === 'Platinum' ? '💎 ' + t('tier_platinum') : '🏅 ' + t('tier_gold')}
                   </div>
                 ) : (
@@ -717,7 +661,7 @@ export const MemberDashboard = () => {
                       <button
                         onClick={() => handleRequestUpgrade('Gold')}
                         className="btn"
-                        style={{ flex: 1, fontSize: '11.5px', padding: '6px 10px', background: 'var(--amber)', borderColor: 'var(--amber)', color: '#000', fontWeight: 600 }}
+                        style={{ flex: 1, fontSize: '11.5px', padding: '6px 10px', background: 'var(--amber)', borderColor: 'var(--amber)', color: '#000000', fontWeight: 700 }}
                       >
                         🏅 {t('btn_upgrade_gold')}
                       </button>
@@ -725,7 +669,7 @@ export const MemberDashboard = () => {
                     <button
                       onClick={() => handleRequestUpgrade('Platinum')}
                       className="btn btn-primary"
-                      style={{ flex: 1, fontSize: '11.5px', padding: '6px 10px', fontWeight: 600 }}
+                      style={{ flex: 1, fontSize: '11.5px', padding: '6px 10px', fontWeight: 700 }}
                     >
                       💎 {t('btn_upgrade_platinum')}
                     </button>
@@ -735,28 +679,28 @@ export const MemberDashboard = () => {
             )}
 
             <div className="dash-card" style={{ padding: '1.25rem' }}>
-              <div className="card-title" style={{ marginBottom: '1rem' }}>
-                <i className="ti ti-chart-bar"></i> {t('posts_stats_title')}
+              <div className="card-title" style={{ marginBottom: '1rem', color: 'var(--text-primary)', fontWeight: 700 }}>
+                <i className="ti ti-chart-bar" style={{ color: 'var(--primary)' }}></i> {t('posts_stats_title')}
               </div>
               <div className="stats-grid">
                 <div className="stat-item">
-                  <div className="stat-val">{dbStats.total_posts}</div>
-                  <div className="stat-lbl">{t('stat_total_posts')}</div>
+                  <div className="stat-val" style={{ color: 'var(--primary-dark)', fontWeight: 800 }}>{dbStats.total_posts}</div>
+                  <div className="stat-lbl" style={{ color: 'var(--text-secondary)' }}>{t('stat_total_posts')}</div>
                 </div>
                 <div className="stat-item">
-                  <div className="stat-val">{dbStats.approved_posts}</div>
-                  <div className="stat-lbl">{t('stat_approved_posts')}</div>
+                  <div className="stat-val" style={{ color: 'var(--emerald-dark)', fontWeight: 800 }}>{dbStats.approved_posts}</div>
+                  <div className="stat-lbl" style={{ color: 'var(--text-secondary)' }}>{t('stat_approved_posts')}</div>
                 </div>
                 <div className="stat-item">
-                  <div className="stat-val">{dbStats.total_views}</div>
-                  <div className="stat-lbl">{t('stat_total_views')}</div>
+                  <div className="stat-val" style={{ color: 'var(--neon-cyan)', fontWeight: 800 }}>{dbStats.total_views}</div>
+                  <div className="stat-lbl" style={{ color: 'var(--text-secondary)' }}>{t('stat_total_views')}</div>
                 </div>
               </div>
             </div>
 
-            {/* Phase 2: Saved Bookmarks & Itineraries Card */}
+            {/* Saved Bookmarks & Itineraries Card */}
             <div className="dash-card" style={{ marginBottom: '1.5rem', padding: '1.25rem' }}>
-              <div className="card-title" style={{ marginBottom: '1rem', color: 'var(--primary)' }}>
+              <div className="card-title" style={{ marginBottom: '1rem', color: 'var(--primary-dark)', fontWeight: 700 }}>
                 📌 Nội dung & Hành trình đã lưu ({bookmarks.length})
               </div>
 
@@ -769,16 +713,16 @@ export const MemberDashboard = () => {
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {bookmarks.map((bm) => (
-                    <div key={bm.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--surface-0)', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border-strong)' }}>
+                    <div key={bm.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#FFFFFF', padding: '8px 12px', borderRadius: '8px', border: '1px solid #CBD5E1' }}>
                       <div>
-                        <div style={{ fontSize: '10.5px', fontWeight: 700, color: 'var(--primary)' }}>
+                        <div style={{ fontSize: '10.5px', fontWeight: 700, color: 'var(--primary-dark)' }}>
                           {bm.item_type === 'itinerary' ? '🗺️ Hành trình' : bm.item_type === 'place' ? '📍 Địa điểm' : bm.item_type === 'post' ? '📄 Bài viết' : '👤 Hội viên'}
                         </div>
                         <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>
                           {bm.title}
                         </div>
                       </div>
-                      <button onClick={() => handleDeleteBookmark(bm.id)} style={{ background: 'none', border: 'none', color: '#EF4444', cursor: 'pointer', fontSize: '14px' }} title="Xóa khỏi danh sách lưu">
+                      <button onClick={() => handleDeleteBookmark(bm.id)} style={{ background: 'none', border: 'none', color: '#DC2626', cursor: 'pointer', fontSize: '14px' }} title="Xóa khỏi danh sách lưu">
                         <i className="ti ti-trash"></i>
                       </button>
                     </div>
@@ -788,8 +732,8 @@ export const MemberDashboard = () => {
             </div>
 
             <div className="dash-card">
-              <div className="card-title">
-                <i className="ti ti-list-details"></i> {t('my_published_posts_title')}
+              <div className="card-title" style={{ color: 'var(--text-primary)', fontWeight: 700 }}>
+                <i className="ti ti-list-details" style={{ color: 'var(--primary)' }}></i> {t('my_published_posts_title')}
               </div>
 
               {memberPosts.length === 0 ? (
@@ -799,26 +743,26 @@ export const MemberDashboard = () => {
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {memberPosts.map(p => (
-                    <div className="post-item" key={p.id}>
+                    <div className="post-item" key={p.id} style={{ backgroundColor: '#FFFFFF', border: '1px solid #CBD5E1', borderRadius: '8px', padding: '10px 12px' }}>
                       <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
-                        <div style={{ fontWeight: '600', fontSize: '13px', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        <div style={{ fontWeight: '700', fontSize: '13px', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                           {p.title}
                         </div>
-                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px', display: 'flex', gap: '8px', alignItems: 'center' }}>
-                          <span>{p.type}</span>
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px', display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>{p.type}</span>
                           <span>·</span>
                           <span><i className="ti ti-eye"></i> {p.views || 0}</span>
                           <span>·</span>
                           <button
                             onClick={() => handleStartEditPost(p.id)}
-                            style={{ background: 'none', border: 'none', color: 'var(--primary-light)', cursor: 'pointer', padding: 0, display: 'inline-flex', alignItems: 'center', gap: '3px', fontSize: '11px', outline: 'none' }}
+                            style={{ background: 'none', border: 'none', color: 'var(--primary-dark)', cursor: 'pointer', padding: 0, display: 'inline-flex', alignItems: 'center', gap: '3px', fontSize: '11px', outline: 'none', fontWeight: 600 }}
                           >
                             <i className="ti ti-edit"></i> {t('btn_edit')}
                           </button>
                           <span>·</span>
                           <button
                             onClick={() => handleDeletePost(p.id, p.title)}
-                            style={{ background: 'none', border: 'none', color: '#EF4444', cursor: 'pointer', padding: 0, display: 'inline-flex', alignItems: 'center', gap: '3px', fontSize: '11px', outline: 'none' }}
+                            style={{ background: 'none', border: 'none', color: '#DC2626', cursor: 'pointer', padding: 0, display: 'inline-flex', alignItems: 'center', gap: '3px', fontSize: '11px', outline: 'none', fontWeight: 600 }}
                           >
                             <i className="ti ti-trash"></i> {t('btn_delete')}
                           </button>
@@ -839,26 +783,26 @@ export const MemberDashboard = () => {
 
       {/* Modal đăng cơ hội giao thương mới */}
       {modalOpen && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(8,14,30,0.85)', backdropFilter: 'blur(8px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem' }}>
-          <div className="glass-card" style={{ width: '100%', maxWidth: '600px', padding: '2rem', borderColor: 'var(--border-strong)', textAlign: 'left' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '12px' }}>
-              <h3 style={{ fontFamily: 'var(--font-title)', fontSize: '16px', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
-                <i className="ti ti-plus" style={{ color: 'var(--neon-cyan)' }}></i> {editingPostId ? t('modal_edit_post_title') : t('modal_create_post_title')}
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(8,14,30,0.75)', backdropFilter: 'blur(6px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem' }}>
+          <div className="glass-card" style={{ width: '100%', maxWidth: '640px', padding: '2rem', backgroundColor: '#FFFFFF', border: '1px solid #CBD5E1', borderRadius: '16px', textAlign: 'left', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid #E2E8F0', paddingBottom: '12px' }}>
+              <h3 style={{ fontFamily: 'var(--font-title)', fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+                <i className="ti ti-plus" style={{ color: 'var(--primary)' }}></i> {editingPostId ? t('modal_edit_post_title') : t('modal_create_post_title')}
               </h3>
-              <button onClick={() => setModalOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '18px', cursor: 'pointer' }}><i className="ti ti-x"></i></button>
+              <button onClick={() => setModalOpen(false)} style={{ background: 'none', border: 'none', color: '#64748B', fontSize: '20px', cursor: 'pointer' }}><i className="ti ti-x"></i></button>
             </div>
 
             <form onSubmit={(e) => e.preventDefault()}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '60vh', overflowY: 'auto', paddingRight: '6px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', maxHeight: '65vh', overflowY: 'auto', paddingRight: '6px' }}>
                 <div className="fg">
-                  <label>{t('modal_post_title_label')} <span style={{ color: 'var(--rose)' }}>*</span></label>
-                  <input type="text" id="title" value={newPostData.title} onChange={handleNewPostChange} placeholder={t('modal_post_title_placeholder')} required />
+                  <label style={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: '13px' }}>{t('modal_post_title_label')} <span style={{ color: 'var(--rose)' }}>*</span></label>
+                  <input type="text" id="title" value={newPostData.title} onChange={handleNewPostChange} placeholder={t('modal_post_title_placeholder')} required style={{ color: 'var(--text-primary)', backgroundColor: '#F8FAFC', border: '1px solid #CBD5E1' }} />
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   <div className="fg">
-                    <label>{t('modal_post_type_label')}</label>
-                    <select id="type" value={newPostData.type} onChange={handleNewPostChange}>
+                    <label style={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: '13px' }}>{t('modal_post_type_label')}</label>
+                    <select id="type" value={newPostData.type} onChange={handleNewPostChange} style={{ color: 'var(--text-primary)', backgroundColor: '#F8FAFC', border: '1px solid #CBD5E1' }}>
                       <option value="Tìm kiếm đối tác">{t('type_find_partner')}</option>
                       <option value="Cần mua / Cần bán">{t('type_buy_sell')}</option>
                       <option value="Thông báo sự kiện">{t('type_event_announcement')}</option>
@@ -866,23 +810,23 @@ export const MemberDashboard = () => {
                     </select>
                   </div>
                   <div className="fg">
-                    <label>{t('modal_post_category_label')}</label>
-                    <input type="text" id="category" value={newPostData.category} onChange={handleNewPostChange} placeholder={t('modal_post_category_placeholder')} />
+                    <label style={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: '13px' }}>{t('modal_post_category_label')}</label>
+                    <input type="text" id="category" value={newPostData.category} onChange={handleNewPostChange} placeholder={t('modal_post_category_placeholder')} style={{ color: 'var(--text-primary)', backgroundColor: '#F8FAFC', border: '1px solid #CBD5E1' }} />
                   </div>
                 </div>
 
                 <div className="fg">
-                  <label>{t('modal_post_tags_label')}</label>
-                  <input type="text" id="tags" value={newPostData.tags} onChange={handleNewPostChange} placeholder={t('modal_post_tags_placeholder')} />
+                  <label style={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: '13px' }}>{t('modal_post_tags_label')}</label>
+                  <input type="text" id="tags" value={newPostData.tags} onChange={handleNewPostChange} placeholder={t('modal_post_tags_placeholder')} style={{ color: 'var(--text-primary)', backgroundColor: '#F8FAFC', border: '1px solid #CBD5E1' }} />
                 </div>
 
                 <div className="fg">
-                  <label>{t('modal_post_summary_label')}</label>
-                  <input type="text" id="summary" value={newPostData.summary} onChange={handleNewPostChange} placeholder={t('modal_post_summary_placeholder')} />
+                  <label style={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: '13px' }}>{t('modal_post_summary_label')}</label>
+                  <input type="text" id="summary" value={newPostData.summary} onChange={handleNewPostChange} placeholder={t('modal_post_summary_placeholder')} style={{ color: 'var(--text-primary)', backgroundColor: '#F8FAFC', border: '1px solid #CBD5E1' }} />
                 </div>
 
                 <div className="fg">
-                  <label>{t('modal_post_body_label')} <span style={{ color: 'var(--rose)' }}>*</span></label>
+                  <label style={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: '13px' }}>{t('modal_post_body_label')} <span style={{ color: 'var(--rose)' }}>*</span></label>
                   <RichTextEditor
                     value={newPostData.body}
                     onChange={(val) => setNewPostData(prev => ({ ...prev, body: val }))}
@@ -891,88 +835,33 @@ export const MemberDashboard = () => {
                 </div>
 
                 <div className="fg">
-                  <label>{t('modal_post_contact_label')} <span style={{ color: 'var(--rose)' }}>*</span></label>
-                  <input type="text" id="contact_info" value={newPostData.contact_info} onChange={handleNewPostChange} placeholder={t('modal_post_contact_placeholder')} required />
+                  <label style={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: '13px' }}>{t('modal_post_contact_label')} <span style={{ color: 'var(--rose)' }}>*</span></label>
+                  <input type="text" id="contact_info" value={newPostData.contact_info} onChange={handleNewPostChange} placeholder={t('modal_post_contact_placeholder')} required style={{ color: 'var(--text-primary)', backgroundColor: '#F8FAFC', border: '1px solid #CBD5E1' }} />
                 </div>
 
                 <div className="fg">
-                  <label>{t('modal_post_deadline_label')}</label>
-                  <input type="date" id="deadline" value={newPostData.deadline} onChange={handleNewPostChange} />
+                  <label style={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: '13px' }}>{t('modal_post_deadline_label')}</label>
+                  <input type="date" id="deadline" value={newPostData.deadline} onChange={handleNewPostChange} style={{ color: 'var(--text-primary)', backgroundColor: '#F8FAFC', border: '1px solid #CBD5E1' }} />
                 </div>
-
-                <div className="fg">
-                  <label>{t('modal_post_image_label')}</label>
-                  <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                    <input
-                      type="text"
-                      id="image_url"
-                      value={newPostData.image_url}
-                      onChange={handleNewPostChange}
-                      placeholder={t('modal_post_image_placeholder')}
-                      style={{ flex: 1 }}
-                    />
-                    <label
-                      className="btn"
-                      style={{
-                        fontSize: '11px',
-                        padding: '9px 12px',
-                        cursor: 'pointer',
-                        margin: 0,
-                        flexShrink: 0,
-                        backgroundColor: 'rgba(255,255,255,0.05)',
-                        border: '1px solid rgba(255,255,255,0.1)',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                        color: '#FFF'
-                      }}
-                    >
-                      <i className="ti ti-upload"></i> {t('btn_choose_file')}
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleFileUpload}
-                        style={{ display: 'none' }}
-                      />
-                    </label>
-                  </div>
-                  {uploadingImage && <div style={{ fontSize: '11px', color: 'var(--primary-light)', marginTop: '2px' }}><i className="ti ti-loader animate-spin"></i> {t('status_uploading_image')}</div>}
-                </div>
-
-                {profileData.tier === 'Platinum' && (
-                  <div className="fg" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '15px', background: 'rgba(245, 158, 11, 0.05)', padding: '10px 12px', borderRadius: '8px', border: '1px solid rgba(245,158,11,0.15)' }}>
-                    <input
-                      type="checkbox"
-                      id="featured_requested"
-                      checked={newPostData.featured_requested === 1}
-                      onChange={(e) => setNewPostData(prev => ({ ...prev, featured_requested: e.target.checked ? 1 : 0 }))}
-                      style={{ width: '16px', height: '16px', cursor: 'pointer' }}
-                    />
-                    <label htmlFor="featured_requested" style={{ margin: 0, cursor: 'pointer', fontSize: '13px', fontWeight: 650, color: 'var(--amber)' }}>
-                      <i className="ti ti-star-filled"></i> {t('modal_request_featured_label')}
-                    </label>
-                  </div>
-                )}
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '1.5rem', borderTop: '1px solid var(--border)', paddingTop: '12px' }}>
-                <button type="button" className="btn" onClick={() => setModalOpen(false)}>{t('btn_cancel')}</button>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '1.5rem', borderTop: '1px solid #E2E8F0', paddingTop: '1rem' }}>
                 <button
                   type="button"
                   onClick={() => handleSubmitAction(true)}
                   className="btn"
-                  style={{ backgroundColor: 'rgba(12,35,64,0.06)', borderColor: 'var(--border-strong)', color: 'var(--text-primary)' }}
-                  disabled={creatingPost || uploadingImage}
+                  style={{ backgroundColor: '#F1F5F9', color: '#334155', border: '1px solid #CBD5E1' }}
+                  disabled={creatingPost}
                 >
-                  {t('btn_save_draft')}
+                  <i className="ti ti-file-text"></i> {t('btn_save_draft')}
                 </button>
                 <button
                   type="button"
                   onClick={() => handleSubmitAction(false)}
                   className="btn btn-primary"
-                  disabled={creatingPost || uploadingImage}
+                  disabled={creatingPost}
                 >
-                  {creatingPost ? <><i className="ti ti-loader animate-spin"></i> {t('btn_sending')}</> : (editingPostId ? <><i className="ti ti-save"></i> {t('btn_update_publish')}</> : <><i className="ti ti-plus"></i> {t('btn_publish')}</>)}
+                  {creatingPost ? <><i className="ti ti-loader animate-spin"></i> {t('btn_publishing')}</> : <><i className="ti ti-send"></i> {t('btn_publish_post')}</>}
                 </button>
               </div>
             </form>
@@ -982,4 +871,5 @@ export const MemberDashboard = () => {
     </div>
   );
 };
+
 export default MemberDashboard;
