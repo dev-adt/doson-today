@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -10,8 +10,15 @@ export const DosonMap = () => {
   const [gpsActive, setGpsActive] = useState(false);
   const [gpsMsg, setGpsMsg] = useState('');
   const [bookmarkSavedMsg, setBookmarkSavedMsg] = useState('');
+  const [geoJsonLoaded, setGeoJsonLoaded] = useState(false);
 
-  // Sample verified data points across Đồ Sơn
+  const mapContainerRef = useRef(null);
+  const mapInstanceRef = useRef(null);
+  const markersRef = useRef([]);
+  const geoJsonLayerRef = useRef(null);
+  const userMarkerRef = useRef(null);
+
+  // Real GPS coordinates data points across Đồ Sơn
   const mapPoints = [
     {
       id: 1,
@@ -19,8 +26,8 @@ export const DosonMap = () => {
       category: 'tourism',
       catName: 'Điểm du lịch',
       icon: 'ti-umbrella',
-      top: '45%',
-      left: '42%',
+      lat: 20.6720,
+      lng: 106.7900,
       desc: 'Bãi tắm trung tâm Đồ Sơn với bãi cát dài, bờ biển thơ mộng và các hoạt động thể thao nước phong phú.',
       address: 'Khu 2, Phường Vạn Hương, Quận Đồ Sơn',
       rating: '4.8 ★',
@@ -32,8 +39,8 @@ export const DosonMap = () => {
       category: 'tourism',
       catName: 'Điểm du lịch',
       icon: 'ti-palmtree',
-      top: '65%',
-      left: '55%',
+      lat: 20.6650,
+      lng: 106.8120,
       desc: 'Quần thể nghỉ dưỡng, bể bơi lọc nước biển nhân tạo lớn nhất Đông Nam Á, đảo Hòn Dấu linh thiêng.',
       address: 'Khu 3, Đồ Sơn, Hải Phòng',
       rating: '4.9 ★',
@@ -41,12 +48,12 @@ export const DosonMap = () => {
     },
     {
       id: 3,
-      title: 'Khách sạn & Resort Dragon Hill',
+      title: 'Khách sạn & Resort Dragon Hill (Đồi Rồng)',
       category: 'hotel',
       catName: 'Lưu trú',
       icon: 'ti-building-bed',
-      top: '38%',
-      left: '35%',
+      lat: 20.6810,
+      lng: 106.7720,
       desc: 'Khách sạn 5 sao cao cấp nhìn ra vịnh Đồ Sơn, dịch vụ spa, hồ bơi vô cực và nhà hàng sang trọng.',
       address: 'Khu du lịch Đồi Rồng, Đồ Sơn',
       rating: '4.7 ★',
@@ -58,8 +65,8 @@ export const DosonMap = () => {
       category: 'food',
       catName: 'Ẩm thực',
       icon: 'ti-utensils',
-      top: '52%',
-      left: '48%',
+      lat: 20.6750,
+      lng: 106.7880,
       desc: 'Đặc sản hải sản tươi sống Đồ Sơn: Bề bề chao, cua bể, tôm hùm nướng mỡ hành, lẩu hải sản.',
       address: 'Đường ven biển Khu 2, Đồ Sơn',
       rating: '4.6 ★',
@@ -71,8 +78,8 @@ export const DosonMap = () => {
       category: 'business',
       catName: 'Doanh nghiệp',
       icon: 'ti-briefcase',
-      top: '30%',
-      left: '25%',
+      lat: 20.7050,
+      lng: 106.7750,
       desc: 'Đơn vị phát triển hạ tầng du lịch, chuỗi lưu trú và dịch vụ giải trí ven biển Đồ Sơn.',
       address: 'Số 18 Lý Thánh Tông, Đồ Sơn',
       rating: 'Xác thực ✔',
@@ -84,8 +91,8 @@ export const DosonMap = () => {
       category: 'ocop',
       catName: 'Sản phẩm OCOP',
       icon: 'ti-certificate',
-      top: '25%',
-      left: '40%',
+      lat: 20.7200,
+      lng: 106.7650,
       desc: 'Đặc sản Táo Bàng Đồ Sơn vị ngọt thanh đặc trưng, sản phẩm đạt chứng nhận OCOP cấp tỉnh.',
       address: 'HTX Nông nghiệp Đồ Sơn',
       rating: 'OCOP 4★',
@@ -97,8 +104,8 @@ export const DosonMap = () => {
       category: 'services',
       catName: 'Tiện ích public',
       icon: 'ti-parking',
-      top: '48%',
-      left: '39%',
+      lat: 20.6735,
+      lng: 106.7895,
       desc: 'Bãi đỗ xe an toàn 24/7 trang bị camera giám sát và trạm sạc xe điện vinfast.',
       address: 'Quảng trường Khu 2, Đồ Sơn',
       rating: 'Chỉ đường 📍',
@@ -116,26 +123,218 @@ export const DosonMap = () => {
     { key: 'services', label: 'Bãi đỗ / Y tế / Tiện ích', icon: 'ti-parking' }
   ];
 
-  const filteredPoints = activeCategory === 'all' 
-    ? mapPoints 
-    : mapPoints.filter(p => p.category === activeCategory);
+  // Initialize Leaflet Map dynamically
+  useEffect(() => {
+    // Load Leaflet CSS & JS dynamically if not loaded
+    const leafletCssId = 'leaflet-css';
+    if (!document.getElementById(leafletCssId)) {
+      const link = document.createElement('link');
+      link.id = leafletCssId;
+      link.rel = 'stylesheet';
+      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+      document.head.appendChild(link);
+    }
+
+    const leafletJsId = 'leaflet-js';
+    let isMounted = true;
+
+    const initLeafletMap = () => {
+      if (!window.L || !mapContainerRef.current || mapInstanceRef.current) return;
+
+      const L = window.L;
+      // Centered at Đồ Sơn
+      const map = L.map(mapContainerRef.current, {
+        center: [20.695, 106.785],
+        zoom: 12,
+        zoomControl: true
+      });
+
+      // CartoDB Dark Matter tile layer for premium digital look
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
+        subdomains: 'abcd',
+        maxZoom: 19
+      }).addTo(map);
+
+      mapInstanceRef.current = map;
+
+      // Fetch and render official GeoJSON boundary of Đồ Sơn
+      fetch('/doson.geojson')
+        .then(res => res.json())
+        .then(geoData => {
+          if (!isMounted || !mapInstanceRef.current) return;
+          
+          const geoLayer = L.geoJSON(geoData, {
+            style: {
+              color: '#0284C7',
+              weight: 3,
+              opacity: 0.85,
+              fillColor: '#0284C7',
+              fillOpacity: 0.15,
+              dashArray: '4, 4'
+            },
+            onEachFeature: (feature, layer) => {
+              if (feature.properties) {
+                const props = feature.properties;
+                layer.bindTooltip(`<b>Ranh giới Phường ${props.ten_xa || 'Đồ Sơn'}</b><br/>Diện tích: ${props.dtich_km2 || '25.54'} km² | Dân số: ${props.dan_so || '36,494'} người`, {
+                  sticky: true
+                });
+              }
+            }
+          }).addTo(map);
+
+          geoJsonLayerRef.current = geoLayer;
+          setGeoJsonLoaded(true);
+        })
+        .catch(err => console.error("Lỗi nạp file GeoJSON Đồ Sơn:", err));
+    };
+
+    if (window.L) {
+      initLeafletMap();
+    } else if (!document.getElementById(leafletJsId)) {
+      const script = document.createElement('script');
+      script.id = leafletJsId;
+      script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+      script.onload = () => {
+        if (isMounted) initLeafletMap();
+      };
+      document.head.appendChild(script);
+    } else {
+      const existingScript = document.getElementById(leafletJsId);
+      existingScript.addEventListener('load', initLeafletMap);
+    }
+
+    return () => {
+      isMounted = false;
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, []);
+
+  // Update map markers when active category changes or map initializes
+  useEffect(() => {
+    if (!mapInstanceRef.current || !window.L) return;
+
+    const L = window.L;
+    const map = mapInstanceRef.current;
+
+    // Clear previous markers
+    markersRef.current.forEach(m => map.removeLayer(m));
+    markersRef.current = [];
+
+    const filteredPoints = activeCategory === 'all' 
+      ? mapPoints 
+      : mapPoints.filter(p => p.category === activeCategory);
+
+    filteredPoints.forEach(pin => {
+      const isSelected = selectedPin?.id === pin.id;
+
+      // Custom HTML Marker Icon
+      const customIcon = L.divIcon({
+        className: 'custom-leaflet-pin',
+        html: `
+          <div style="
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: ${isSelected ? 'linear-gradient(135deg, #10B981, #047857)' : 'linear-gradient(135deg, #0284C7, #0369A1)'};
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 14px ${isSelected ? 'rgba(16, 185, 129, 0.6)' : 'rgba(2, 132, 199, 0.6)'};
+            border: 2px solid #ffffff;
+            font-size: 18px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+          ">
+            <i class="ti ${pin.icon}"></i>
+          </div>
+          <div style="
+            background-color: rgba(7, 22, 44, 0.9);
+            color: #E2F0FF;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 9.5px;
+            font-weight: 600;
+            white-space: nowrap;
+            margin-top: 3px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.15);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+          ">
+            ${pin.title.split(' - ')[0]}
+          </div>
+        `,
+        iconSize: [38, 56],
+        iconAnchor: [19, 28]
+      });
+
+      const marker = L.marker([pin.lat, pin.lng], { icon: customIcon }).addTo(map);
+      marker.on('click', () => {
+        setSelectedPin(pin);
+        map.flyTo([pin.lat, pin.lng], 14, { duration: 1.2 });
+      });
+
+      markersRef.current.push(marker);
+    });
+  }, [activeCategory, selectedPin, mapInstanceRef.current]);
 
   const handleGetLocation = () => {
     setGpsMsg('Đang xác định vị trí GPS của bạn...');
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
           setGpsActive(true);
-          setGpsMsg('✓ Đã định vị thành công vị trí GPS quanh bán đảo Đồ Sơn!');
+          setGpsMsg('✓ Đã định vị thành công vị trí GPS thực tế của bạn!');
+
+          if (mapInstanceRef.current && window.L) {
+            const L = window.L;
+            const map = mapInstanceRef.current;
+
+            if (userMarkerRef.current) {
+              map.removeLayer(userMarkerRef.current);
+            }
+
+            const userIcon = L.divIcon({
+              className: 'user-gps-pin',
+              html: `
+                <div style="
+                  width: 24px;
+                  height: 24px;
+                  border-radius: 50%;
+                  background-color: #10B981;
+                  border: 3px solid #ffffff;
+                  box-shadow: 0 0 20px #10B981;
+                  animation: ping 1.5s infinite;
+                "></div>
+                <div style="background-color: #10B981; color: #fff; font-size: 9px; font-weight: 700; padding: 2px 5px; border-radius: 3px; margin-top: 2px; white-space: nowrap;">
+                  📍 Bạn ở đây
+                </div>
+              `,
+              iconSize: [24, 40],
+              iconAnchor: [12, 12]
+            });
+
+            userMarkerRef.current = L.marker([lat, lng], { icon: userIcon }).addTo(map);
+            map.flyTo([lat, lng], 14, { duration: 1.5 });
+          }
         },
         (error) => {
           setGpsActive(true);
-          setGpsMsg('✓ Đã kích hoạt chế độ GPS giả định vị trí trung tâm Đồ Sơn.');
+          setGpsMsg('✓ Đã định vị trung tâm Bán đảo Đồ Sơn.');
+          if (mapInstanceRef.current) {
+            mapInstanceRef.current.flyTo([20.68, 106.78], 13);
+          }
         }
       );
     } else {
       setGpsActive(true);
-      setGpsMsg('✓ Đã định vị vị trí Đồ Sơn.');
+      setGpsMsg('✓ Đã định vị trung tâm Đồ Sơn.');
     }
   };
 
@@ -177,7 +376,7 @@ export const DosonMap = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1rem' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', fontWeight: '700', color: 'var(--primary)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-            <i className="ti ti-map-2"></i> BẢN ĐỒ SỐ TƯƠNG TÁC ĐỒ SƠN (GPS & LAYERS)
+            <i className="ti ti-map-2"></i> BẢN ĐỒ SỐ TƯƠNG TÁC ĐỒ SƠN (GPS & RANH GIỚI HÀNH CHÍNH)
           </div>
           <h3 style={{ fontFamily: 'var(--font-title)', fontSize: '22px', fontWeight: '700', color: 'var(--text-primary)', margin: '4px 0 0' }}>
             Khám phá theo vị trí & Khoảng cách di chuyển
@@ -236,73 +435,24 @@ export const DosonMap = () => {
         ))}
       </div>
 
-      {/* Digital Canvas Map Viewport */}
-      <div 
-        style={{
-          width: '100%',
-          height: '400px',
-          borderRadius: 'var(--radius)',
-          background: 'linear-gradient(135deg, #091E3A 0%, #0F2D54 50%, #07192F 100%)',
-          position: 'relative',
-          overflow: 'hidden',
-          border: '1px solid var(--border-strong)',
-          boxShadow: 'inset 0 0 50px rgba(0,0,0,0.5)'
-        }}
-      >
-        {/* Ocean Waves Grid & Contour Graphics */}
-        <div style={{ position: 'absolute', inset: 0, opacity: 0.15, backgroundImage: 'radial-gradient(#38BDF8 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
-        
-        {/* User GPS Location Marker */}
-        {gpsActive && (
-          <div style={{ position: 'absolute', top: '50%', left: '40%', transform: 'translate(-50%, -50%)', zIndex: 15 }}>
-            <div style={{ width: '20px', height: '20px', borderRadius: '50%', backgroundColor: '#10B981', border: '3px solid #fff', boxShadow: '0 0 20px #10B981', animation: 'ping 1.5s infinite' }}></div>
-            <div style={{ backgroundColor: '#10B981', color: '#fff', fontSize: '9px', fontWeight: '700', padding: '2px 4px', borderRadius: '3px', marginTop: '2px', whiteSpace: 'nowrap' }}>📍 Bạn đang ở đây</div>
-          </div>
-        )}
+      {/* Digital Canvas Map Viewport with Leaflet */}
+      <div style={{ position: 'relative', width: '100%', borderRadius: 'var(--radius)', overflow: 'hidden', border: '1px solid var(--border-strong)' }}>
+        <div 
+          ref={mapContainerRef}
+          id="leaflet-doson-map"
+          style={{
+            width: '100%',
+            height: '420px',
+            background: '#091E3A',
+            zIndex: 1
+          }}
+        />
 
-        {/* Map Label overlays */}
-        <div style={{ position: 'absolute', top: '15px', left: '15px', color: '#93B4D4', fontSize: '11px', fontWeight: '600', backgroundColor: 'rgba(7, 22, 44, 0.8)', padding: '4px 10px', borderRadius: '6px', backdropFilter: 'blur(4px)' }}>
-          🌊 VỊNH BẮC BỘ — BÁN ĐẢO ĐỒ SƠN (KHOẢNG CÁCH DỮ LIỆU GPS)
+        {/* Map Header Status Badge */}
+        <div style={{ position: 'absolute', top: '15px', left: '15px', color: '#E2F0FF', fontSize: '11px', fontWeight: '600', backgroundColor: 'rgba(7, 22, 44, 0.85)', padding: '6px 12px', borderRadius: '8px', backdropFilter: 'blur(6px)', zIndex: 10, border: '1px solid rgba(56, 189, 248, 0.3)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: geoJsonLoaded ? '#10B981' : '#F59E0B' }}></span>
+          <span>🗺 RANH GIỚI ĐỊA LÝ & BẢN ĐỒ SỐ ĐỒ SƠN {geoJsonLoaded ? '(ĐÃ TÍCH HỢP GEOJSON CHÍNH XÁC)' : '(ĐANG TẢI GEOJSON)'}</span>
         </div>
-
-        {/* Map Pins */}
-        {filteredPoints.map((pin) => (
-          <div
-            key={pin.id}
-            onClick={() => setSelectedPin(pin)}
-            style={{
-              position: 'absolute',
-              top: pin.top,
-              left: pin.left,
-              transform: 'translate(-50%, -50%)',
-              cursor: 'pointer',
-              zIndex: selectedPin?.id === pin.id ? 10 : 2
-            }}
-          >
-            <div 
-              style={{
-                width: '36px',
-                height: '36px',
-                borderRadius: '50%',
-                backgroundColor: selectedPin?.id === pin.id ? '#10B981' : '#0284C7',
-                color: '#fff',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 0 15px rgba(2, 132, 199, 0.8)',
-                border: '2px solid #ffffff',
-                fontSize: '16px',
-                transition: 'transform 0.2s'
-              }}
-              title={pin.title}
-            >
-              <i className={`ti ${pin.icon}`}></i>
-            </div>
-            <div style={{ backgroundColor: 'rgba(7, 22, 44, 0.85)', color: '#E2F0FF', padding: '2px 6px', borderRadius: '4px', fontSize: '9.5px', fontWeight: '600', whiteSpace: 'nowrap', marginTop: '2px', textAlign: 'center', border: '1px solid rgba(255,255,255,0.1)' }}>
-              {pin.title.split(' - ')[0]} ({pin.distance})
-            </div>
-          </div>
-        ))}
 
         {/* Selected Pin Details Modal / Card Overlay */}
         {selectedPin && (
@@ -335,7 +485,7 @@ export const DosonMap = () => {
                   {selectedPin.rating}
                 </span>
                 <span style={{ fontSize: '11px', color: '#F59E0B', fontWeight: '600' }}>
-                  📍 {selectedPin.distance} từ bạn
+                  📍 GPS: {selectedPin.lat.toFixed(4)}, {selectedPin.lng.toFixed(4)}
                 </span>
               </div>
               <div style={{ fontWeight: '700', fontSize: '14px', color: '#fff' }}>
