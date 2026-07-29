@@ -16,6 +16,7 @@ import AIChat from './pages/AIChat';
 import Search from './pages/Search';
 import Guide from './pages/Guide';
 import MemberDashboard from './pages/MemberDashboard';
+import GPTFloatingBubble from './components/GPTFloatingBubble';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminMembers from './pages/AdminMembers';
 import AdminPosts from './pages/AdminPosts';
@@ -39,6 +40,7 @@ function App() {
       <AuthProvider>
         <Router>
           <ScrollToTop />
+          <GPTFloatingBubble />
           <Routes>
             {/* Tuyến đường công khai */}
             <Route path="/" element={<Home />} />
