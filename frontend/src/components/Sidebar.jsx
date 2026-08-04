@@ -155,6 +155,22 @@ export const Sidebar = () => {
       >
         <i className="ti ti-calendar-event"></i> Quản lý sự kiện
       </NavLink>
+
+      <NavLink 
+        to="/admin-categories" 
+        className={({ isActive }) => `sb-item ${isActive ? 'active' : ''}`}
+        style={{ textDecoration: 'none' }}
+      >
+        <i className="ti ti-category"></i> Quản lý Chuyên mục
+      </NavLink>
+
+      <NavLink 
+        to="/admin-creators" 
+        className={({ isActive }) => `sb-item ${isActive ? 'active' : ''}`}
+        style={{ textDecoration: 'none' }}
+      >
+        <i className="ti ti-user-check"></i> Biên tập viên
+      </NavLink>
       
       <NavLink 
         to="/admin-config" 
@@ -163,6 +179,10 @@ export const Sidebar = () => {
       >
         <i className="ti ti-settings"></i> Cài đặt AI
       </NavLink>
+
+      <Link to="/guide?role=admin" target="_blank" className="sb-item" style={{ textDecoration: 'none' }}>
+        <i className="ti ti-book"></i> Hướng dẫn Admin
+      </Link>
       
       <Link to="/" className="sb-item" style={{ textDecoration: 'none' }}>
         <i className="ti ti-external-link"></i> Xem Trang chủ

@@ -285,7 +285,7 @@ export const AdminPosts = () => {
                 </span>
                 <h3 style={{ margin: 0, fontSize: '18px', color: '#0F172A', fontWeight: 700 }}>{selectedPostToView.title}</h3>
                 <div style={{ fontSize: '11px', color: '#64748B', marginTop: '4px' }}>
-                  Đăng bởi: <strong>{selectedPostToView.company_name}</strong> | Phân loại: <strong>{selectedPostToView.type}</strong>
+                  Đăng bởi: <strong>{selectedPostToView.company_name}</strong> | Loại tin: <strong>{selectedPostToView.type}</strong> | Chuyên mục: <strong>{selectedPostToView.category || 'Chưa xếp'}</strong> | Lĩnh vực: <strong>{selectedPostToView.sub_category || 'Chưa xếp'}</strong>
                 </div>
               </div>
               <button 

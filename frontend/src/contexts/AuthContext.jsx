@@ -1,4 +1,4 @@
-﻿import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const AuthContext = createContext();
 
@@ -16,9 +16,11 @@ export const AuthProvider = ({ children }) => {
       const memberToken = localStorage.getItem('doson_member_token');
       const memberUserStr = localStorage.getItem('doson_member_user');
 
+      const creatorToken = localStorage.getItem('doson_creator_token');
+      const creatorUserStr = localStorage.getItem('doson_creator_user');
+
       if (adminToken && adminUserStr) {
         try {
-          // Thử check-auth phía admin
           const res = await fetch('/api/admin/check-auth', {
             headers: { 'Authorization': 'Bearer ' + adminToken }
           });
@@ -35,14 +37,34 @@ export const AuthProvider = ({ children }) => {
         } catch (e) {
           console.error("Admin session verification failed", e);
         }
-        // Nếu token hết hạn hoặc lỗi, dọn dẹp
         localStorage.removeItem('doson_admin_token');
         localStorage.removeItem('doson_admin_user');
       }
 
+      if (creatorToken && creatorUserStr) {
+        try {
+          const res = await fetch('/api/creator/profile', {
+            headers: { 'Authorization': 'Bearer ' + creatorToken }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data.success) {
+              setRole('creator');
+              setUser(data.creator);
+              setToken(creatorToken);
+              setLoading(false);
+              return;
+            }
+          }
+        } catch (e) {
+          console.error("Creator session verification failed", e);
+        }
+        localStorage.removeItem('doson_creator_token');
+        localStorage.removeItem('doson_creator_user');
+      }
+
       if (memberToken && memberUserStr) {
         try {
-          // Thử check-auth phía member
           const res = await fetch('/api/member/check-auth', {
             headers: { 'Authorization': 'Bearer ' + memberToken }
           });
@@ -59,7 +81,6 @@ export const AuthProvider = ({ children }) => {
         } catch (e) {
           console.error("Member session verification failed", e);
         }
-        // Nếu token hết hạn hoặc lỗi, dọn dẹp
         localStorage.removeItem('doson_member_token');
         localStorage.removeItem('doson_member_user');
       }
@@ -73,6 +94,32 @@ export const AuthProvider = ({ children }) => {
 
     checkAuth();
   }, []);
+
+  const loginCreator = async (username, password) => {
+    const res = await fetch('/api/creator/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.error || 'Đăng nhập Biên tập viên không thành công.');
+    }
+
+    setToken(data.token);
+    setRole('creator');
+    setUser(data.creator);
+
+    localStorage.setItem('doson_creator_token', data.token);
+    localStorage.setItem('doson_creator_user', JSON.stringify(data.creator));
+    localStorage.removeItem('doson_admin_token');
+    localStorage.removeItem('doson_admin_user');
+    localStorage.removeItem('doson_member_token');
+    localStorage.removeItem('doson_member_user');
+
+    return data;
+  };
 
   const login = async (username, password) => {
     const res = await fetch('/api/auth/login', {
@@ -93,16 +140,18 @@ export const AuthProvider = ({ children }) => {
       setUser(data.admin);
       localStorage.setItem('doson_admin_token', data.token);
       localStorage.setItem('doson_admin_user', JSON.stringify(data.admin));
-      // Dọn dẹp token member nếu có
       localStorage.removeItem('doson_member_token');
       localStorage.removeItem('doson_member_user');
+      localStorage.removeItem('doson_creator_token');
+      localStorage.removeItem('doson_creator_user');
     } else if (data.role === 'member') {
       setUser(data.user);
       localStorage.setItem('doson_member_token', data.token);
       localStorage.setItem('doson_member_user', JSON.stringify(data.user));
-      // Dọn dẹp token admin nếu có
       localStorage.removeItem('doson_admin_token');
       localStorage.removeItem('doson_admin_user');
+      localStorage.removeItem('doson_creator_token');
+      localStorage.removeItem('doson_creator_user');
     }
 
     return data;
@@ -125,11 +174,12 @@ export const AuthProvider = ({ children }) => {
       console.error("Logout API call failed", e);
     }
 
-    // Luôn xóa local storage và reset state kể cả khi gọi API lỗi
     localStorage.removeItem('doson_admin_token');
     localStorage.removeItem('doson_admin_user');
     localStorage.removeItem('doson_member_token');
     localStorage.removeItem('doson_member_user');
+    localStorage.removeItem('doson_creator_token');
+    localStorage.removeItem('doson_creator_user');
     
     setRole('guest');
     setUser(null);
@@ -141,6 +191,8 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('doson_admin_user');
     localStorage.removeItem('doson_member_token');
     localStorage.removeItem('doson_member_user');
+    localStorage.removeItem('doson_creator_token');
+    localStorage.removeItem('doson_creator_user');
     setRole('guest');
     setUser(null);
     setToken(null);
@@ -151,7 +203,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ role, user, token, loading, login, logout, setGuestMode, getAuthHeaders }}>
+    <AuthContext.Provider value={{ role, user, token, loading, login, loginCreator, logout, setGuestMode, getAuthHeaders }}>
       {children}
     </AuthContext.Provider>
   );

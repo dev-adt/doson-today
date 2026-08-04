@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../contexts/LanguageContext';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import SEOHead from '../components/SEOHead';
+import { CATEGORIES_DATA, ALL_CATEGORIES, getSubcategoriesByCategory, getCategoryLabel } from '../constants/categories';
 
 export const Posts = () => {
   const { role, token } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { currentLang, t } = useTranslation();
 
   const [posts, setPosts] = useState([]);
@@ -18,7 +21,35 @@ export const Posts = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTier, setSelectedTier] = useState('');
   const [selectedType, setSelectedType] = useState('');
-  
+  const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || '');
+  const [selectedSubCategory, setSelectedSubCategory] = useState(searchParams.get('sub_category') || '');
+  const [categoriesList, setCategoriesList] = useState(CATEGORIES_DATA);
+
+  // Lắng nghe sự thay đổi query params từ URL
+  useEffect(() => {
+    const cat = searchParams.get('category') || '';
+    const subCat = searchParams.get('sub_category') || '';
+    setSelectedCategory(cat);
+    setSelectedSubCategory(subCat);
+  }, [searchParams]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch('/api/categories');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+            setCategoriesList(data.data);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load dynamic categories in Posts page", err);
+      }
+    };
+    fetchCategories();
+  }, []);
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [postsPerPage, setPostsPerPage] = useState(10);
@@ -75,8 +106,10 @@ export const Posts = () => {
       
     const matchesTier = !selectedTier || p.company_tier === selectedTier;
     const matchesType = !selectedType || p.type === selectedType;
+    const matchesCategory = !selectedCategory || p.category === selectedCategory;
+    const matchesSubCategory = !selectedSubCategory || p.sub_category === selectedSubCategory;
     
-    return matchesSearch && matchesTier && matchesType;
+    return matchesSearch && matchesTier && matchesType && matchesCategory && matchesSubCategory;
   });
 
   // Sort featured posts to the top of the main listing
@@ -89,7 +122,7 @@ export const Posts = () => {
   // Reset pagination on filter change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, selectedTier, selectedType]);
+  }, [searchQuery, selectedTier, selectedType, selectedCategory, selectedSubCategory]);
 
   // Pagination index calculations
   const indexOfLastPost = currentPage * postsPerPage;
@@ -113,6 +146,13 @@ export const Posts = () => {
 
   return (
     <div className="public-body">
+      <SEOHead 
+        title={currentLang === 'en' ? 'Business Opportunities & News' : 'Bảng tin cơ hội & Quảng bá Doanh nghiệp'}
+        description="Khám phá các tin đăng tìm kiếm đối tác, nhu cầu hợp tác thương mại, sự kiện kết nối đầu tư và thông tin doanh nghiệp tại Đồ Sơn, Hải Phòng."
+        keywords="bảng tin doanh nghiệp, cơ hội kinh doanh, Đồ Sơn, Hải Phòng, hợp tác thương mại, quảng bá doanh nghiệp"
+        url="/posts"
+      />
+
       <Navbar />
 
       {/* Decorative background gradient blobs */}
@@ -178,7 +218,7 @@ export const Posts = () => {
                     <h2 style={{ fontFamily: 'var(--font-title)', fontSize: '20px', fontWeight: 700, color: '#fff', margin: '0 0 8px', lineHeight: 1.3 }}>{p.title}</h2>
                     <p style={{ fontSize: '13px', color: '#B5CFEC', margin: '0 0 15px', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{p.summary || p.body.replace(/<[^>]*>/g, '').substring(0, 150)}</p>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                       <button onClick={() => navigate('/posts/' + p.id)} className="btn btn-primary" style={{ fontSize: '12px', padding: '8px 18px' }}>
+                       <button onClick={() => navigate('/posts/' + (p.slug || p.id))} className="btn btn-primary" style={{ fontSize: '12px', padding: '8px 18px' }}>
                         {t('btn_read_more')} <i className="ti ti-arrow-right"></i>
                       </button>
                       <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.85)', fontWeight: 500 }}>{p.company_name}</span>
@@ -210,76 +250,152 @@ export const Posts = () => {
           </div>
         )}
 
-        {/* 2. FILTER BAR */}
-        <div className="glass-card" style={{ padding: '1.25rem', marginBottom: '2rem', display: 'flex', flexWrap: 'wrap', gap: '15px', alignItems: 'center', justifyContent: 'space-between' }}>
+        {/* 2. FILTER BAR (NEAT & COMPACT RE-LAYOUT) */}
+        <div className="glass-card" style={{ padding: '1rem 1.25rem', marginBottom: '2rem', display: 'flex', flexDirection: 'column', gap: '12px' }}>
           
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', flex: 1, minWidth: '280px' }}>
+          {/* Row 1: Search, Chuyên mục, Lĩnh vực */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px', width: '100%' }}>
+            
             {/* Search Input */}
-            <div style={{ position: 'relative', width: '240px' }}>
+            <div style={{ position: 'relative', width: '100%' }}>
               <i className="ti ti-search" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', fontSize: '13px', color: 'var(--text-muted)' }}></i>
               <input 
                 type="text" 
                 placeholder={t('search_posts_placeholder')} 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                style={{ padding: '8px 12px 8px 30px', width: '100%', borderRadius: '8px', border: '1px solid var(--border-strong)', fontSize: '12.5px', outline: 'none', backgroundColor: 'var(--surface-2)', color: 'var(--text-primary)' }}
+                style={{ padding: '7px 12px 7px 30px', width: '100%', borderRadius: '8px', border: '1px solid var(--border-strong)', fontSize: '12.5px', outline: 'none', backgroundColor: 'var(--surface-2)', color: 'var(--text-primary)', boxSizing: 'border-box' }}
               />
             </div>
 
-            {/* Filter by Tier */}
+            {/* Filter by Category (Chuyên mục) */}
             <select
-              value={selectedTier}
-              onChange={(e) => setSelectedTier(e.target.value)}
-              style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border-strong)', fontSize: '12.5px', outline: 'none', backgroundColor: 'var(--surface-2)', color: 'var(--text-primary)', cursor: 'pointer', minWidth: '130px' }}
+              value={selectedCategory}
+              onChange={(e) => {
+                const cat = e.target.value;
+                setSelectedCategory(cat);
+                setSelectedSubCategory('');
+              }}
+              style={{ padding: '7px 10px', width: '100%', borderRadius: '8px', border: '1px solid var(--border-strong)', fontSize: '12.5px', outline: 'none', backgroundColor: 'var(--surface-2)', color: 'var(--text-primary)', cursor: 'pointer', boxSizing: 'border-box' }}
             >
-              <option value="">{t('all_members')}</option>
-              <option value="Platinum">{t('tier_platinum_members')}</option>
-              <option value="Gold">{t('tier_gold_members')}</option>
-              <option value="Silver">{t('tier_silver_members')}</option>
+              <option value="">📁 {currentLang === 'en' ? 'All categories' : 'Tất cả chuyên mục'}</option>
+              {categoriesList.map(cat => (
+                <option key={cat.id || cat.name} value={cat.name}>{getCategoryLabel(cat, currentLang)}</option>
+              ))}
             </select>
 
-            {/* Filter by Type */}
+            {/* Filter by SubCategory (Lĩnh vực) */}
             <select
-              value={selectedType}
-              onChange={(e) => setSelectedType(e.target.value)}
-              style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border-strong)', fontSize: '12.5px', outline: 'none', backgroundColor: 'var(--surface-2)', color: 'var(--text-primary)', cursor: 'pointer', minWidth: '140px' }}
+              value={selectedSubCategory}
+              onChange={(e) => setSelectedSubCategory(e.target.value)}
+              style={{ padding: '7px 10px', width: '100%', borderRadius: '8px', border: '1px solid var(--border-strong)', fontSize: '12.5px', outline: 'none', backgroundColor: 'var(--surface-2)', color: 'var(--text-primary)', cursor: 'pointer', boxSizing: 'border-box' }}
             >
-              <option value="">{t('all_types')}</option>
-              <option value="offer">{t('type_offer')}</option>
-              <option value="demand">{t('type_demand')}</option>
-              <option value="cooperate">{t('type_cooperate')}</option>
+              <option value="">🏷️ {currentLang === 'en' ? 'All sectors' : 'Tất cả lĩnh vực'}</option>
+              {(selectedCategory 
+                ? ((categoriesList.find(c => c.name === selectedCategory)?.subcategories || []).map(s => typeof s === 'string' ? s : s.name))
+                : categoriesList.flatMap(c => (c.subcategories || []).map(s => typeof s === 'string' ? s : s.name))
+              ).map(subName => (
+                <option key={subName} value={subName}>{getCategoryLabel(subName, currentLang)}</option>
+              ))}
             </select>
+
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--text-secondary)' }}>
-              <span>{t('label_show')}:</span>
+          {/* Row 2: Single horizontal line for Tier, Type, Reset & Stats */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border)', paddingTop: '10px' }}>
+            
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              {/* Filter by Tier */}
               <select
-                value={postsPerPage}
-                onChange={(e) => {
-                  setPostsPerPage(Number(e.target.value));
-                  setCurrentPage(1);
-                }}
-                style={{
-                  padding: '4px 8px',
-                  borderRadius: '6px',
-                  border: '1px solid rgba(255,255,255,0.1)',
-                  background: 'var(--surface-3)',
-                  color: '#fff',
-                  fontSize: '11.5px',
-                  cursor: 'pointer',
-                  outline: 'none'
-                }}
+                value={selectedTier}
+                onChange={(e) => setSelectedTier(e.target.value)}
+                style={{ padding: '5px 8px', borderRadius: '6px', border: '1px solid var(--border-strong)', fontSize: '12px', outline: 'none', backgroundColor: 'var(--surface-2)', color: 'var(--text-primary)', cursor: 'pointer', maxWidth: '150px' }}
               >
-                <option value="5">{t('posts_per_page')(5)}</option>
-                <option value="10">{t('posts_per_page')(10)}</option>
-                <option value="25">{t('posts_per_page')(25)}</option>
+                <option value="">👑 {t('all_members')}</option>
+                <option value="Platinum">{t('tier_platinum_members')}</option>
+                <option value="Gold">{t('tier_gold_members')}</option>
+                <option value="Silver">{t('tier_silver_members')}</option>
               </select>
+
+              {/* Filter by Type */}
+              <select
+                value={selectedType}
+                onChange={(e) => setSelectedType(e.target.value)}
+                style={{ padding: '5px 8px', borderRadius: '6px', border: '1px solid var(--border-strong)', fontSize: '12px', outline: 'none', backgroundColor: 'var(--surface-2)', color: 'var(--text-primary)', cursor: 'pointer', maxWidth: '150px' }}
+              >
+                <option value="">📌 {t('all_types')}</option>
+                <option value="offer">{t('type_offer')}</option>
+                <option value="demand">{t('type_demand')}</option>
+                <option value="cooperate">{t('type_cooperate')}</option>
+              </select>
+
+              {/* Reset filter button */}
+              {(searchQuery || selectedTier || selectedType || selectedCategory || selectedSubCategory) && (
+                <button
+                  onClick={() => {
+                    setSearchQuery('');
+                    setSelectedTier('');
+                    setSelectedType('');
+                    setSelectedCategory('');
+                    setSelectedSubCategory('');
+                    setSearchParams({});
+                  }}
+                  style={{
+                    background: 'rgba(239,68,68,0.1)',
+                    color: '#EF4444',
+                    border: '1px solid rgba(239,68,68,0.2)',
+                    fontSize: '11.5px',
+                    padding: '4px 8px',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    fontWeight: 600,
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  <i className="ti ti-rotate-clockwise"></i> {currentLang === 'en' ? 'Reset' : 'Xóa lọc'}
+                </button>
+              )}
             </div>
-            <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-              {t('found_posts')(sortedPosts.length)}
+
+            {/* Stats & Per Page */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '12px', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span>{t('label_show')}:</span>
+                <select
+                  value={postsPerPage}
+                  onChange={(e) => {
+                    setPostsPerPage(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  style={{
+                    padding: '3px 6px',
+                    borderRadius: '4px',
+                    border: '1px solid var(--border-strong)',
+                    background: 'var(--surface-3)',
+                    color: 'var(--text-primary)',
+                    fontSize: '11.5px',
+                    cursor: 'pointer',
+                    outline: 'none'
+                  }}
+                >
+                  <option value="5">5</option>
+                  <option value="10">10</option>
+                  <option value="25">25</option>
+                </select>
+              </div>
+
+              <span>|</span>
+
+              <span style={{ fontWeight: 600, color: 'var(--primary-light)' }}>
+                {t('found_posts')(sortedPosts.length)}
+              </span>
             </div>
+
           </div>
+
         </div>
 
         {/* 3. POSTS DIRECTORY LIST */}
@@ -358,14 +474,21 @@ export const Posts = () => {
                           {p.type === 'offer' ? t('type_offer_short') : p.type === 'demand' ? t('type_demand_short') : t('type_cooperate_short')}
                         </span>
                         {p.category && (
-                          <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{p.category}</span>
+                          <span style={{ fontSize: '10.5px', color: '#0284c7', backgroundColor: '#e0f2fe', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
+                            📁 {getCategoryLabel(p.category, currentLang)}
+                          </span>
+                        )}
+                        {p.sub_category && (
+                          <span style={{ fontSize: '10.5px', color: '#059669', backgroundColor: '#ecfdf5', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
+                            🏷️ {getCategoryLabel(p.sub_category, currentLang)}
+                          </span>
                         )}
                       </div>
                     </div>
 
                     {/* Action button right */}
                     <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0, marginLeft: 'auto' }}>
-                      <button onClick={() => navigate('/posts/' + p.id)} className="btn btn-primary" style={{ fontSize: '12.5px', padding: '8px 18px' }}>
+                      <button onClick={() => navigate('/posts/' + (p.slug || p.id))} className="btn btn-primary" style={{ fontSize: '12.5px', padding: '8px 18px' }}>
                         {t('btn_read_post')} <i className="ti ti-book-open"></i>
                       </button>
                     </div>

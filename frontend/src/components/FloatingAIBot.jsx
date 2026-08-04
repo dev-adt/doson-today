@@ -1,0 +1,117 @@
+import React from 'react';
+import { useTranslation } from '../contexts/LanguageContext';
+
+export const FloatingAIBot = () => {
+  const { t } = useTranslation();
+
+  return (
+    <a
+      href="https://chatgpt.com/g/g-6a696c51b9088191b8f3a0c54a04ef66-doson-today"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="floating-ai-bot"
+      title={t('floating_ai_tooltip') || "Trợ lý AI Doson.today"}
+      style={{
+        position: 'fixed',
+        right: '20px',
+        top: '50%',
+        transform: 'translateY(-50%)',
+        zIndex: 9999,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        textDecoration: 'none',
+        cursor: 'pointer'
+      }}
+    >
+      <style>{`
+        @keyframes breathingEffect {
+          0% {
+            transform: scale(1);
+            filter: drop-shadow(0 4px 12px rgba(2, 132, 199, 0.4));
+          }
+          50% {
+            transform: scale(1.12);
+            filter: drop-shadow(0 8px 24px rgba(2, 132, 199, 0.75));
+          }
+          100% {
+            transform: scale(1);
+            filter: drop-shadow(0 4px 12px rgba(2, 132, 199, 0.4));
+          }
+        }
+        .ai-breathing-head {
+          animation: breathingEffect 2.6s infinite ease-in-out;
+          transition: transform 0.3s ease;
+        }
+        .ai-breathing-head:hover {
+          transform: scale(1.18) !important;
+        }
+      `}</style>
+
+      {/* Floating Robot Avatar without background */}
+      <div
+        className="ai-breathing-head"
+        style={{
+          width: '72px',
+          height: '72px',
+          position: 'relative',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'transparent'
+        }}
+      >
+        <img
+          src="/ai_robot_avatar-removebg.png"
+          alt="Doson AI Assistant"
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'contain',
+            background: 'transparent'
+          }}
+        />
+
+        {/* Small "GPT" Green Badge on Bottom Right */}
+        <span
+          style={{
+            position: 'absolute',
+            bottom: '2px',
+            right: '0px',
+            backgroundColor: '#10b981',
+            color: '#ffffff',
+            fontSize: '10px',
+            fontWeight: '800',
+            padding: '2px 7px',
+            borderRadius: '10px',
+            border: '1.5px solid #ffffff',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.25)',
+            letterSpacing: '0.04em',
+            lineHeight: '1.2'
+          }}
+        >
+          GPT
+        </span>
+      </div>
+
+      {/* Label under robot */}
+      <span
+        style={{
+          marginTop: '4px',
+          backgroundColor: 'rgba(12, 35, 64, 0.9)',
+          color: '#ffffff',
+          fontSize: '11px',
+          fontWeight: '700',
+          padding: '2px 8px',
+          borderRadius: '12px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
+          whiteSpace: 'nowrap'
+        }}
+      >
+        {t('floating_ai_label') || "Trợ lý AI"}
+      </span>
+    </a>
+  );
+};
+
+export default FloatingAIBot;

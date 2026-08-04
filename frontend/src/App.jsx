@@ -16,11 +16,14 @@ import AIChat from './pages/AIChat';
 import Search from './pages/Search';
 import Guide from './pages/Guide';
 import MemberDashboard from './pages/MemberDashboard';
+import CreatorDashboard from './pages/CreatorDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminMembers from './pages/AdminMembers';
 import AdminPosts from './pages/AdminPosts';
 import AdminConfig from './pages/AdminConfig';
 import AdminEvents from './pages/AdminEvents';
+import AdminCategories from './pages/AdminCategories';
+import AdminCreators from './pages/AdminCreators';
 
 // Tự động cuộn lên đầu trang khi chuyển tuyến đường
 function ScrollToTop() {
@@ -62,6 +65,16 @@ function App() {
               } 
             />
 
+            {/* Tuyến đường bảo vệ dành cho Biên tập viên */}
+            <Route 
+              path="/creator-dashboard" 
+              element={
+                <ProtectedRoute allowedRoles={['creator']}>
+                  <CreatorDashboard />
+                </ProtectedRoute>
+              } 
+            />
+
             {/* Tuyến đường bảo vệ dành cho Admin */}
             <Route 
               path="/admin-dashboard" 
@@ -92,6 +105,22 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={['admin']}>
                   <AdminEvents />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin-categories" 
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <AdminCategories />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin-creators" 
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <AdminCreators />
                 </ProtectedRoute>
               } 
             />

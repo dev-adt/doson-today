@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import SEOHead from '../components/SEOHead';
 import { useTranslation } from '../contexts/LanguageContext';
 
 export const Events = () => {
@@ -125,6 +126,12 @@ export const Events = () => {
 
   return (
     <div className="public-body">
+      <SEOHead 
+        title="Lịch Sự kiện & Hội thảo Doanh nghiệp"
+        description="Cập nhật lịch các sự kiện xúc tiến thương mại, hội thảo đầu tư, lễ hội văn hóa du lịch và hoạt động doanh nghiệp tại Đồ Sơn, Hải Phòng."
+        keywords="sự kiện Đồ Sơn, hội thảo doanh nghiệp, xúc tiến thương mại Hải Phòng, kết nối đầu tư"
+        url="/events"
+      />
       <Navbar />
 
       {/* Decorative background blobs */}

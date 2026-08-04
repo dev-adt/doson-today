@@ -4,10 +4,11 @@ import { useAuth } from '../contexts/AuthContext';
 import Navbar from '../components/Navbar';
 import RichTextEditor from '../components/RichTextEditor';
 import { useTranslation } from '../contexts/LanguageContext';
+import { CATEGORIES_DATA, ALL_CATEGORIES, getSubcategoriesByCategory, getCategoryLabel } from '../constants/categories';
 
 export const MemberDashboard = () => {
   const { user, token, getAuthHeaders, logout } = useAuth();
-  const { t } = useTranslation();
+  const { currentLang, t } = useTranslation();
   const navigate = useNavigate();
 
   // State
@@ -48,11 +49,29 @@ export const MemberDashboard = () => {
   // Modal State for new Post
   const [modalOpen, setModalOpen] = useState(false);
   const [newPostData, setNewPostData] = useState({
-    title: '', summary: '', body: '', type: 'Tìm kiếm đối tác',
-    category: '', tags: '', contact_info: '', deadline: '',
+    title: '', summary: '', body: '', type: 'Tin chung',
+    category: '', sub_category: '', source_url: '', tags: '', contact_info: '', deadline: '',
     image_url: '', featured_requested: 0
   });
   const [creatingPost, setCreatingPost] = useState(false);
+  const [categoriesList, setCategoriesList] = useState(CATEGORIES_DATA);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch('/api/categories');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+            setCategoriesList(data.data);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load dynamic categories in MemberDashboard", err);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   const loadDashboardData = async () => {
     try {
@@ -221,7 +240,7 @@ export const MemberDashboard = () => {
     const file = e.target.files[0];
     if (!file) return;
 
-    if (file.size > 2 * 1024 * 1024) {
+    if (file.size > 10 * 1024 * 1024) {
       alert(t('err_image_size'));
       return;
     }
@@ -240,7 +259,15 @@ export const MemberDashboard = () => {
             base64Data
           })
         });
-        const data = await res.json();
+
+        const responseText = await res.text();
+        let data;
+        try {
+          data = JSON.parse(responseText);
+        } catch {
+          throw new Error('Máy chủ phản hồi lỗi. Vui lòng chọn tệp ảnh có dung lượng nhỏ hơn (dưới 10MB).');
+        }
+
         if (res.ok && data.success) {
           setNewPostData(prev => ({ ...prev, image_url: data.url }));
         } else {
@@ -283,6 +310,8 @@ export const MemberDashboard = () => {
             body: p.body || '',
             type: p.type || t('type_find_partner'),
             category: p.category || '',
+            sub_category: p.sub_category || '',
+            source_url: p.source_url || '',
             tags: parsedTags,
             contact_info: p.contact_info || '',
             deadline: formattedDeadline,
@@ -304,6 +333,14 @@ export const MemberDashboard = () => {
   const handleSubmitAction = async (isDraft) => {
     if (!newPostData.title) {
       alert(t('alert_enter_title'));
+      return;
+    }
+    if (!newPostData.category) {
+      alert('Vui lòng chọn Chuyên mục cho bài viết (bắt buộc).');
+      return;
+    }
+    if (!newPostData.sub_category) {
+      alert('Vui lòng chọn Lĩnh vực cho bài viết (bắt buộc).');
       return;
     }
     if (!newPostData.body) {
@@ -346,7 +383,7 @@ export const MemberDashboard = () => {
       setEditingPostId(null);
       setNewPostData({
         title: '', summary: '', body: '', type: t('type_find_partner'),
-        category: '', tags: '', contact_info: '', deadline: '', image_url: '',
+        category: '', sub_category: '', source_url: '', tags: '', contact_info: '', deadline: '', image_url: '',
         featured_requested: 0
       });
       loadDashboardData();
@@ -407,7 +444,7 @@ export const MemberDashboard = () => {
                 setEditingPostId(null);
                 setNewPostData({
                   title: '', summary: '', body: '', type: t('type_find_partner'),
-                  category: '', tags: '', contact_info: '', deadline: '', image_url: ''
+                  category: '', sub_category: '', tags: '', contact_info: '', deadline: '', image_url: ''
                 });
                 setModalOpen(true);
               }}
@@ -821,28 +858,85 @@ export const MemberDashboard = () => {
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   <div className="fg">
+                    <label>Chuyên mục <span style={{ color: 'var(--rose)' }}>*</span></label>
+                    <select 
+                      id="category" 
+                      value={newPostData.category} 
+                      onChange={(e) => {
+                        const cat = e.target.value;
+                        setNewPostData(prev => ({ ...prev, category: cat, sub_category: '' }));
+                      }}
+                      required
+                    >
+                      <option value="">-- {currentLang === 'en' ? 'Select category' : 'Chọn Chuyên mục'} --</option>
+                      {categoriesList.map(c => (
+                        <option key={c.id || c.name} value={c.name}>{getCategoryLabel(c, currentLang)}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="fg">
+                    <label>Lĩnh vực <span style={{ color: 'var(--rose)' }}>*</span></label>
+                    <select 
+                      id="sub_category" 
+                      value={newPostData.sub_category} 
+                      onChange={(e) => setNewPostData(prev => ({ ...prev, sub_category: e.target.value }))}
+                      disabled={!newPostData.category}
+                      required
+                    >
+                      <option value="">-- {currentLang === 'en' ? 'Select sector' : 'Chọn Lĩnh vực'} --</option>
+                      {((categoriesList.find(c => c.name === newPostData.category)?.subcategories || []).map(s => typeof s === 'string' ? s : s.name)).map(sub => (
+                        <option key={sub} value={sub}>{getCategoryLabel(sub, currentLang)}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div className="fg">
                     <label>{t('modal_post_type_label')}</label>
-                    <select id="type" value={newPostData.type} onChange={handleNewPostChange}>
+                    <select id="type" value={newPostData.type || 'Tin chung'} onChange={handleNewPostChange}>
+                      <option value="Tin chung">{t('type_general_news')} (Mặc định)</option>
                       <option value="Tìm kiếm đối tác">{t('type_find_partner')}</option>
                       <option value="Cần mua / Cần bán">{t('type_buy_sell')}</option>
                       <option value="Thông báo sự kiện">{t('type_event_announcement')}</option>
                       <option value="Tuyển dụng">{t('type_recruitment')}</option>
+                      <option value="Khác">{t('type_other')}</option>
                     </select>
                   </div>
+
                   <div className="fg">
-                    <label>{t('modal_post_category_label')}</label>
-                    <input type="text" id="category" value={newPostData.category} onChange={handleNewPostChange} placeholder={t('modal_post_category_placeholder')} />
+                    <label>Từ khoá (phân tách bằng dấu phẩy)</label>
+                    <input type="text" id="tags" value={newPostData.tags} onChange={handleNewPostChange} placeholder="Ví dụ: du lịch Đồ Sơn, khách sạn, đối tác thương mại" />
                   </div>
                 </div>
 
                 <div className="fg">
-                  <label>{t('modal_post_tags_label')}</label>
-                  <input type="text" id="tags" value={newPostData.tags} onChange={handleNewPostChange} placeholder={t('modal_post_tags_placeholder')} />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                    <label style={{ margin: 0 }}>Tóm tắt bài đăng (Meta Description — Tối đa 160 ký tự)</label>
+                    <span style={{ fontSize: '11px', color: (newPostData.summary || '').length >= 160 ? '#ef4444' : 'var(--text-muted)', fontWeight: 600 }}>
+                      {(newPostData.summary || '').length}/160 ký tự
+                    </span>
+                  </div>
+                  <input 
+                    type="text" 
+                    id="summary" 
+                    value={newPostData.summary} 
+                    onChange={handleNewPostChange} 
+                    maxLength={160}
+                    placeholder="Mô tả tóm tắt ngắn gọn hiển thị trên Google Search & Zalo/FB preview (tối đa 160 ký tự)..." 
+                  />
                 </div>
 
                 <div className="fg">
-                  <label>{t('modal_post_summary_label')}</label>
-                  <input type="text" id="summary" value={newPostData.summary} onChange={handleNewPostChange} placeholder={t('modal_post_summary_placeholder')} />
+                  <label>Nguồn bài viết / Link tham khảo (URL)</label>
+                  <input 
+                    type="url" 
+                    id="source_url" 
+                    value={newPostData.source_url} 
+                    onChange={handleNewPostChange} 
+                    placeholder="Ví dụ: https://baohaiphong.vn/... (Nếu có, bấm vào sẽ nhảy tới link gốc)" 
+                  />
                 </div>
 
                 <div className="fg">

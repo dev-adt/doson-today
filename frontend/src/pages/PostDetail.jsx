@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../contexts/LanguageContext';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import SEOHead from '../components/SEOHead';
 
 export const PostDetail = () => {
   const { id } = useParams();
@@ -164,6 +165,30 @@ export const PostDetail = () => {
     'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?auto=format&fit=crop&w=800&q=80'
   ];
 
+  // Ngăn chặn hiện tượng tự động cuộn (giật trang) khi click chuyển Slide trong iframe
+  useEffect(() => {
+    let savedScrollY = 0;
+    const handleScroll = () => {
+      savedScrollY = window.scrollY;
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    const handleBlur = () => {
+      if (document.activeElement && document.activeElement.tagName === 'IFRAME') {
+        const targetY = savedScrollY;
+        requestAnimationFrame(() => {
+          window.scrollTo(0, targetY);
+        });
+      }
+    };
+
+    window.addEventListener('blur', handleBlur);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('blur', handleBlur);
+    };
+  }, []);
+
   useEffect(() => {
     const fetchPost = async () => {
       setTranslatedTitle('');
@@ -232,12 +257,64 @@ export const PostDetail = () => {
   const isPlatinum = post.company_tier === 'Platinum';
   const isGold = post.company_tier === 'Gold';
 
+  const plainBodyText = post.body ? post.body.replace(/<[^>]+>/g, '').substring(0, 160) : '';
+  const rawDesc = isTranslated ? (translatedSummary || plainBodyText) : (post.summary || plainBodyText || post.title);
+  const metaDescription = rawDesc.length > 160 ? rawDesc.substring(0, 157) + '...' : rawDesc;
+
+  // Parse Tags từ khoá SEO
+  let parsedTagsStr = '';
+  if (post.tags) {
+    try {
+      const arr = typeof post.tags === 'string' && post.tags.startsWith('[') ? JSON.parse(post.tags) : post.tags;
+      parsedTagsStr = Array.isArray(arr) ? arr.join(', ') : String(arr);
+    } catch(e) {
+      parsedTagsStr = String(post.tags);
+    }
+  }
+  const metaKeywords = [parsedTagsStr, post.category, post.sub_category, 'Đồ Sơn', 'Hải Phòng', post.title].filter(Boolean).join(', ');
+
+  // Generate NewsArticle JSON-LD schema
+  const newsSchema = {
+    "@context": "https://schema.org",
+    "@type": "NewsArticle",
+    "headline": isTranslated ? translatedTitle : post.title,
+    "image": [imgUrl],
+    "datePublished": post.created_at || post.published_at,
+    "dateModified": post.updated_at || post.created_at,
+    "author": [{
+      "@type": "Organization",
+      "name": post.company_name || "Đồ Sơn Today Member"
+    }],
+    "publisher": {
+      "@type": "Organization",
+      "name": "Đồ Sơn Today",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://doson.today/assets/logo.png"
+      }
+    },
+    "description": metaDescription
+  };
+
   return (
     <div className="public-body" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <SEOHead 
+        title={isTranslated ? translatedTitle : post.title}
+        description={metaDescription}
+        keywords={metaKeywords}
+        image={imgUrl}
+        url={`/posts/${post.slug || post.id}`}
+        type="article"
+        publishedAt={post.created_at}
+        updatedAt={post.updated_at}
+        author={post.company_name}
+        schemaData={newsSchema}
+      />
+
       <Navbar />
 
-      <main style={{ flex: 1, padding: '3rem 1.5rem 5rem' }}>
-        <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
+      <main style={{ flex: 1, padding: '2.5rem 1.5rem 5rem' }}>
+        <div style={{ maxWidth: '1440px', margin: '0 auto' }}>
           
           {/* Breadcrumbs */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--text-muted)', marginBottom: '1.5rem', textAlign: 'left' }}>
@@ -248,156 +325,245 @@ export const PostDetail = () => {
             <span style={{ color: 'var(--text-primary)' }}>{post.title}</span>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '30px', alignItems: 'start' }}>
+          {/* Full Width Single Column Layout */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', textAlign: 'left' }}>
             
-            {/* Left Column: Post Details */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', textAlign: 'left' }}>
+            {/* Cover Image */}
+            <div style={{ width: '100%', borderRadius: '16px', overflow: 'hidden', border: '1px solid var(--border)', background: 'var(--surface-0)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <img src={imgUrl} alt={post.title} style={{ width: '100%', height: 'auto', maxHeight: '720px', objectFit: 'contain', display: 'block' }} />
+            </div>
+
+            {/* Title & Meta Info */}
+            <div className="glass-card" style={{ padding: '28px 32px', position: 'relative' }}>
+              {post.is_featured === 1 && (
+                <span style={{ position: 'absolute', top: '20px', right: '20px', fontSize: '10.5px', background: 'rgba(245, 158, 11, 0.15)', color: 'var(--amber)', border: '1px solid rgba(245,158,11,0.3)', padding: '4px 10px', borderRadius: '4px', textTransform: 'uppercase', fontWeight: 700 }}>
+                  {t('badge_featured')} <i className="ti ti-star-filled"></i>
+                </span>
+              )}
               
-              {/* Cover Image */}
-              <div style={{ width: '100%', maxHeight: '420px', borderRadius: '16px', overflow: 'hidden', border: '1px solid var(--border)' }}>
-                <img src={imgUrl} alt={post.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <div style={{ display: 'flex', gap: '10px', marginBottom: '14px' }}>
+                <span style={{ fontSize: '11px', background: 'rgba(2, 132, 199, 0.08)', color: 'var(--primary-dark)', border: '1px solid rgba(2, 132, 199, 0.15)', padding: '3px 10px', borderRadius: '4px', textTransform: 'uppercase', fontWeight: 600 }}>
+                  {post.type === 'offer' ? t('type_offer') : post.type === 'demand' ? t('type_demand') : post.type === 'cooperate' ? t('type_cooperate') : (post.type || t('type_general_news'))}
+                </span>
+                <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{post.category || t('category_default')}</span>
               </div>
 
-              {/* Title & Meta Info */}
-              <div className="glass-card" style={{ padding: '24px', position: 'relative' }}>
-                {post.is_featured === 1 && (
-                  <span style={{ position: 'absolute', top: '16px', right: '16px', fontSize: '10px', background: 'rgba(245, 158, 11, 0.15)', color: 'var(--amber)', border: '1px solid rgba(245,158,11,0.3)', padding: '3px 8px', borderRadius: '4px', textTransform: 'uppercase', fontWeight: 700 }}>
-                    {t('badge_featured')} <i className="ti ti-star-filled"></i>
-                  </span>
-                )}
-                
-                <div style={{ display: 'flex', gap: '10px', marginBottom: '12px' }}>
-                  <span style={{ fontSize: '10px', background: 'rgba(2, 132, 199, 0.08)', color: 'var(--primary-dark)', border: '1px solid rgba(2, 132, 199, 0.15)', padding: '2px 8px', borderRadius: '4px', textTransform: 'uppercase', fontWeight: 600 }}>
-                    {post.type === 'offer' ? t('type_offer') : post.type === 'demand' ? t('type_demand') : t('type_cooperate')}
-                  </span>
-                  <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{post.category || t('category_default')}</span>
-                </div>
+              <h1 style={{ fontFamily: 'var(--font-title)', fontSize: '32px', color: 'var(--text-primary)', fontWeight: 700, lineHeight: '1.4', margin: '0 0 14px' }}>
+                {isTranslated ? translatedTitle : post.title}
+              </h1>
+              
+              <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
+                {t('date_posted_label')}: <strong style={{ color: 'var(--text-primary)' }}>{dateStr}</strong>
+              </div>
 
-                <h1 style={{ fontFamily: 'var(--font-title)', fontSize: '28px', color: 'var(--text-primary)', fontWeight: 700, lineHeight: '1.4', margin: '0 0 12px' }}>
-                  {isTranslated ? translatedTitle : post.title}
-                </h1>
-                
-                <div style={{ fontSize: '12.5px', color: 'var(--text-secondary)' }}>
-                  {t('date_posted_label')}: <strong style={{ color: 'var(--text-primary)' }}>{dateStr}</strong>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '15px', flexWrap: 'wrap' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>{t('translate_select_lang')}:</span>
-                    <select
-                      value={translateTargetLang}
-                      onChange={(e) => setTranslateTargetLang(e.target.value)}
-                      style={{
-                        background: 'var(--surface-2)',
-                        border: '1px solid var(--border-strong)',
-                        borderRadius: '6px',
-                        color: 'var(--text-primary)',
-                        fontSize: '11.5px',
-                        padding: '4px 8px',
-                        outline: 'none',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      <option value="en">🇬🇧 Tiếng Anh (English)</option>
-                      <option value="vi">🇻🇳 Tiếng Việt (Vietnamese)</option>
-                      <option value="ja">🇯🇵 Tiếng Nhật (Japanese)</option>
-                      <option value="zh">🇨🇳 Tiếng Trung (Chinese)</option>
-                    </select>
-                  </div>
-
-                  <button
-                    onClick={handleTranslatePost}
-                    disabled={loadingTranslate}
+              {/* Source URL (Nguồn bài viết / Link gốc) */}
+              {post.source_url && (
+                <div style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px dashed var(--border)' }}>
+                  <a
+                    href={post.source_url.startsWith('http') ? post.source_url : `https://${post.source_url}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     style={{
-                      background: isTranslated ? 'rgba(16, 185, 129, 0.1)' : 'rgba(30, 136, 229, 0.1)',
-                      border: `1px solid ${isTranslated ? 'rgba(16, 185, 129, 0.3)' : 'rgba(30, 136, 229, 0.3)'}`,
-                      color: isTranslated ? 'var(--emerald)' : 'var(--primary-light)',
-                      padding: '5px 12px',
-                      borderRadius: '6px',
-                      fontSize: '11.5px',
-                      cursor: 'pointer',
-                      display: 'flex',
+                      display: 'inline-flex',
                       alignItems: 'center',
                       gap: '6px',
+                      fontSize: '13px',
+                      color: '#0284c7',
+                      background: 'rgba(2, 132, 199, 0.08)',
+                      border: '1px solid rgba(2, 132, 199, 0.2)',
+                      padding: '6px 14px',
+                      borderRadius: '6px',
+                      textDecoration: 'none',
                       fontWeight: 600,
-                      outline: 'none',
-                      transition: 'var(--transition)'
+                      wordBreak: 'break-all'
                     }}
                   >
-                    <i className={loadingTranslate ? "ti ti-loader animate-spin" : "ti ti-language"}></i>
-                    {loadingTranslate ? '...' : isTranslated ? t('translate_view_original') : t('translate_button')}
-                  </button>
-                </div>
-              </div>
-
-              {/* Summary / Lead Paragraph */}
-              {post.summary && (
-                <div className="glass-card" style={{ padding: '20px 24px', background: 'var(--surface-0)', borderColor: 'var(--border-strong)' }}>
-                  <p style={{ fontSize: '14.5px', fontWeight: 500, color: 'var(--primary-dark)', margin: 0, lineHeight: '1.6' }}>
-                    {isTranslated ? translatedSummary : post.summary}
-                  </p>
+                    <i className="ti ti-external-link"></i> {currentLang === 'en' ? 'Article Source:' : 'Nguồn bài viết:'} {post.source_url}
+                  </a>
                 </div>
               )}
 
-              {/* Main Content Body */}
-              <div className="glass-card" style={{ padding: '30px 24px' }}>
-                <div 
-                  className="post-html-body"
-                  dangerouslySetInnerHTML={{ __html: isTranslated ? translatedBody : post.body }}
-                  style={{
-                    fontSize: '15px',
-                    color: 'var(--text-secondary)',
-                    lineHeight: '1.8',
-                    textAlign: 'left',
-                  }}
-                />
-              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '18px', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{t('translate_select_lang')}:</span>
+                  <select
+                    value={translateTargetLang}
+                    onChange={(e) => setTranslateTargetLang(e.target.value)}
+                    style={{
+                      background: 'var(--surface-2)',
+                      border: '1px solid var(--border-strong)',
+                      borderRadius: '6px',
+                      color: 'var(--text-primary)',
+                      fontSize: '12px',
+                      padding: '5px 10px',
+                      outline: 'none',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <option value="en">🇬🇧 Tiếng Anh (English)</option>
+                    <option value="vi">🇻🇳 Tiếng Việt (Vietnamese)</option>
+                    <option value="ja">🇯🇵 Tiếng Nhật (Japanese)</option>
+                    <option value="zh">🇨🇳 Tiếng Trung (Chinese)</option>
+                  </select>
+                </div>
 
+                <button
+                  onClick={handleTranslatePost}
+                  disabled={loadingTranslate}
+                  style={{
+                    background: isTranslated ? 'rgba(16, 185, 129, 0.1)' : 'rgba(30, 136, 229, 0.1)',
+                    border: `1px solid ${isTranslated ? 'rgba(16, 185, 129, 0.3)' : 'rgba(30, 136, 229, 0.3)'}`,
+                    color: isTranslated ? 'var(--emerald)' : 'var(--primary-light)',
+                    padding: '6px 14px',
+                    borderRadius: '6px',
+                    fontSize: '12px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    fontWeight: 600,
+                    outline: 'none',
+                    transition: 'var(--transition)'
+                  }}
+                >
+                  <i className={loadingTranslate ? "ti ti-loader animate-spin" : "ti ti-language"}></i>
+                  {loadingTranslate ? '...' : isTranslated ? t('translate_view_original') : t('translate_button')}
+                </button>
+              </div>
             </div>
 
-            {/* Right Column: Sidebar (Author Details & Contact Info) */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', textAlign: 'left' }}>
-              
-              {/* Author / Company Details */}
-              <div className="glass-card" style={{ padding: '20px' }}>
-                <h4 style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 15px' }}>{t('sidebar_author')}</h4>
+            {/* Summary / Lead Paragraph */}
+            {post.summary && (
+              <div className="glass-card" style={{ padding: '24px 32px', background: 'var(--surface-0)', borderColor: 'var(--border-strong)' }}>
+                <p style={{ fontSize: '15.5px', fontWeight: 500, color: 'var(--primary-dark)', margin: 0, lineHeight: '1.7' }}>
+                  {isTranslated ? translatedSummary : post.summary}
+                </p>
+              </div>
+            )}
+
+            {/* Main Content Body */}
+            <div className="glass-card" style={{ padding: '36px 32px' }}>
+              <div 
+                className="post-html-body"
+                dangerouslySetInnerHTML={{ 
+                  __html: (() => {
+                    let raw = isTranslated ? translatedBody : post.body;
+                    if (!raw) return '';
+                    if (raw.includes('&lt;iframe') || raw.includes('&lt;div')) {
+                      const txt = document.createElement('textarea');
+                      txt.innerHTML = raw;
+                      raw = txt.value;
+                    }
+                    return raw;
+                  })()
+                }}
+                style={{
+                  fontSize: '16px',
+                  color: 'var(--text-secondary)',
+                  lineHeight: '1.8',
+                  textAlign: 'left',
+                }}
+              />
+              <style>{`
+                .post-html-body iframe {
+                  width: 100% !important;
+                  max-width: 100% !important;
+                  aspect-ratio: 16 / 9;
+                  min-height: 520px;
+                  height: auto;
+                  border-radius: 12px;
+                  border: none;
+                  margin: 20px 0;
+                  box-shadow: 0 12px 30px -5px rgba(0,0,0,0.12);
+                  display: block;
+                }
+                @media (max-width: 1024px) {
+                  .post-html-body iframe {
+                    min-height: 400px;
+                  }
+                }
+                @media (max-width: 640px) {
+                  .post-html-body iframe {
+                    min-height: 260px;
+                  }
+                }
+              `}</style>
+
+              {/* Hashtags / Từ khóa hiển thị đẹp mắt cuối bài viết */}
+              {post.tags && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px', marginTop: '24px', paddingTop: '18px', borderTop: '1px dashed var(--border)' }}>
+                  <span style={{ fontSize: '12.5px', color: 'var(--text-muted)', display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}>
+                    <i className="ti ti-tags"></i> Từ khóa:
+                  </span>
+                  {(Array.isArray(post.tags) ? post.tags : (typeof post.tags === 'string' && post.tags.startsWith('[') ? (function(){ try { return JSON.parse(post.tags); } catch(e) { return post.tags.split(','); } })() : post.tags.split(','))).map((tag, idx) => {
+                    const cleanTag = typeof tag === 'string' ? tag.trim() : String(tag);
+                    if (!cleanTag) return null;
+                    return (
+                      <span 
+                        key={idx}
+                        style={{
+                          fontSize: '12px',
+                          color: '#0284c7',
+                          background: 'rgba(2, 132, 199, 0.08)',
+                          border: '1px solid rgba(2, 132, 199, 0.2)',
+                          padding: '3px 10px',
+                          borderRadius: '20px',
+                          fontWeight: 600
+                        }}
+                      >
+                        #{cleanTag.replace(/^#/, '')}
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Bottom Horizontal Card: Author & Contact Details */}
+            <div className="glass-card" style={{ padding: '28px 32px', marginTop: '10px' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '24px' }}>
                 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '15px' }}>
-                  <div className="av-circle" style={{ width: '48px', height: '48px', fontSize: '18px', background: isPlatinum ? 'linear-gradient(135deg, #FFD700, #FFA500)' : isGold ? 'var(--amber-glow)' : 'var(--primary-glow)', color: '#fff' }}>
+                {/* Left: Author Info */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+                  <div className="av-circle" style={{ width: '56px', height: '56px', fontSize: '20px', background: isPlatinum ? 'linear-gradient(135deg, #FFD700, #FFA500)' : isGold ? 'var(--amber-glow)' : 'var(--primary-glow)', color: '#fff', fontWeight: '700', flexShrink: 0 }}>
                     {post.company_name ? post.company_name.substring(0, 2).toUpperCase() : 'DN'}
                   </div>
                   <div>
-                    <h3 style={{ fontSize: '15px', color: 'var(--text-primary)', fontWeight: 600, margin: 0 }}>{post.company_name || 'Hội viên ẩn danh'}</h3>
-                    <span style={{ 
-                      display: 'inline-block',
-                      marginTop: '4px',
-                      fontSize: '9px',
-                      background: isPlatinum ? 'rgba(245,158,11,0.15)' : isGold ? 'rgba(245,158,11,0.1)' : 'var(--surface-0)',
-                      color: isPlatinum || isGold ? 'var(--amber-dark)' : 'var(--text-muted)',
-                      border: `1px solid ${isPlatinum || isGold ? 'rgba(245,158,11,0.3)' : 'var(--border-strong)'}`,
-                      padding: '1px 6px',
-                      borderRadius: '3px',
-                      fontWeight: 700,
-                      textTransform: 'uppercase'
-                    }}>
-                      {post.company_tier || 'Silver'}
-                    </span>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '3px' }}>
+                      {t('sidebar_author')}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                      <h3 style={{ fontSize: '17px', color: 'var(--text-primary)', fontWeight: 700, margin: 0 }}>{post.company_name || 'Hội viên ẩn danh'}</h3>
+                      <span style={{ 
+                        fontSize: '9.5px',
+                        background: isPlatinum ? 'rgba(245,158,11,0.15)' : isGold ? 'rgba(245,158,11,0.1)' : 'var(--surface-0)',
+                        color: isPlatinum || isGold ? 'var(--amber-dark)' : 'var(--text-muted)',
+                        border: `1px solid ${isPlatinum || isGold ? 'rgba(245,158,11,0.3)' : 'var(--border-strong)'}`,
+                        padding: '2px 8px',
+                        borderRadius: '4px',
+                        fontWeight: 700,
+                        textTransform: 'uppercase'
+                      }}>
+                        {post.company_tier || 'Silver'}
+                      </span>
+                    </div>
                     {post.member_id && (
                       <button 
                         onClick={() => handleViewMemberDetails(post.member_id)}
                         style={{
-                          marginTop: '8px',
+                          marginTop: '6px',
                           background: 'rgba(2, 132, 199, 0.08)',
                           border: '1px solid rgba(2, 132, 199, 0.2)',
                           color: 'var(--primary-dark)',
-                          padding: '4px 10px',
+                          padding: '4px 12px',
                           borderRadius: '4px',
-                          fontSize: '11px',
+                          fontSize: '11.5px',
                           cursor: 'pointer',
-                          display: 'flex',
+                          display: 'inline-flex',
                           alignItems: 'center',
                           gap: '4px',
-                          outline: 'none'
+                          outline: 'none',
+                          fontWeight: 600
                         }}
                       >
                         <i className="ti ti-info-circle"></i> {t('btn_view_details')}
@@ -406,42 +572,40 @@ export const PostDetail = () => {
                   </div>
                 </div>
 
-                <div style={{ height: '1px', background: 'var(--border)', margin: '15px 0' }} />
-                
-                {/* Contact Information Section (Login Wall) */}
-                <h4 style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 12px' }}>{t('contact_info_label')}</h4>
-                
-                {isGuest ? (
-                  <div style={{ padding: '15px', background: 'var(--surface-0)', border: '1px dashed var(--border-strong)', borderRadius: '8px', textAlign: 'center' }}>
-                    <i className="ti ti-lock" style={{ fontSize: '20px', color: 'var(--primary)', marginBottom: '8px', display: 'block' }}></i>
-                    <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '0 0 12px', lineHeight: '1.5' }}>
-                      {t('login_required_desc')}
-                    </p>
-                    <Link to="/login" className="btn btn-primary" style={{ display: 'block', padding: '6px 12px', fontSize: '11.5px', textDecoration: 'none', textAlign: 'center' }}>
-                      {t('login_now')}
-                    </Link>
+                {/* Middle: Contact Info */}
+                <div style={{ flex: '1 1 300px', padding: '0 10px' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                    {t('contact_info_label')}
                   </div>
-                ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
-                      <i className="ti ti-info-square" style={{ color: 'var(--primary-dark)', marginTop: '2px' }}></i>
-                      <div style={{ fontSize: '12.5px', color: 'var(--text-secondary)', wordBreak: 'break-word' }}>
-                        {post.contact_info || t('contact_info_label')}
-                      </div>
+                  {isGuest ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: '12.5px', color: 'var(--text-muted)' }}>
+                        <i className="ti ti-lock" style={{ color: 'var(--primary)', marginRight: '4px' }}></i>
+                        {t('login_required_desc')}
+                      </span>
+                      <Link to="/login" className="btn btn-primary" style={{ padding: '4px 12px', fontSize: '11.5px', textDecoration: 'none' }}>
+                        {t('login_now')}
+                      </Link>
                     </div>
-                  </div>
-                )}
+                  ) : (
+                    <div style={{ fontSize: '14px', color: 'var(--text-primary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <i className="ti ti-info-square" style={{ color: 'var(--primary-dark)' }}></i>
+                      {post.contact_info || t('contact_info_label')}
+                    </div>
+                  )}
+                </div>
+
+                {/* Right: Back Button */}
+                <div>
+                  <Link to="/posts" className="btn" style={{ padding: '10px 20px', fontSize: '13px', textDecoration: 'none', background: 'rgba(12,35,64,0.06)', borderColor: 'var(--border-strong)', color: 'var(--text-primary)', display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}>
+                    <i className="ti ti-arrow-left"></i> {t('btn_back_to_feed')}
+                  </Link>
+                </div>
+
               </div>
-
-              {/* Navigation Back */}
-              <Link to="/posts" className="btn" style={{ display: 'block', padding: '10px 15px', fontSize: '12.5px', textDecoration: 'none', background: 'rgba(12,35,64,0.06)', borderColor: 'var(--border-strong)', color: 'var(--text-primary)', textAlign: 'center' }}>
-                <i className="ti ti-arrow-left"></i> {t('btn_back_to_feed')}
-              </Link>
-
             </div>
 
           </div>
-
         </div>
       </main>
 

@@ -40,10 +40,13 @@ CREATE TABLE IF NOT EXISTS posts (
   id            INT AUTO_INCREMENT PRIMARY KEY,
   member_id     INT NOT NULL COMMENT 'ID hội viên đăng bài',
   title         VARCHAR(500) NOT NULL COMMENT 'Tiêu đề bài viết',
+  slug          VARCHAR(550) DEFAULT NULL COMMENT 'URL Slug thân thiện SEO',
   summary       TEXT         COMMENT 'Tóm tắt',
   body          LONGTEXT     COMMENT 'Nội dung chi tiết',
   type          VARCHAR(100) COMMENT 'Loại bài (Tìm đối tác, Sự kiện...)',
-  category      VARCHAR(100) COMMENT 'Danh mục ngành',
+  category      VARCHAR(100) COMMENT 'Chuyên mục lớn',
+  sub_category  VARCHAR(100) COMMENT 'Lĩnh vực con',
+  source_url    VARCHAR(500) COMMENT 'Nguồn bài viết / Link gốc',
   tags          TEXT         COMMENT 'Từ khoá (JSON array)',
   contact_info  VARCHAR(255) COMMENT 'Thông tin liên hệ',
   deadline      DATE         COMMENT 'Hạn liên hệ',
@@ -56,6 +59,7 @@ CREATE TABLE IF NOT EXISTS posts (
   FOREIGN KEY (member_id) REFERENCES members(id) ON DELETE CASCADE,
   INDEX idx_status (status),
   INDEX idx_member (member_id),
+  INDEX idx_slug (slug),
   FULLTEXT idx_search (title, summary, body)
 ) ENGINE=InnoDB COMMENT='Bài viết của hội viên';
 
@@ -106,6 +110,33 @@ CREATE TABLE IF NOT EXISTS chat_logs (
   created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_session (session_id)
 ) ENGINE=InnoDB COMMENT='Lịch sử chat AI';
+
+-- ── Bảng chuyên mục & lĩnh vực ─────────────────────────────────
+CREATE TABLE IF NOT EXISTS categories (
+  id            INT AUTO_INCREMENT PRIMARY KEY,
+  name          VARCHAR(255) NOT NULL UNIQUE,
+  name_en       VARCHAR(255) DEFAULT NULL,
+  slug          VARCHAR(255),
+  order_index   INT DEFAULT 0,
+  status        ENUM('active', 'inactive') DEFAULT 'active',
+  created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB COMMENT='Chuyên mục chính';
+
+CREATE TABLE IF NOT EXISTS sub_categories (
+  id            INT AUTO_INCREMENT PRIMARY KEY,
+  category_id   INT NOT NULL,
+  name          VARCHAR(255) NOT NULL,
+  name_en       VARCHAR(255) DEFAULT NULL,
+  slug          VARCHAR(255),
+  order_index   INT DEFAULT 0,
+  status        ENUM('active', 'inactive') DEFAULT 'active',
+  created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE,
+  INDEX idx_category (category_id)
+) ENGINE=InnoDB COMMENT='Lĩnh vực con';
+
 
 -- ============================================
 -- DATA MẪU (xoá đi khi dùng thật)

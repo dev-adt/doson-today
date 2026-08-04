@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Navbar from '../components/Navbar';
 import { useTranslation } from '../contexts/LanguageContext';
@@ -8,6 +8,7 @@ export const AIChat = () => {
   const { role, token, user, getAuthHeaders } = useAuth();
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
 
   // State
   const [sessions, setSessions] = useState([]);
@@ -23,6 +24,8 @@ export const AIChat = () => {
     return localStorage.getItem('doson_chat_model_override') || '';
   });
 
+  const autoSentRef = useRef(false);
+
   const handleModelOverrideChange = (val) => {
     setSelectedModelOverride(val);
     localStorage.setItem('doson_chat_model_override', val);
@@ -34,16 +37,17 @@ export const AIChat = () => {
     return 'session_' + Date.now() + '_' + Math.random().toString(36).substring(2, 11);
   };
 
-  // Tải cấu hình AI hiển thị
+  const [configLoaded, setConfigLoaded] = useState(false);
+
+  // Tải cấu hình AI hiển thị từ DB Admin
   useEffect(() => {
-    if (role === 'guest') return;
+    let isMounted = true;
 
     const loadConfig = async () => {
       try {
-        const res = await fetch('/api/admin/get-config', {
-          headers: getAuthHeaders()
-        });
-        if (res.ok) {
+        const headers = token ? getAuthHeaders() : {};
+        const res = await fetch('/api/admin/get-config', { headers });
+        if (res.ok && isMounted) {
           const data = await res.json();
           const providerNames = { anthropic: 'Anthropic', openai: 'OpenAI', gemini: 'Gemini', deepseek: 'DeepSeek', openrouter: 'OpenRouter' };
           const defaultModels = {
@@ -62,9 +66,17 @@ export const AIChat = () => {
         }
       } catch (e) {
         console.error("Failed to load AI config in chat", e);
+      } finally {
+        if (isMounted) {
+          setConfigLoaded(true);
+        }
       }
     };
     loadConfig();
+
+    return () => {
+      isMounted = false;
+    };
   }, [role, token]);
 
   // Tải danh sách session
@@ -146,26 +158,32 @@ export const AIChat = () => {
     }
   };
 
-  const handleSend = async (textToSend) => {
-    const text = textToSend || inputText;
+  const handleSend = async (textToSend, sessionOverride) => {
+    const text = typeof textToSend === 'string' ? textToSend : inputText;
     if (!text.trim() || sending) return;
 
     setInputText('');
     setSending(true);
 
+    const activeSessionId = sessionOverride || currentSessionId || generateUUID();
+    if (!currentSessionId) {
+      setCurrentSessionId(activeSessionId);
+    }
+
     const tempUserMsg = { role: 'user', content: text, created_at: new Date().toISOString() };
     setMessages(prev => [...prev, tempUserMsg]);
 
     try {
-      // Gọi API Chat qua backend proxy
-      const messagesPayload = [...messages, { role: 'user', content: text }].map(m => ({
+      // Build payload including existing history if present
+      const currentHistory = sessionOverride ? [] : messages;
+      const messagesPayload = [...currentHistory, { role: 'user', content: text }].map(m => ({
         role: m.role,
         content: m.content
       }));
 
-      // Xác định provider và model dựa trên override của Gold/Platinum
-      let requestProvider = aiConfig.provider.toLowerCase();
-      let requestModel = aiConfig.model;
+      // Determine provider and model
+      let requestProvider = (aiConfig.provider || 'gemini').toLowerCase();
+      let requestModel = aiConfig.model || 'gemini-1.5-flash';
       
       const isPremiumTier = user && (user.tier === 'Gold' || user.tier === 'Platinum');
       if (isPremiumTier && selectedModelOverride) {
@@ -177,7 +195,7 @@ export const AIChat = () => {
         method: 'POST',
         headers: {
           ...getAuthHeaders(),
-          'X-Session-Id': currentSessionId
+          'X-Session-Id': activeSessionId
         },
         body: JSON.stringify({
           provider: requestProvider,
@@ -193,7 +211,7 @@ export const AIChat = () => {
 
       setMessages(prev => [...prev, { role: 'assistant', content: data.text, created_at: new Date().toISOString() }]);
       
-      // Load lại danh sách phiên để cập nhật tiêu đề/thời gian hoạt động mới nhất
+      // Refresh chat session list
       loadSessions(false);
     } catch (e) {
       alert(e.message || t('error_sending_message'));
@@ -201,6 +219,24 @@ export const AIChat = () => {
       setSending(false);
     }
   };
+
+  // Auto-send query parameter `?q=...` from URL (e.g. from homepage AI box or suggestion chips)
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const initialQuery = params.get('q');
+
+    if (initialQuery && initialQuery.trim() && !autoSentRef.current && configLoaded) {
+      autoSentRef.current = true;
+      const newSessionId = generateUUID();
+      setCurrentSessionId(newSessionId);
+      setMessages([]);
+
+      // Auto-trigger send after brief state initialization
+      setTimeout(() => {
+        handleSend(initialQuery.trim(), newSessionId);
+      }, 50);
+    }
+  }, [location.search, configLoaded]);
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -237,9 +273,10 @@ export const AIChat = () => {
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;");
       
-      // Inline formatting (bold)
+      // Inline formatting (bold & markdown links)
       trimmed = trimmed.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
       trimmed = trimmed.replace(/__(.*?)__/g, '<strong>$1</strong>');
+      trimmed = trimmed.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" style="color: #0284c7; font-weight: 700; text-decoration: underline;" target="_self">$1</a>');
       
       // Headings
       if (trimmed.startsWith('### ')) {

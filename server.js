@@ -41,6 +41,41 @@ if (process.env.SMTP_HOST) {
 const app  = express();
 const PORT = process.env.PORT || 3000;
 
+// Helper tạo URL slug chuẩn SEO từ chuỗi tiếng Việt
+function slugify(text) {
+  if (!text) return '';
+  return text
+    .toString()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[đĐ]/g, 'd')
+    .replace(/[^a-z0-9 -]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-');
+}
+
+// Helper sinh URL slug duy nhất cho bài viết
+async function generateUniquePostSlug(title, postId = null) {
+  let baseSlug = slugify(title) || 'bai-viet';
+  let slug = baseSlug;
+  let count = 1;
+  while (true) {
+    let query = 'SELECT id FROM posts WHERE slug = ?';
+    let params = [slug];
+    if (postId) {
+      query += ' AND id != ?';
+      params.push(postId);
+    }
+    const [rows] = await db.query(query, params);
+    if (!rows.length) break;
+    count++;
+    slug = `${baseSlug}-${count}`;
+  }
+  return slug;
+}
+
 // Helper đọc API key động từ config.json hoặc file .env
 function getAPIKey(provider) {
   const configPath = path.join(__dirname, 'config.json');
@@ -66,7 +101,81 @@ function getAPIKey(provider) {
 }
 
 app.use(cors({ origin: process.env.ALLOWED_ORIGIN || '*' }));
-app.use(express.json({ limit: '2mb' }));
+app.use(express.json({ limit: '25mb' }));
+app.use(express.urlencoded({ limit: '25mb', extended: true }));
+
+// Helper sinh tệp sitemap.xml và robots.txt thực tế vào thư mục public/
+async function generateSitemapFiles() {
+  try {
+    const baseUrl = process.env.SITE_URL || 'https://doson.today';
+    const staticPages = ['', '/posts', '/members', '/events', '/guide', '/register'];
+
+    const [approvedPosts] = await db.query(
+      "SELECT id, slug, updated_at, created_at FROM posts WHERE status = 'approved' ORDER BY updated_at DESC"
+    );
+
+    let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
+    xml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
+
+    for (const page of staticPages) {
+      xml += `  <url>\n`;
+      xml += `    <loc>${baseUrl}${page}</loc>\n`;
+      xml += `    <changefreq>daily</changefreq>\n`;
+      xml += `    <priority>${page === '' ? '1.0' : '0.8'}</priority>\n`;
+      xml += `  </url>\n`;
+    }
+
+    for (const p of approvedPosts) {
+      const lastMod = (p.updated_at || p.created_at || new Date()).toISOString().split('T')[0];
+      const postSlug = p.slug || p.id;
+      xml += `  <url>\n`;
+      xml += `    <loc>${baseUrl}/posts/${postSlug}</loc>\n`;
+      xml += `    <lastmod>${lastMod}</lastmod>\n`;
+      xml += `    <changefreq>weekly</changefreq>\n`;
+      xml += `    <priority>0.7</priority>\n`;
+      xml += `  </url>\n`;
+    }
+
+    xml += `</urlset>`;
+
+    const publicDir = path.join(__dirname, 'public');
+    if (!fs.existsSync(publicDir)) {
+      fs.mkdirSync(publicDir, { recursive: true });
+    }
+
+    fs.writeFileSync(path.join(publicDir, 'sitemap.xml'), xml, 'utf8');
+
+    const robotsTxt = `User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /dashboard\nDisallow: /api/\n\nSitemap: ${baseUrl}/sitemap.xml\n`;
+    fs.writeFileSync(path.join(publicDir, 'robots.txt'), robotsTxt, 'utf8');
+
+    return xml;
+  } catch (err) {
+    console.error('Lỗi sinh file sitemap.xml:', err.message);
+    return null;
+  }
+}
+
+// SEO Endpoints (đặt TRƯỚC express.static và SPA Fallback)
+app.get('/sitemap.xml', async (req, res) => {
+  try {
+    const xml = await generateSitemapFiles();
+    res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.send(xml);
+  } catch (err) {
+    res.status(500).send('Error generating sitemap');
+  }
+});
+
+app.get('/robots.txt', (req, res) => {
+  const baseUrl = process.env.SITE_URL || 'https://doson.today';
+  const content = `User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /dashboard\nDisallow: /api/\n\nSitemap: ${baseUrl}/sitemap.xml\n`;
+  res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.send(content);
+});
+
+app.use('/img_guide', express.static(path.join(__dirname, 'img_guide')));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Tự động tạo bảng admin_sessions nếu chưa có
@@ -129,6 +238,42 @@ db.query(`
       console.log('✅ Đã thêm cột is_featured vào bảng posts');
     }
 
+    // Thêm cột sub_category vào bảng posts để lưu Lĩnh vực con
+    const [subCatCols] = await db.query("SHOW COLUMNS FROM posts LIKE 'sub_category'");
+    if (!subCatCols.length) {
+      await db.query("ALTER TABLE posts ADD COLUMN sub_category VARCHAR(100) DEFAULT NULL AFTER category");
+      console.log('✅ Đã thêm cột sub_category vào bảng posts');
+    }
+
+    // Thêm cột source_url vào bảng posts để lưu nguồn bài viết
+    const [sourceUrlCols] = await db.query("SHOW COLUMNS FROM posts LIKE 'source_url'");
+    if (!sourceUrlCols.length) {
+      await db.query("ALTER TABLE posts ADD COLUMN source_url VARCHAR(500) DEFAULT NULL AFTER sub_category");
+      console.log('✅ Đã thêm cột source_url vào bảng posts');
+    }
+
+    // Migration bổ sung cột slug vào bảng posts và tự động backfill slug cho bài viết đã có
+    const [slugCols] = await db.query("SHOW COLUMNS FROM posts LIKE 'slug'");
+    if (!slugCols.length) {
+      await db.query("ALTER TABLE posts ADD COLUMN slug VARCHAR(550) DEFAULT NULL AFTER title, ADD INDEX idx_slug (slug)");
+      console.log('✅ Đã thêm cột slug và index idx_slug vào bảng posts');
+    }
+
+    // Tự động tạo URL slug SEO cho bài viết hiện chưa có slug
+    const [missingSlugPosts] = await db.query("SELECT id, title FROM posts WHERE slug IS NULL OR slug = ''");
+    if (missingSlugPosts && missingSlugPosts.length > 0) {
+      for (const p of missingSlugPosts) {
+        let baseSlug = slugify(p.title) || `post-${p.id}`;
+        let uniqueSlug = `${baseSlug}-${p.id}`;
+        await db.query("UPDATE posts SET slug = ? WHERE id = ?", [uniqueSlug, p.id]);
+      }
+      console.log(`✅ Đã tự động tạo URL slug SEO cho ${missingSlugPosts.length} bài viết hiện có.`);
+    }
+
+    // Tự động sinh tệp sitemap.xml & robots.txt thực tế vào thư mục public/
+    await generateSitemapFiles();
+    console.log('✅ Đã tự động khởi tạo tệp sitemap.xml và robots.txt chuẩn SEO trong public/.');
+
     // Thêm cột featured_requested vào bảng posts để Platinum yêu cầu ghim bài nổi bật
     const [featuredRequestedCols] = await db.query("SHOW COLUMNS FROM posts LIKE 'featured_requested'");
     if (!featuredRequestedCols.length) {
@@ -156,6 +301,43 @@ db.query(`
       console.log('✅ Đã thêm cột city vào bảng members');
     }
 
+    // Tự động tạo bảng content_creators và creator_sessions cho vai trò Biên tập viên
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS content_creators (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        username VARCHAR(100) NOT NULL UNIQUE,
+        password_hash VARCHAR(255) NOT NULL,
+        requires_approval TINYINT(1) DEFAULT 1,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB COMMENT='Tài khoản Biên tập viên / Content Creator'
+    `);
+
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS creator_sessions (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        creator_id INT NOT NULL,
+        token VARCHAR(255) NOT NULL UNIQUE,
+        expires_at DATETIME NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (creator_id) REFERENCES content_creators(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB COMMENT='Phiên đăng nhập Biên tập viên'
+    `);
+    console.log('✅ Bảng content_creators và creator_sessions đã sẵn sàng');
+
+    // Thêm cột creator_id vào bảng posts & đảm bảo member_id cho phép NULL
+    const [creatorIdCols] = await db.query("SHOW COLUMNS FROM posts LIKE 'creator_id'");
+    if (!creatorIdCols.length) {
+      await db.query("ALTER TABLE posts ADD COLUMN creator_id INT DEFAULT NULL AFTER member_id, ADD INDEX idx_creator (creator_id)");
+      console.log('✅ Đã thêm cột creator_id vào bảng posts');
+    }
+    try {
+      await db.query("ALTER TABLE posts MODIFY COLUMN member_id INT DEFAULT NULL");
+    } catch (e) {
+      // Ignored if already nullable
+    }
+
     // Cập nhật ENUM cho status cột của bảng members để hỗ trợ 'suspended'
     await db.query("ALTER TABLE members MODIFY COLUMN status ENUM('pending','approved','rejected','suspended') DEFAULT 'pending'");
     console.log("✅ Cập nhật ENUM cột status bảng members thành công");
@@ -165,6 +347,118 @@ db.query(`
     if (!aiCols.length) {
       await db.query("ALTER TABLE ai_config ADD COLUMN system_instruction TEXT DEFAULT NULL");
       console.log('✅ Đã thêm cột system_instruction vào bảng ai_config');
+    }
+
+    // Tự động tạo bảng categories và sub_categories và seed dữ liệu nếu trống
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS categories (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255) NOT NULL UNIQUE,
+        name_en VARCHAR(255) DEFAULT NULL,
+        slug VARCHAR(255),
+        order_index INT DEFAULT 0,
+        status ENUM('active', 'inactive') DEFAULT 'active',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB COMMENT='Danh mục chuyên mục chính'
+    `);
+
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS sub_categories (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        category_id INT NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        name_en VARCHAR(255) DEFAULT NULL,
+        slug VARCHAR(255),
+        order_index INT DEFAULT 0,
+        status ENUM('active', 'inactive') DEFAULT 'active',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE,
+        INDEX idx_category (category_id)
+      ) ENGINE=InnoDB COMMENT='Danh mục lĩnh vực con'
+    `);
+
+    // Migration bổ sung cột name_en nếu bảng đã tồn tại từ trước
+    const [catCols] = await db.query("SHOW COLUMNS FROM categories LIKE 'name_en'");
+    if (!catCols.length) {
+      await db.query("ALTER TABLE categories ADD COLUMN name_en VARCHAR(255) DEFAULT NULL AFTER name");
+      console.log('✅ Đã thêm cột name_en vào bảng categories');
+    }
+    const [subCategoryTableCols] = await db.query("SHOW COLUMNS FROM sub_categories LIKE 'name_en'");
+    if (!subCategoryTableCols.length) {
+      await db.query("ALTER TABLE sub_categories ADD COLUMN name_en VARCHAR(255) DEFAULT NULL AFTER name");
+      console.log('✅ Đã thêm cột name_en vào bảng sub_categories');
+    }
+
+    const [catCount] = await db.query('SELECT COUNT(*) as count FROM categories');
+    if (catCount[0].count === 0) {
+      console.log('🌱 Đang khởi tạo dữ liệu Chuyên mục & Lĩnh vực mặc định...');
+      const defaultCategories = [
+        {
+          name: 'Khám phá Đồ Sơn', name_en: 'Explore Do Son', order: 1,
+          subs: [
+            { vi: 'Tổng quan Đồ Sơn', en: 'Do Son Overview' },
+            { vi: 'Lịch sử & Di tích', en: 'History & Relics' },
+            { vi: 'Văn hóa & Lễ hội', en: 'Culture & Festivals' }
+          ]
+        },
+        {
+          name: 'Du lịch', name_en: 'Tourism', order: 2,
+          subs: [
+            { vi: 'Điểm đến nổi bật', en: 'Featured Destinations' },
+            { vi: 'Nơi lưu trú & Resort', en: 'Accommodations & Resorts' },
+            { vi: 'Ẩm thực & Hải sản', en: 'Cuisine & Seafood' },
+            { vi: 'Lịch trình gợi ý', en: 'Suggested Itineraries' }
+          ]
+        },
+        {
+          name: 'Doanh nghiệp', name_en: 'Enterprises', order: 3,
+          subs: [
+            { vi: 'Danh bạ doanh nghiệp', en: 'Business Directory' },
+            { vi: 'Sản phẩm OCOP tiêu biểu', en: 'Featured OCOP Products' },
+            { vi: 'Nhu cầu mua - bán', en: 'Trading Needs' }
+          ]
+        },
+        {
+          name: 'Đầu tư', name_en: 'Investment', order: 4,
+          subs: [
+            { vi: 'Dự án & Cơ hội hợp tác', en: 'Projects & Opportunities' },
+            { vi: 'Lĩnh vực tiềm năng', en: 'Potential Sectors' }
+          ]
+        },
+        {
+          name: 'Cộng đồng', name_en: 'Community', order: 5,
+          subs: [
+            { vi: 'Người Đồ Sơn xa quê', en: 'Do Son Expatriates' },
+            { vi: 'Chuyên gia & Cố vấn', en: 'Experts & Advisors' },
+            { vi: 'CLB Doanh nhân', en: 'Entrepreneurs Club' }
+          ]
+        },
+        {
+          name: 'Tin tức - Sự kiện', name_en: 'News & Events', order: 6,
+          subs: [
+            { vi: 'Tin tức thời sự', en: 'Current News' },
+            { vi: 'Sự kiện & Lễ hội', en: 'Events & Festivals' },
+            { vi: 'Thông cáo & Hoạt động', en: 'Press & Activities' }
+          ]
+        }
+      ];
+
+      for (const cat of defaultCategories) {
+        const [res] = await db.query(
+          'INSERT INTO categories (name, name_en, order_index, status) VALUES (?, ?, ?, "active")',
+          [cat.name, cat.name_en, cat.order]
+        );
+        const catId = res.insertId;
+        for (let i = 0; i < cat.subs.length; i++) {
+          await db.query(
+            'INSERT INTO sub_categories (category_id, name, name_en, order_index, status) VALUES (?, ?, ?, ?, "active")',
+            [catId, cat.subs[i].vi, cat.subs[i].en, i + 1]
+          );
+        }
+      }
+      console.log('✅ Khởi tạo dữ liệu Chuyên mục & Lĩnh vực mặc định hoàn tất!');
     }
 
     // Tạo thư mục kiến thức
@@ -309,6 +603,40 @@ async function memberAuthMiddleware(req, res, next) {
   }
 }
 
+// Middleware xác thực Content Creator bằng token
+async function creatorAuthMiddleware(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ success: false, error: 'Chưa đăng nhập hoặc thiếu token Biên tập viên.' });
+  }
+
+  const token = authHeader.substring(7);
+  try {
+    const [sessions] = await db.query(
+      `SELECT s.*, c.name, c.username, c.requires_approval
+       FROM creator_sessions s 
+       JOIN content_creators c ON s.creator_id = c.id 
+       WHERE s.token = ? AND s.expires_at > NOW()`, 
+      [token]
+    );
+
+    if (!sessions.length) {
+      return res.status(401).json({ success: false, error: 'Phiên đăng nhập Biên tập viên không hợp lệ hoặc đã hết hạn.' });
+    }
+
+    req.creator = {
+      id: sessions[0].creator_id,
+      name: sessions[0].name,
+      username: sessions[0].username,
+      requires_approval: Number(sessions[0].requires_approval),
+      token: token
+    };
+    next();
+  } catch (err) {
+    res.status(500).json({ success: false, error: 'Lỗi xác thực Biên tập viên: ' + err.message });
+  }
+}
+
 // Middleware xác thực hỗn hợp (Admin HOẶC Member) — dùng cho AI Chat
 async function anyAuthMiddleware(req, res, next) {
   const authHeader = req.headers['authorization'];
@@ -336,7 +664,7 @@ async function anyAuthMiddleware(req, res, next) {
       return next();
     }
 
-    // Fallback: thử xác thực Admin
+    // Fallback 1: thử xác thực Admin
     const [adminSessions] = await db.query(
       `SELECT s.*, a.username, a.name, a.role
        FROM admin_sessions s JOIN admins a ON s.admin_id = a.id
@@ -348,6 +676,23 @@ async function anyAuthMiddleware(req, res, next) {
         id: adminSessions[0].admin_id,
         name: adminSessions[0].name,
         tier: 'Platinum' // Admin không bị giới hạn
+      };
+      return next();
+    }
+
+    // Fallback 2: thử xác thực Creator
+    const [creatorSessions] = await db.query(
+      `SELECT s.*, c.name, c.username, c.requires_approval
+       FROM creator_sessions s JOIN content_creators c ON s.creator_id = c.id
+       WHERE s.token = ? AND s.expires_at > NOW()`, [token]
+    );
+    if (creatorSessions.length) {
+      req.authUser = {
+        type: 'creator',
+        id: creatorSessions[0].creator_id,
+        name: creatorSessions[0].name,
+        username: creatorSessions[0].username,
+        tier: 'Platinum'
       };
       return next();
     }
@@ -398,7 +743,34 @@ app.post('/api/auth/login', async (req, res) => {
       }
     }
 
-    // 2. Thử tìm trong bảng members nếu không khớp admin
+    // 2. Thử tìm trong bảng content_creators
+    const [creatorRows] = await db.query('SELECT * FROM content_creators WHERE username = ?', [username]);
+    if (creatorRows.length > 0) {
+      const creator = creatorRows[0];
+      const match = await bcrypt.compare(password, creator.password_hash);
+      if (match) {
+        // Cấp token Creator
+        const token = crypto.randomBytes(32).toString('hex');
+        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 ngày
+        await db.query(
+          'INSERT INTO creator_sessions (creator_id, token, expires_at) VALUES (?, ?, ?)',
+          [creator.id, token, expiresAt]
+        );
+        return res.json({
+          success: true,
+          role: 'creator',
+          token,
+          user: {
+            id: creator.id,
+            name: creator.name,
+            username: creator.username,
+            requires_approval: creator.requires_approval
+          }
+        });
+      }
+    }
+
+    // 3. Thử tìm trong bảng members nếu không khớp
     const [memberRows] = await db.query('SELECT * FROM members WHERE username = ? OR email = ?', [username, username]);
     if (memberRows.length > 0) {
       const member = memberRows[0];
@@ -429,7 +801,7 @@ app.post('/api/auth/login', async (req, res) => {
       }
     }
 
-    // 3. Không tìm thấy hoặc mật khẩu không chính xác
+    // 4. Không tìm thấy hoặc mật khẩu không chính xác
     return res.status(401).json({ success: false, error: 'Tài khoản hoặc mật khẩu không chính xác.' });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
@@ -1270,7 +1642,7 @@ app.delete('/api/admin/members/:id', authMiddleware, async (req, res) => {
 app.get('/api/posts', async (req, res) => {
   try {
     await cleanupExpiredTiers();
-    const { status, member_id, search } = req.query;
+    const { status, member_id, search, category, sub_category } = req.query;
 
     // Kiểm tra quyền truy cập
     let isAuthenticated = false;
@@ -1284,16 +1656,27 @@ app.get('/api/posts', async (req, res) => {
           `SELECT s.id FROM member_sessions s JOIN members m ON s.member_id = m.id WHERE s.token = ? AND s.expires_at > NOW() AND m.status = 'approved'`, [token]
         );
         if (memberSess.length) { isAuthenticated = true; }
+        else {
+          const [creatorSess] = await db.query(
+            `SELECT s.id FROM creator_sessions s JOIN content_creators c ON s.creator_id = c.id WHERE s.token = ? AND s.expires_at > NOW()`, [token]
+          );
+          if (creatorSess.length) { isAuthenticated = true; }
+        }
       }
     }
 
-    let sql = `SELECT p.*, m.name AS company_name, m.tier AS company_tier
-               FROM posts p LEFT JOIN members m ON p.member_id = m.id WHERE 1=1`;
+    let sql = `SELECT p.*, COALESCE(c.name, m.name, 'Ban Biên tập Đồ Sơn Today') AS company_name, COALESCE(m.tier, 'Standard') AS company_tier
+               FROM posts p 
+               LEFT JOIN members m ON p.member_id = m.id 
+               LEFT JOIN content_creators c ON p.creator_id = c.id
+               WHERE 1=1`;
     const params = [];
 
-    if (status)    { sql += ' AND p.status = ?';     params.push(status); }
-    if (member_id) { sql += ' AND p.member_id = ?';  params.push(member_id); }
-    if (search)    { sql += ' AND MATCH(p.title,p.summary,p.body) AGAINST(? IN BOOLEAN MODE)'; params.push(`*${search}*`); }
+    if (status)       { sql += ' AND p.status = ?';       params.push(status); }
+    if (member_id)    { sql += ' AND p.member_id = ?';    params.push(member_id); }
+    if (category)     { sql += ' AND p.category = ?';     params.push(category); }
+    if (sub_category) { sql += ' AND p.sub_category = ?'; params.push(sub_category); }
+    if (search)       { sql += ' AND MATCH(p.title,p.summary,p.body) AGAINST(? IN BOOLEAN MODE)'; params.push(`*${search}*`); }
     sql += ' ORDER BY p.created_at DESC';
 
     const [rows] = await db.query(sql, params);
@@ -1332,37 +1715,51 @@ app.post('/api/posts', memberAuthMiddleware, async (req, res) => {
       }
     }
 
-    const { title, summary, body, type, category, tags, contact_info, deadline, image_url, isDraft, featured_requested } = req.body;
+    const { title, summary, body, type, category, sub_category, source_url, tags, contact_info, deadline, image_url, isDraft, featured_requested } = req.body;
     if (!title) return res.status(400).json({ success: false, error: 'Tiêu đề bài đăng không được trống.' });
+    if (!category) return res.status(400).json({ success: false, error: 'Vui lòng chọn Chuyên mục cho bài viết.' });
+    if (!sub_category) return res.status(400).json({ success: false, error: 'Vui lòng chọn Lĩnh vực cho bài viết.' });
 
     // Chỉ hội viên Platinum mới được phép gửi yêu cầu ghim bài nổi bật ngoài trang chủ
     const isPlatinum = req.member.tier === 'Platinum';
     const isFeaturedRequested = isPlatinum ? (featured_requested ? 1 : 0) : 0;
 
     const finalStatus = isDraft ? 'draft' : 'pending';
+    const slug = await generateUniquePostSlug(title);
 
     const [result] = await db.query(
-      `INSERT INTO posts (member_id, title, summary, body, type, category, tags, contact_info, deadline, image_url, status, featured_requested)
-       VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
-      [req.member.id, title, summary, body, type, category, JSON.stringify(tags || []), contact_info, deadline || null, image_url || null, finalStatus, isFeaturedRequested]
+      `INSERT INTO posts (member_id, title, slug, summary, body, type, category, sub_category, source_url, tags, contact_info, deadline, image_url, status, featured_requested)
+       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+      [req.member.id, title, slug, summary, body, type || 'Tin chung', category, sub_category, source_url || null, JSON.stringify(tags || []), contact_info, deadline || null, image_url || null, finalStatus, isFeaturedRequested]
     );
-    res.json({ success: true, id: result.insertId, message: isDraft ? 'Đã lưu bản nháp.' : 'Bài viết đã gửi để admin duyệt.' });
+    res.json({ success: true, id: result.insertId, slug, message: isDraft ? 'Đã lưu bản nháp.' : 'Bài viết đã gửi để admin duyệt.' });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// Lấy chi tiết 1 bài đăng
+// Lấy chi tiết 1 bài đăng (hỗ trợ truy vấn theo ID hoặc Slug)
 app.get('/api/posts/:id', async (req, res) => {
   try {
+    const identifier = req.params.id;
+    const isNumeric = /^\d+$/.test(identifier);
+
     // Tự động tăng lượt xem thêm 1
-    await db.query("UPDATE posts SET views = COALESCE(views, 0) + 1 WHERE id = ?", [req.params.id]);
+    if (isNumeric) {
+      await db.query("UPDATE posts SET views = COALESCE(views, 0) + 1 WHERE id = ?", [identifier]);
+    } else {
+      await db.query("UPDATE posts SET views = COALESCE(views, 0) + 1 WHERE slug = ?", [identifier]);
+    }
 
     const [rows] = await db.query(
-      `SELECT p.*, m.name AS company_name, m.tier AS company_tier 
-       FROM posts p LEFT JOIN members m ON p.member_id = m.id 
-       WHERE p.id = ?`,
-      [req.params.id]
+      `SELECT p.*, 
+              COALESCE(c.name, m.name, 'Ban Biên tập Đồ Sơn Today') AS company_name, 
+              COALESCE(m.tier, 'Standard') AS company_tier 
+       FROM posts p 
+       LEFT JOIN members m ON p.member_id = m.id 
+       LEFT JOIN content_creators c ON p.creator_id = c.id
+       WHERE p.id = ? OR p.slug = ?`,
+      [identifier, identifier]
     );
     if (!rows.length) return res.status(404).json({ success: false, error: 'Không tìm thấy bài viết.' });
     res.json({ success: true, data: rows[0] });
@@ -1386,8 +1783,10 @@ app.put('/api/posts/:id', memberAuthMiddleware, async (req, res) => {
       return res.status(403).json({ success: false, error: 'Bạn không có quyền chỉnh sửa bài đăng này.' });
     }
 
-    const { title, summary, body, type, category, tags, contact_info, deadline, image_url, isDraft, featured_requested } = req.body;
+    const { title, summary, body, type, category, sub_category, source_url, tags, contact_info, deadline, image_url, isDraft, featured_requested } = req.body;
     if (!title) return res.status(400).json({ success: false, error: 'Tiêu đề bài đăng không được trống.' });
+    if (!category) return res.status(400).json({ success: false, error: 'Vui lòng chọn Chuyên mục cho bài viết.' });
+    if (!sub_category) return res.status(400).json({ success: false, error: 'Vui lòng chọn Lĩnh vực cho bài viết.' });
 
     // Chỉ hội viên Platinum mới được phép gửi yêu cầu ghim bài nổi bật ngoài trang chủ
     const isPlatinum = req.member.tier === 'Platinum';
@@ -1395,24 +1794,336 @@ app.put('/api/posts/:id', memberAuthMiddleware, async (req, res) => {
 
     // Trạng thái sau chỉnh sửa: lưu nháp -> 'draft', đăng tin -> 'pending' (yêu cầu duyệt lại)
     const finalStatus = isDraft ? 'draft' : 'pending';
+    const slug = await generateUniquePostSlug(title, postId);
 
     await db.query(
       `UPDATE posts SET 
-        title = ?, summary = ?, body = ?, type = ?, category = ?, 
+        title = ?, slug = ?, summary = ?, body = ?, type = ?, category = ?, sub_category = ?, source_url = ?,
         tags = ?, contact_info = ?, deadline = ?, image_url = ?, status = ?,
         featured_requested = ?
        WHERE id = ?`,
       [
-        title, summary || '', body || '', type || 'Tìm kiếm đối tác', category || '', 
+        title, slug, summary || '', body || '', type || 'Tin chung', category || '', sub_category || '', source_url || null,
         JSON.stringify(tags || []), contact_info || '', deadline || null, image_url || null, 
         finalStatus, isFeaturedRequested, postId
       ]
     );
 
-    res.json({ success: true, message: 'Cập nhật bài viết thành công.' });
+    res.json({ success: true, slug, message: 'Cập nhật bài viết thành công.' });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
+});
+
+// ════════════════════════════════════════════
+// CONTENT CREATOR API ENDPOINTS
+// ════════════════════════════════════════════
+
+// 1. Biên tập viên Đăng nhập
+app.post('/api/creator/login', async (req, res) => {
+  const { username, password } = req.body;
+  if (!username || !password) {
+    return res.status(400).json({ success: false, error: 'Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu.' });
+  }
+  try {
+    const [rows] = await db.query('SELECT * FROM content_creators WHERE username = ?', [username]);
+    if (!rows.length) {
+      return res.status(401).json({ success: false, error: 'Tên đăng nhập hoặc mật khẩu không chính xác.' });
+    }
+    const creator = rows[0];
+    const match = await bcrypt.compare(password, creator.password_hash);
+    if (!match) {
+      return res.status(401).json({ success: false, error: 'Tên đăng nhập hoặc mật khẩu không chính xác.' });
+    }
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 ngày
+
+    await db.query(
+      'INSERT INTO creator_sessions (creator_id, token, expires_at) VALUES (?, ?, ?)',
+      [creator.id, token, expiresAt]
+    );
+
+    res.json({
+      success: true,
+      token,
+      role: 'creator',
+      creator: {
+        id: creator.id,
+        name: creator.name,
+        username: creator.username,
+        requires_approval: Number(creator.requires_approval)
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Lấy thông tin profile Biên tập viên
+app.get('/api/creator/profile', creatorAuthMiddleware, async (req, res) => {
+  res.json({
+    success: true,
+    creator: req.creator
+  });
+});
+
+// 2. Admin: Lấy danh sách Biên tập viên
+app.get('/api/admin/creators', authMiddleware, async (req, res) => {
+  try {
+    const [rows] = await db.query(`
+      SELECT c.id, c.name, c.username, c.requires_approval, c.created_at,
+             COUNT(p.id) AS post_count
+      FROM content_creators c
+      LEFT JOIN posts p ON p.creator_id = c.id
+      GROUP BY c.id
+      ORDER BY c.id DESC
+    `);
+    res.json({ success: true, data: rows });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Admin: Thêm Biên tập viên mới
+app.post('/api/admin/creators', authMiddleware, async (req, res) => {
+  const { name, username, password, requires_approval } = req.body;
+  if (!name || !username || !password) {
+    return res.status(400).json({ success: false, error: 'Vui lòng điền đầy đủ Tên, Tên đăng nhập và Mật khẩu.' });
+  }
+  try {
+    const [existing] = await db.query('SELECT id FROM content_creators WHERE username = ?', [username]);
+    if (existing.length) {
+      return res.status(400).json({ success: false, error: 'Tên đăng nhập này đã được sử dụng.' });
+    }
+    const hash = await bcrypt.hash(password, 10);
+    const approvalFlag = (requires_approval === 0 || requires_approval === false || requires_approval === '0') ? 0 : 1;
+
+    const [result] = await db.query(
+      'INSERT INTO content_creators (name, username, password_hash, requires_approval) VALUES (?, ?, ?, ?)',
+      [name, username, hash, approvalFlag]
+    );
+
+    res.json({ success: true, id: result.insertId, message: 'Thêm tài khoản Biên tập viên thành công.' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Admin: Chỉnh sửa tài khoản Biên tập viên
+app.put('/api/admin/creators/:id', authMiddleware, async (req, res) => {
+  const { name, username, password, requires_approval } = req.body;
+  const creatorId = req.params.id;
+  if (!name || !username) {
+    return res.status(400).json({ success: false, error: 'Vui lòng điền Tên và Tên đăng nhập.' });
+  }
+  try {
+    const [existing] = await db.query('SELECT id FROM content_creators WHERE username = ? AND id != ?', [username, creatorId]);
+    if (existing.length) {
+      return res.status(400).json({ success: false, error: 'Tên đăng nhập này đã được tài khoản khác sử dụng.' });
+    }
+
+    const approvalFlag = (requires_approval === 0 || requires_approval === false || requires_approval === '0') ? 0 : 1;
+
+    if (password && password.trim() !== '') {
+      const hash = await bcrypt.hash(password, 10);
+      await db.query(
+        'UPDATE content_creators SET name = ?, username = ?, password_hash = ?, requires_approval = ? WHERE id = ?',
+        [name, username, hash, approvalFlag, creatorId]
+      );
+    } else {
+      await db.query(
+        'UPDATE content_creators SET name = ?, username = ?, requires_approval = ? WHERE id = ?',
+        [name, username, approvalFlag, creatorId]
+      );
+    }
+
+    res.json({ success: true, message: 'Cập nhật tài khoản Biên tập viên thành công.' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Admin: Xóa Biên tập viên
+app.delete('/api/admin/creators/:id', authMiddleware, async (req, res) => {
+  try {
+    const creatorId = req.params.id;
+    await db.query('DELETE FROM content_creators WHERE id = ?', [creatorId]);
+    res.json({ success: true, message: 'Đã xóa tài khoản Biên tập viên.' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 3. Creator Posts Management API
+app.get('/api/creator/posts', creatorAuthMiddleware, async (req, res) => {
+  try {
+    const creatorId = req.creator.id;
+    const [posts] = await db.query(
+      `SELECT p.*, c.name AS author_name
+       FROM posts p 
+       LEFT JOIN content_creators c ON p.creator_id = c.id
+       WHERE p.creator_id = ?
+       ORDER BY p.id DESC`,
+      [creatorId]
+    );
+
+    const totalPosts = posts.length;
+    const approvedPosts = posts.filter(p => p.status === 'approved').length;
+    const totalViews = posts.reduce((sum, p) => sum + (p.views || 0), 0);
+
+    res.json({
+      success: true,
+      creator: req.creator,
+      data: posts,
+      stats: { totalPosts, approvedPosts, totalViews }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/creator/posts', creatorAuthMiddleware, async (req, res) => {
+  try {
+    const { title, summary, body, type, category, sub_category, source_url, tags, contact_info, deadline, image_url, isDraft } = req.body;
+    if (!title) return res.status(400).json({ success: false, error: 'Tiêu đề bài đăng không được trống.' });
+    if (!category) return res.status(400).json({ success: false, error: 'Vui lòng chọn Chuyên mục cho bài viết.' });
+    if (!sub_category) return res.status(400).json({ success: false, error: 'Vui lòng chọn Lĩnh vực cho bài viết.' });
+
+    let finalStatus = 'pending';
+    if (isDraft) {
+      finalStatus = 'draft';
+    } else if (Number(req.creator.requires_approval) === 0) {
+      finalStatus = 'approved';
+    }
+
+    const slug = await generateUniquePostSlug(title);
+
+    const [result] = await db.query(
+      `INSERT INTO posts (creator_id, member_id, title, slug, summary, body, type, category, sub_category, source_url, tags, contact_info, deadline, image_url, status, featured_requested)
+       VALUES (?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [req.creator.id, title, slug, summary || '', body || '', type || 'Tin chung', category, sub_category, source_url || null, JSON.stringify(tags || []), contact_info || req.creator.name, deadline || null, image_url || null, finalStatus, 0]
+    );
+
+    const successMsg = isDraft 
+      ? 'Đã lưu bản nháp.' 
+      : (finalStatus === 'approved' ? 'Bài viết đã xuất bản thành công!' : 'Bài viết đã gửi để admin duyệt.');
+
+    res.json({ success: true, id: result.insertId, slug, status: finalStatus, message: successMsg });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.put('/api/creator/posts/:id', creatorAuthMiddleware, async (req, res) => {
+  try {
+    const postId = req.params.id;
+    const creatorId = req.creator.id;
+
+    const [existing] = await db.query('SELECT creator_id, status FROM posts WHERE id = ?', [postId]);
+    if (!existing.length) {
+      return res.status(404).json({ success: false, error: 'Không tìm thấy bài viết.' });
+    }
+    if (existing[0].creator_id !== creatorId) {
+      return res.status(403).json({ success: false, error: 'Bạn không có quyền chỉnh sửa bài viết này.' });
+    }
+
+    const { title, summary, body, type, category, sub_category, source_url, tags, contact_info, deadline, image_url, isDraft } = req.body;
+    if (!title) return res.status(400).json({ success: false, error: 'Tiêu đề bài đăng không được trống.' });
+
+    let finalStatus = 'pending';
+    if (isDraft) {
+      finalStatus = 'draft';
+    } else if (Number(req.creator.requires_approval) === 0) {
+      finalStatus = 'approved';
+    }
+
+    const slug = await generateUniquePostSlug(title, postId);
+
+    await db.query(
+      `UPDATE posts SET 
+        title = ?, slug = ?, summary = ?, body = ?, type = ?, category = ?, sub_category = ?, source_url = ?,
+        tags = ?, contact_info = ?, deadline = ?, image_url = ?, status = ?
+       WHERE id = ?`,
+      [
+        title, slug, summary || '', body || '', type || 'Tin chung', category || '', sub_category || '', source_url || null,
+        JSON.stringify(tags || []), contact_info || req.creator.name, deadline || null, image_url || null, 
+        finalStatus, postId
+      ]
+    );
+
+    res.json({ success: true, slug, status: finalStatus, message: 'Cập nhật bài viết thành công.' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.delete('/api/creator/posts/:id', creatorAuthMiddleware, async (req, res) => {
+  try {
+    const postId = req.params.id;
+    const creatorId = req.creator.id;
+    const [existing] = await db.query('SELECT creator_id FROM posts WHERE id = ?', [postId]);
+    if (!existing.length) {
+      return res.status(404).json({ success: false, error: 'Không tìm thấy bài viết.' });
+    }
+    if (existing[0].creator_id !== creatorId) {
+      return res.status(403).json({ success: false, error: 'Bạn không có quyền xóa bài viết này.' });
+    }
+    await db.query('DELETE FROM posts WHERE id = ?', [postId]);
+    res.json({ success: true, message: 'Đã xóa bài viết thành công.' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ════════════════════════════════════════════
+// SEO ENDPOINTS (Sitemap.xml & Robots.txt)
+// ════════════════════════════════════════════
+app.get('/sitemap.xml', async (req, res) => {
+  try {
+    const baseUrl = process.env.SITE_URL || 'https://doson.today';
+    const staticPages = ['', '/posts', '/members', '/events', '/guide', '/register'];
+
+    const [approvedPosts] = await db.query(
+      "SELECT id, slug, updated_at, created_at FROM posts WHERE status = 'approved' ORDER BY updated_at DESC"
+    );
+
+    let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
+    xml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
+
+    for (const page of staticPages) {
+      xml += `  <url>\n`;
+      xml += `    <loc>${baseUrl}${page}</loc>\n`;
+      xml += `    <changefreq>daily</changefreq>\n`;
+      xml += `    <priority>${page === '' ? '1.0' : '0.8'}</priority>\n`;
+      xml += `  </url>\n`;
+    }
+
+    for (const p of approvedPosts) {
+      const lastMod = (p.updated_at || p.created_at || new Date()).toISOString().split('T')[0];
+      const postSlug = p.slug || p.id;
+      xml += `  <url>\n`;
+      xml += `    <loc>${baseUrl}/posts/${postSlug}</loc>\n`;
+      xml += `    <lastmod>${lastMod}</lastmod>\n`;
+      xml += `    <changefreq>weekly</changefreq>\n`;
+      xml += `    <priority>0.7</priority>\n`;
+      xml += `  </url>\n`;
+    }
+
+    xml += `</urlset>`;
+
+    res.header('Content-Type', 'application/xml');
+    res.send(xml);
+  } catch (err) {
+    res.status(500).send('Error generating sitemap');
+  }
+});
+
+app.get('/robots.txt', (req, res) => {
+  const baseUrl = process.env.SITE_URL || 'https://doson.today';
+  const content = `User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /dashboard\nDisallow: /api/\n\nSitemap: ${baseUrl}/sitemap.xml\n`;
+  res.header('Content-Type', 'text/plain');
+  res.send(content);
 });
 
 // Hội viên tự xóa bài đăng của mình (Member)
@@ -1434,8 +2145,8 @@ app.delete('/api/posts/:id', memberAuthMiddleware, async (req, res) => {
   }
 });
 
-// Upload tệp tin ảnh dạng Base64
-app.post('/api/upload', memberAuthMiddleware, async (req, res) => {
+// Upload tệp tin ảnh dạng Base64 (Hỗ trợ Member, Admin, Creator)
+app.post('/api/upload', anyAuthMiddleware, async (req, res) => {
   try {
     const { fileName, fileType, base64Data } = req.body;
     if (!base64Data) {
@@ -1511,6 +2222,186 @@ app.delete('/api/admin/posts/:id', authMiddleware, async (req, res) => {
     const postId = req.params.id;
     await db.query("DELETE FROM posts WHERE id = ?", [postId]);
     res.json({ success: true, message: 'Đã xóa bài viết vĩnh viễn.' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ════════════════════════════════════════════
+// CATEGORIES & SUB-CATEGORIES API
+// ════════════════════════════════════════════
+
+// Public API: Lấy danh sách Chuyên mục & Lĩnh vực đang hoạt động (active)
+app.get('/api/categories', async (req, res) => {
+  try {
+    const [categories] = await db.query(
+      "SELECT * FROM categories WHERE status = 'active' ORDER BY order_index ASC, id ASC"
+    );
+
+    const [subCategories] = await db.query(
+      "SELECT * FROM sub_categories WHERE status = 'active' ORDER BY order_index ASC, id ASC"
+    );
+
+    const data = categories.map(cat => ({
+      ...cat,
+      subcategories: subCategories
+        .filter(sub => sub.category_id === cat.id)
+        .map(sub => sub.name),
+      sub_objects: subCategories.filter(sub => sub.category_id === cat.id)
+    }));
+
+    res.json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Admin API: Lấy tất cả Chuyên mục & Lĩnh vực (gồm cả active và inactive)
+app.get('/api/admin/categories', authMiddleware, async (req, res) => {
+  try {
+    const [categories] = await db.query(
+      "SELECT * FROM categories ORDER BY order_index ASC, id ASC"
+    );
+
+    const [subCategories] = await db.query(
+      "SELECT * FROM sub_categories ORDER BY order_index ASC, id ASC"
+    );
+
+    const data = categories.map(cat => ({
+      ...cat,
+      subcategories: subCategories.filter(sub => sub.category_id === cat.id)
+    }));
+
+    res.json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Admin API: Thêm Chuyên mục mới
+app.post('/api/admin/categories', authMiddleware, async (req, res) => {
+  try {
+    const { name, name_en, order_index, status } = req.body;
+    if (!name || !name.trim()) {
+      return res.status(400).json({ success: false, error: 'Tên chuyên mục không được trống.' });
+    }
+
+    const [result] = await db.query(
+      'INSERT INTO categories (name, name_en, order_index, status) VALUES (?, ?, ?, ?)',
+      [name.trim(), name_en ? name_en.trim() : null, parseInt(order_index) || 0, status === 'inactive' ? 'inactive' : 'active']
+    );
+
+    res.json({ success: true, id: result.insertId, message: 'Thêm Chuyên mục thành công.' });
+  } catch (err) {
+    if (err.code === 'ER_DUP_ENTRY') {
+      return res.status(400).json({ success: false, error: 'Chuyên mục này đã tồn tại.' });
+    }
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Admin API: Cập nhật Chuyên mục
+app.put('/api/admin/categories/:id', authMiddleware, async (req, res) => {
+  try {
+    const { name, name_en, order_index, status } = req.body;
+    if (!name || !name.trim()) {
+      return res.status(400).json({ success: false, error: 'Tên chuyên mục không được trống.' });
+    }
+
+    await db.query(
+      'UPDATE categories SET name = ?, name_en = ?, order_index = ?, status = ? WHERE id = ?',
+      [name.trim(), name_en ? name_en.trim() : null, parseInt(order_index) || 0, status === 'inactive' ? 'inactive' : 'active', req.params.id]
+    );
+
+    res.json({ success: true, message: 'Cập nhật Chuyên mục thành công.' });
+  } catch (err) {
+    if (err.code === 'ER_DUP_ENTRY') {
+      return res.status(400).json({ success: false, error: 'Tên chuyên mục bị trùng với chuyên mục khác.' });
+    }
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Admin API: Đổi trạng thái (Tạm khóa / Kích hoạt) Chuyên mục
+app.patch('/api/admin/categories/:id/status', authMiddleware, async (req, res) => {
+  try {
+    const { status } = req.body;
+    const newStatus = status === 'inactive' ? 'inactive' : 'active';
+    await db.query('UPDATE categories SET status = ? WHERE id = ?', [newStatus, req.params.id]);
+    res.json({ success: true, message: `Đã ${newStatus === 'active' ? 'kích hoạt' : 'tạm khóa'} Chuyên mục.` });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Admin API: Xóa Chuyên mục
+app.delete('/api/admin/categories/:id', authMiddleware, async (req, res) => {
+  try {
+    await db.query('DELETE FROM categories WHERE id = ?', [req.params.id]);
+    res.json({ success: true, message: 'Đã xóa Chuyên mục.' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Admin API: Thêm Lĩnh vực con mới
+app.post('/api/admin/sub-categories', authMiddleware, async (req, res) => {
+  try {
+    const { category_id, name, name_en, order_index, status } = req.body;
+    if (!category_id) {
+      return res.status(400).json({ success: false, error: 'Thiếu ID chuyên mục cha.' });
+    }
+    if (!name || !name.trim()) {
+      return res.status(400).json({ success: false, error: 'Tên lĩnh vực con không được trống.' });
+    }
+
+    const [result] = await db.query(
+      'INSERT INTO sub_categories (category_id, name, name_en, order_index, status) VALUES (?, ?, ?, ?, ?)',
+      [category_id, name.trim(), name_en ? name_en.trim() : null, parseInt(order_index) || 0, status === 'inactive' ? 'inactive' : 'active']
+    );
+
+    res.json({ success: true, id: result.insertId, message: 'Thêm Lĩnh vực con thành công.' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Admin API: Cập nhật Lĩnh vực con
+app.put('/api/admin/sub-categories/:id', authMiddleware, async (req, res) => {
+  try {
+    const { name, name_en, order_index, status } = req.body;
+    if (!name || !name.trim()) {
+      return res.status(400).json({ success: false, error: 'Tên lĩnh vực con không được trống.' });
+    }
+
+    await db.query(
+      'UPDATE sub_categories SET name = ?, name_en = ?, order_index = ?, status = ? WHERE id = ?',
+      [name.trim(), name_en ? name_en.trim() : null, parseInt(order_index) || 0, status === 'inactive' ? 'inactive' : 'active', req.params.id]
+    );
+
+    res.json({ success: true, message: 'Cập nhật Lĩnh vực con thành công.' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Admin API: Đổi trạng thái Lĩnh vực con
+app.patch('/api/admin/sub-categories/:id/status', authMiddleware, async (req, res) => {
+  try {
+    const { status } = req.body;
+    const newStatus = status === 'inactive' ? 'inactive' : 'active';
+    await db.query('UPDATE sub_categories SET status = ? WHERE id = ?', [newStatus, req.params.id]);
+    res.json({ success: true, message: `Đã ${newStatus === 'active' ? 'kích hoạt' : 'tạm khóa'} Lĩnh vực con.` });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Admin API: Xóa Lĩnh vực con
+app.delete('/api/admin/sub-categories/:id', authMiddleware, async (req, res) => {
+  try {
+    await db.query('DELETE FROM sub_categories WHERE id = ?', [req.params.id]);
+    res.json({ success: true, message: 'Đã xóa Lĩnh vực con.' });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }

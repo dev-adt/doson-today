@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../contexts/LanguageContext';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import SEOHead from '../components/SEOHead';
 
 export const Members = () => {
   const { token } = useAuth();
@@ -156,6 +157,12 @@ export const Members = () => {
 
   return (
     <div className="public-body">
+      <SEOHead 
+        title="Danh bạ Hội viên Doanh nghiệp"
+        description="Tra cứu và kết nối danh bạ hơn 500+ doanh nghiệp, đối tác uy tín thương hiệu Đồ Sơn, Hải Phòng. Phân loại theo hạng Platinum, Gold, Silver."
+        keywords="danh bạ doanh nghiệp, hội viên Đồ Sơn, đối tác kinh doanh Hải Phòng, doanh nghiệp uy tín"
+        url="/members"
+      />
       <Navbar />
 
       {/* Decorative background gradient blobs */}

@@ -56,6 +56,16 @@
   --shadow-light: 0 8px 24px -8px rgba(12, 35, 64, 0.04);
 }
 
+/* Card Hover Micro-animations */
+.card-hover-effect {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease !important;
+}
+.card-hover-effect:hover {
+  transform: translateY(-5px) scale(1.01) !important;
+  box-shadow: 0 14px 30px rgba(12, 35, 64, 0.08) !important;
+  border-color: #bae6fd !important;
+}
+
 /* Light Theme Variables (Applied to admin panel & light-theme elements) */
 .light-theme, body.light-theme, body:not(.dark-theme):not(.public-body) {
   --bg-base: #F0F7FF;

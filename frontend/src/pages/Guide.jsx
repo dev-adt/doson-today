@@ -1,593 +1,669 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import SEOHead from '../components/SEOHead';
 import { useTranslation } from '../contexts/LanguageContext';
 
-const GUIDE_CONTENT = {
-  vi: {
-    title: "Hướng dẫn sử dụng",
-    subtitle: "Tài liệu hướng dẫn đăng ký, quản lý tài khoản và giao thương trên Đồ Sơn.",
-    sections: {
-      intro: {
-        title: "Giới thiệu chung",
-        text: "Chào mừng doanh nghiệp của bạn tham gia vào mạng lưới BizHub Đồ Sơn - nền tảng kết nối giao thương, chia sẻ cơ hội hợp tác kinh tế và ứng dụng Trợ lý AI chuyên sâu cho doanh nghiệp.",
-        img_label: "Ảnh demo toàn bộ trang chủ web"
-      },
-      register: {
-        title: "1. Đăng ký & Phê duyệt",
-        step1_title: "Bước 1: Kê khai thông tin doanh nghiệp",
-        step1_text: "Chọn 'Gia nhập ngay'. Nhập thông tin chi tiết về doanh nghiệp:\n- Tên doanh nghiệp: Tên chính thức trên giấy phép đăng ký kinh doanh.\n- Lĩnh vực hoạt động: Bạn có thể click chọn từ danh sách gợi ý hoặc nhập tự do lĩnh vực đặc thù của mình.\n- Tỉnh/Thành phố trụ sở: Hỗ trợ bộ gõ tìm kiếm nhanh hoặc tự điền tự do 63 tỉnh thành Việt Nam.\n- Quy mô (Nhân sự), Mã số thuế, Địa chỉ chi tiết, Mã bưu điện (ZIP), và Mô tả ngắn hoạt động kinh doanh.\nNhấn 'Tiếp tục'.",
-        step2_title: "Bước 2: Thông tin người đại diện",
-        step2_text: "Cung cấp Họ và tên, Chức vụ, Email liên hệ và Số điện thoại di động của người đại diện.\nNhấn 'Tiếp tục'.",
-        step3_title: "Bước 3: Thiết lập tài khoản đăng nhập",
-        step3_text: "Nhập Tên đăng nhập (Username) và Mật khẩu bảo mật (tối thiểu 8 ký tự).\nNhấn 'Đăng ký tài khoản'.",
-        step4_title: "Bước 4: Chờ Ban quản trị phê duyệt hồ sơ",
-        step4_text: "Sau khi gửi đăng ký, tài khoản của bạn sẽ ở trạng thái Chờ duyệt (Pending).\nLưu ý: Trong thời gian chờ duyệt hoặc nếu bị Admin từ chối, bạn sẽ không thể đăng nhập. Trình đăng nhập sẽ hiển thị thông báo trạng thái rõ ràng."
-      },
-      dashboard: {
-        title: "2. Dashboard Hội viên",
-        text: "Khi tài khoản của bạn đã được duyệt, bạn đăng nhập để truy cập trang Dashboard Hội viên.",
-        sub1_title: "Quản lý thông tin hồ sơ",
-        sub1_text: "Xem và chỉnh sửa các thông tin cơ bản của doanh nghiệp bất cứ lúc nào tại thẻ Thông tin doanh nghiệp.\nNhấn Cập nhật thông tin để lưu thay đổi.",
-        sub2_title: "Theo dõi phân hạng & Yêu cầu nâng cấp gói hội viên",
-        sub2_text: "Hệ thống BizHub chia hội viên thành 3 cấp độ:\n1. Silver (Mặc định): Miễn phí, được sử dụng chatbot AI mặc định, đăng tin kết nối cơ bản.\n2. Gold: Trả phí, được mở thêm nhiều quyền lợi, hiển thị thứ hạng cao hơn trong thư mục.\n3. Platinum: Quyền lợi cao cấp nhất, được ghim tin nổi bật lên trang chủ, ghim đối tác nổi bật, và sử dụng toàn bộ mô hình AI mới nhất.\n\n- Thời hạn sử dụng: Hạn sử dụng gói của bạn sẽ hiển thị trực tiếp bên cạnh huy hiệu phân hạng. Khi hết hạn, tài khoản của bạn sẽ tự động hạ về gói Silver.\n- Yêu cầu nâng cấp: Gửi yêu cầu nâng cấp gói trực tiếp từ Dashboard. Admin sẽ duyệt và kích hoạt thời hạn cho bạn."
-      },
-      post: {
-        title: "3. Đăng tin giao thương",
-        text: "Doanh nghiệp của bạn có thể đăng các tin bài tuyển dụng, cung cấp sản phẩm hoặc tìm kiếm đối tác hợp tác phát triển.",
-        sub1_title: "Soạn thảo tin đăng chuyên nghiệp (Rich Text Editor)",
-        sub1_text: "Trình soạn thảo tích hợp các công cụ chuyên nghiệp để viết bài báo:\n- Định dạng Tiêu đề lớn (Heading), In đậm (Bold), In nghiêng (Italic), Gạch chân, Gạch ngang.\n- Điều chỉnh Kích thước chữ (từ nhỏ đến khổng lồ) và Màu sắc chữ (sử dụng bảng màu trực quan).\n- Chèn liên kết link và hình ảnh minh họa bài viết.\n\nLưu bản nháp: Bạn có thể lưu lại bản nháp để chỉnh sửa sau hoặc gửi đăng trực tiếp để chờ Admin phê duyệt.",
-        sub2_title: "Quyền lợi ghim nổi bật (Dành riêng cho Platinum)",
-        sub2_text: "Nếu doanh nghiệp của bạn sở hữu gói Platinum, khi viết bài bạn sẽ thấy một ô chọn: \"Yêu cầu Ban quản trị ghim nổi bật bài đăng này ngoài trang chủ\".\nĐánh dấu chọn ô này sẽ gửi tín hiệu ưu tiên ghim nổi bật tới Admin để xét duyệt đưa bài viết của bạn lên vị trí nổi bật trang chủ (Tối đa 3 bài viết nổi bật toàn trang)."
-      },
-      ai: {
-        title: "4. Trợ lý AI chuyên nghiệp",
-        text: "Truy cập mục Khám phá trợ lý AI trên thanh Header để sử dụng công cụ AI thông minh.",
-        sub1_title: "Trò chuyện & Phân tích thông tin thông minh",
-        sub1_text: "- Trả lời thông tin được lấy từ dữ liệu của trang web trực quan, chuyên nghiệp, giúp kết nối với các doanh nghiệp thực tế.\n\nThay đổi mô hình AI (Gói Gold & Platinum):\n- Nếu là thành viên Gold hoặc Platinum, bạn có thể click vào biểu tượng cài đặt phía góc trên khung chat để thay đổi mô hình trả lời.\n- Các dòng mô hình hỗ trợ bao gồm: OpenAI GPT-4o, DeepSeek V3, DeepSeek R1, Claude 4 Opus, Gemini 3 Flash giúp trả lời sâu sắc và chính xác các câu hỏi kinh tế phức tạp."
-      },
-      connect: {
-        title: "5. Kết nối & Xem đối tác",
-        text: "BizHub Đồ Sơn cung cấp các giải pháp kết nối trực tiếp hiệu quả giữa các doanh nghiệp thành viên.",
-        sub1_title: "Bảng tin cơ hội & Thư mục hội viên & Sự kiện",
-        sub1_text: "- Bảng tin: Xem toàn bộ cơ hội giao thương từ các doanh nghiệp khác. Bài viết chi tiết sẽ hiển thị full màn hình chuyên nghiệp. Để bảo vệ thông tin, khách vãng lai (chưa đăng nhập) sẽ bị ẩn thông tin liên hệ và cần đăng nhập để mở khóa liên kết email/số điện thoại trực tiếp.\n- Thư mục hội viên: Danh sách đối tác được xếp hạng ưu tiên (Platinum trước, sau đó đến Gold và Silver). Bạn có thể tìm kiếm, lọc theo hạng, ngành nghề và số lượng hiển thị trên trang để kết nối giao thương nhanh nhất.\n- Sự kiện: Danh sách các sự kiện được tổ chức bởi các doanh nghiệp, hỗ trợ theo dõi mức độ quan tâm và địa điểm diễn ra."
-      }
-    }
-  },
-  en: {
-    title: "User Guide",
-    subtitle: "Guide document for registration, account management and trading features on Đồ Sơn.",
-    sections: {
-      intro: {
-        title: "General Introduction",
-        text: "Welcome to Đồ Sơn BizHub - the business connection platform, sharing economic cooperation opportunities and applying professional AI Assistants.",
-        img_label: "Website Homepage Overview"
-      },
-      register: {
-        title: "1. Register & Approve",
-        step1_title: "Step 1: Declare Business Details",
-        step1_text: "Click 'Join Now'. Enter detailed business info:\n- Company Name: Official business license name.\n- Industry: Select a recommendation or type custom entries.\n- Headquarters City: Search-as-you-type autocomplete supporting 63 cities.\n- Staff Scale, Tax Code, Address, ZIP code, and brief business description.\nClick 'Next'.",
-        step2_title: "Step 2: Legal Representative Info",
-        step2_text: "Provide Full Name, Title, Contact Email, and Mobile Phone of the representative.\nClick 'Next'.",
-        step3_title: "Step 3: Setup Login Account",
-        step3_text: "Enter Login Username and secure Password (minimum 8 characters).\nClick 'Register Account'.",
-        step4_title: "Step 4: Await Admin Approval",
-        step4_text: "After registering, your account status is set to 'Pending'.\nNote: You cannot log in during pending review or if rejected. Status indicators will display on the login page."
-      },
-      dashboard: {
-        title: "2. Member Dashboard",
-        text: "Once approved, log in to access the Business Member Dashboard.",
-        sub1_title: "Manage Profile Information",
-        sub1_text: "View and edit your company info anytime under the 'Company Info' tab and click 'Update Profile' to save changes.",
-        sub2_title: "Subscription Tracking & Upgrades",
-        sub2_text: "BizHub splits members into 3 tiers:\n1. Silver (Default): Free tier, standard AI chatbot access, basic matching posts.\n2. Gold: Paid tier, higher listing placement in the directory, unlocks extra privileges.\n3. Platinum: Premium tier, featured home page pinning, VIP partner pinning, access to advanced AI models.\n\n- Expiration dates display next to the tier badges. When expired, accounts automatically downgrade to Silver.\n- Upgrade requests can be sent directly from the dashboard for Admin review and activation."
-      },
-      post: {
-        title: "3. Trade Opportunities",
-        text: "Publish recruitment feeds, product supplies, or investment search items.",
-        sub1_title: "Professional Writing (Rich Text Editor)",
-        sub1_text: "Use WYSIWYG editing features:\n- Font Styles: Headings, Bold, Italic, Underline, Strikethrough.\n- Custom Options: customized Font Sizes and Colors.\n- Multimedia: embed hyperlinks and images.\n\nSave Drafts: Save posts as drafts to edit later, or submit directly for approval.",
-        sub2_title: "Featured Home Pinning (Platinum Exclusively)",
-        sub2_text: "Platinum accounts get a featured home pinning request checkbox: \"Request Admin to pin this post on the home page\".\nToggling this alerts Admins to pin your opportunity post on the home page (up to 3 featured homepage spots)."
-      },
-      ai: {
-        title: "4. Business AI Assistant",
-        text: "Click 'AI Assistant' in the header menu to start a smart AI consultation session.",
-        sub1_title: "Q&A and Market Analysis",
-        sub1_text: "- AI responses leverage database matching to offer real-time answers from site data.\n\nAI Model Swapping (Gold & Platinum):\n- Premium members can tap the settings gear in the chat area to switch models.\n- Supported models include: OpenAI GPT-4o, DeepSeek V3, DeepSeek R1, Claude 4 Opus, and Gemini 3 Flash."
-      },
-      connect: {
-        title: "5. Connecting & Directory",
-        text: "Đồ Sơn BizHub offers direct matching features to help member companies connect.",
-        sub1_title: "Opportunity Feed, Directory & Events",
-        sub1_text: "- Opportunity Feed: Read B2B posts from other members. Fullscreen detail view. Unauthenticated guests must log in to unlock emails and phone numbers.\n- Member Directory: Prioritized ranking by subscription tier (Platinum -> Gold -> Silver). Apply name, industry, and city search filters.\n- Events: Lists business matchmaking conferences and forums with event interest trackers."
-      }
-    }
-  },
-  zh: {
-    title: "使用指南",
-    subtitle: "关于在 Đồ Sơn 平台注册、管理账户和发布商机的指南文档。",
-    sections: {
-      intro: {
-        title: "平台介绍",
-        text: "欢迎您的企业加入 Đồ Sơn 商业对接 network — 这是一个致力于促进 B2B 贸易、共享合作商机并应用专业级 AI 助手的企业服务平台。",
-        img_label: "网站首页预览"
-      },
-      register: {
-        title: "1. 注册与审批",
-        step1_title: "第一步：填报企业基本信息",
-        step1_text: "点击'立即加入'。输入企业的详细信息：\n- 企业名称：营业执照上的官方名称。\n- 行业领域：可选推荐行业或自由输入特别领域。\n- 总部城市：支持63省市快速检索联想输入。\n- 人员规模、税号、详细地址、邮政编码（ZIP）和简要业务介绍。\n点击'继续'。",
-        step2_title: "第二步：填写法定代表人信息",
-        step2_text: "提供法代表人的姓名、职务、联系邮箱和手机号码。\n点击'继续'。",
-        step3_title: "第三步：设置登录账号",
-        step3_text: "输入登录用户名和密码（至少8个字符）。\n点击'注册账号'。",
-        step4_title: "第四步：等待管理员审核",
-        step4_text: "提交注册后，您的账号处于'待审核'（Pending）状态。\n注意：在审核期间或被拒绝后，您将无法登录，登录窗口会明确显示审核状态。"
-      },
-      dashboard: {
-        title: "2. 会员控制台",
-        text: "账号通过审核后，登录即可访问企业控制台（Dashboard）。",
-        sub1_title: "管理企业信息",
-        sub1_text: "在'企业信息'选项卡下随时查看和编辑您的企业详情，点击'更新信息'以保存更改。",
-        sub2_title: "会员等级跟踪与升级",
-        sub2_text: "系统将会员分为 3 个级别：\n1. 银牌（默认）：免费，使用基础 AI 助手，发布标准商机信息。\n2. 金牌：付费，在名录中享有更高排序，解锁更多专属权益。\n3. 白金牌：至尊特权，支持首页置顶、推荐合作，以及使用最新的先进 AI 模型。\n\n- 会员有效期显示在等级勋章旁。过期后账号自动降级为银牌。\n- 您可以直接从控制台提交升级请求以供管理员审批和激活。"
-      },
-      post: {
-        title: "3. 商机与对接",
-        text: "企业可以发布招聘、产品供应、合作采购及项目招商等对接信息。",
-        sub1_title: "专业富文本编辑器 (Rich Text Editor)",
-        sub1_text: "编辑器集成了专业的文字排版功能：\n- 格式：大标题（Heading）、加粗、斜体、下划线、删除线。\n- 自定义：调整字体大小和颜色。\n- 多媒体：插入超链接和文章插图。\n\n保存草稿：您可以将其保存为草稿以供日后修改，或直接提交以待管理员审批。",
-        sub2_title: "首页置顶权益（白金牌专属）",
-        sub2_text: "白金牌会员在发布商机时可勾选'申请管理员将该条信息在首页置顶显示'。\n勾选后将向管理员发送置顶申请，审批通过后可展示在首页推荐位（全站最多同时置顶 3 篇）。"
-      },
-      ai: {
-        title: "4. 专业 AI 助手",
-        text: "点击导航栏的'AI 助手'以启动智能 AI 顾问咨询。",
-        sub1_title: "问答与业务分析",
-        sub1_text: "- AI 助手基于平台数据库进行智能解答，直观地呈现结果，助力商业匹配。\n\n切换 AI 模型（金牌与白金牌）：\n- 高级会员可点击聊天窗口右上角的设置齿轮来更换底座模型。\n- 支持的模型包括：OpenAI GPT-4o, DeepSeek V3, DeepSeek R1, Claude 4 Opus 以及 Gemini 3 Flash。"
-      },
-      connect: {
-        title: "5. 对接与名录",
-        text: "Đồ Sơn 平台为企业会员提供高效的直连对接渠道。",
-        sub1_title: "商机看板、会员名录及活动",
-        sub1_text: "- 商机看板：查看其他企业发布的 B2B 合作信息，点击支持全屏详情页。游客状态下联系人姓名和电话将被隐藏，需登录以解锁。\n- 会员名录：根据等级排序（白金牌 -> 金牌 -> 银牌），支持按行业、城市等关键字进行筛选匹配。\n- 活动看板：展示即将举办的商务会议与对接论坛，支持关注并查看线下地址。"
-      }
-    }
-  },
-  ja: {
-    title: "ご利用ガイド",
-    subtitle: "Đồ Sơnにおける新規登録、アカウント管理、およびマッチング機能の解説マニュアル。",
-    sections: {
-      intro: {
-        title: "はじめに",
-        text: "Đồ Sơnビズハブへようこそ。当プラットフォームは、企業間のビジネスマッチング、提携機会の共有、および業務特化型AIアシスタントの活用を支援するWebシステムです。",
-        img_label: "ホームページ全体の概要"
-      },
-      register: {
-        title: "1. 登録と承認",
-        step1_title: "ステップ1: 企業情報の入力",
-        step1_text: "「今すぐ参加」をクリックします。企業名、業界分野（推奨から選択または自由入力）、本社所在地（63省市から検索入力）、従業員規模、税務コード、詳細住所、郵便番号（ZIP）、および事業内容の概要を入力し、「次へ」をクリックします。",
-        step2_title: "ステップ2: 代表者情報の入力",
-        step2_text: "法的な代表者の氏名、役職、連絡先メールアドレス、および携帯電話番号を入力し、「次へ」をクリックします。",
-        step3_title: "ステップ3: ログインアカウントの設定",
-        step3_text: "ログイン用ユーザー名とセキュアなパスワード（8文字以上）を入力し、「アカウント作成」をクリックします。",
-        step4_title: "ステップ4: 管理者による承認待ち",
-        step4_text: "登録完了後、アカウントは「承認待ち（Pending）」になります。\n注意：審査中または却下された場合はログインできません。ログイン画面に明確な審査ステータスが表示されます。"
-      },
-      dashboard: {
-        title: "2. 会員ダッシュボード",
-        text: "アカウントが承認された後、ログインすると会員ダッシュボードにアクセスできます。",
-        sub1_title: "登録プロファイルの管理",
-        sub1_text: "「企業情報」タブからいつでも登録した情報を確認・編集できます。「情報を更新」をクリックして変更を保存します。",
-        sub2_title: "ランク追跡とアップグレード申請",
-        sub2_text: "メンバーは次の 3 つのランクに分かれています：\n1. シルバー（デフォルト）：無料、基本AIチャットの使用、標準案件の投稿が可能。\n2. ゴールド：有料、名録の上位に優先表示され、追加特典が解放。\n3. プラチナ：最上位特典、ホームページへの案件ピン留め、VIP紹介、およびすべての最新AIモデルが利用可能。\n\n- 有効期限はランクバッジの隣に表示されます。期限が切れると自動的にシルバーに降格します。\n- ダッシュボードからアップグレードを申請し、管理者が承認と有効化を行います。"
-      },
-      post: {
-        title: "3. 案件の投稿と共有",
-        text: "求人、製品供給、または共同投資의募集案件を投稿できます。",
-        sub1_title: "高機能エディタによる編集 (Rich Text Editor)",
-        sub1_text: "高機能エディタが標準装備されており：\n- 書式設定：大見出しの設定、太字、斜体、下線、打ち消し線の適用。\n- カスタム：フォントサイズと文字色の調整。\n- メディア：リンクと画像の挿入が可能です。\n\n下書き保存：下書きとして保存するか、審査に直接提出できます。",
-        sub2_title: "ホームおすすめ枠へのピン留め（プラチナ限定）",
-        sub2_text: "プラチナ会員は案件作成時に「この投稿をホームページのおすすめ枠にピン留めするよう申請する」チェックボックスが表示されます。有効にすると管理者にピン留め申請が送られ、承認後に表示されます（全サイト最大3件まで）。"
-      },
-      ai: {
-        title: "4. 高度な AI アシスタント",
-        text: "ヘッダーの「AIアシスタント」をクリックして、スマートAIコンサルテーションを開始します。",
-        sub1_title: "Q&Aとデータ分析",
-        sub1_text: "- AIアシスタントはプラットフォームのデータベースと連動し、実在する企業との接続を容易にします。\n\nAIモデルの切り替え（ゴールド＆プラチナ）：\n- プレミアム会員はチャット画面右上の設定ギアからモデルを変更可能です。\n- 利用可能モデル：OpenAI GPT-4o, DeepSeek V3, DeepSeek R1, Claude 4 Opus, Gemini 3 Flash。"
-      },
-      connect: {
-        title: "5. パートナー探索",
-        text: "Đồ Sơnは、会員企業間の効率的でダイレクトなコネクションを提供します。",
-        sub1_title: "案件フィード、会員名録、およびイベント",
-        sub1_text: "- 案件フィード：他社が投稿したB2B案件の詳細を全画面表示で確認できます。ゲスト状態では連絡先名と電話番号が非表示となり、ログインすることでロックが解除されます。\n- 会員名録：ランク順（プラチナ -> ゴールド -> シルバー）に優先表示され、業界、都市、キーワードで検索可能です。\n- イベント：近日開催予定の商談会やフォーラムを一覧表示し、イベントへの参加意向を表明できます。"
-      }
-    }
-  }
-};
-
-const SECTIONS = [
-  { id: 'intro', icon: 'ti ti-help' },
-  { id: 'register', icon: 'ti ti-user-plus' },
-  { id: 'dashboard', icon: 'ti ti-layout-dashboard' },
-  { id: 'post', icon: 'ti ti-file-text' },
-  { id: 'ai', icon: 'ti ti-robot' },
-  { id: 'connect', icon: 'ti ti-users' }
-];
-
 export const Guide = () => {
-  const { currentLang, t } = useTranslation();
-  const [activeTab, setActiveTab] = useState('intro');
-  const [selectedImg, setSelectedImg] = useState(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { currentLang } = useTranslation();
 
-  const langContent = GUIDE_CONTENT[currentLang] || GUIDE_CONTENT.vi;
+  const roleFromUrl = searchParams.get('role');
+  const [activeRoleTab, setActiveRoleTab] = useState('member');
 
-  const imgUrl = (path) => `${path}?v=2.0`;
+  useEffect(() => {
+    if (roleFromUrl === 'admin') {
+      setActiveRoleTab('admin');
+    } else if (roleFromUrl === 'creator') {
+      setActiveRoleTab('creator');
+    } else {
+      setActiveRoleTab('member');
+    }
+  }, [roleFromUrl]);
 
-  const handleOpenImg = (src) => {
-    setSelectedImg(src);
-  };
-
-  const renderContent = () => {
-    const s = langContent.sections;
-    switch (activeTab) {
-      case 'intro':
-        return (
-          <div style={{ animation: 'fadeIn 0.3s ease' }}>
-            <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '1.25rem', fontFamily: 'var(--font-title)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <i className="ti ti-help" style={{ color: 'var(--primary)' }}></i> {s.intro.title}
-            </h2>
-            <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: '1.7', marginBottom: '2rem' }}>
-              {s.intro.text}
-            </p>
-            <div style={{ textAlign: 'center', background: 'var(--surface-0)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border)' }}>
-              <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block', marginBottom: '12px', fontWeight: 600 }}>
-                {s.intro.img_label} (Click to expand)
-              </span>
-              <img 
-                src={imgUrl('/img_guide/img_full.png')} 
-                alt="Homepage" 
-                style={{ width: '100%', maxWidth: '650px', borderRadius: '8px', border: '1px solid var(--border-strong)', cursor: 'zoom-in', transition: 'transform 0.2s' }}
-                onClick={() => handleOpenImg(imgUrl('/img_guide/img_full.png'))}
-                onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.01)'}
-                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-              />
-            </div>
-          </div>
-        );
-      case 'register':
-        return (
-          <div style={{ animation: 'fadeIn 0.3s ease' }}>
-            <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '1.25rem', fontFamily: 'var(--font-title)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <i className="ti ti-user-plus" style={{ color: 'var(--primary)' }}></i> {s.register.title}
-            </h2>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-              <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: '1.5rem' }}>
-                <h3 style={{ fontSize: '14.5px', fontWeight: 600, color: 'var(--amber)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <i className="ti ti-circle-number-1"></i> {s.register.step1_title}
-                </h3>
-                <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: '1.7', whiteSpace: 'pre-line', margin: 0 }}>
-                  {s.register.step1_text}
-                </p>
-                <div style={{ marginTop: '1.25rem', textAlign: 'center' }}>
-                  <img 
-                    src={imgUrl('/img_guide/image 1.png')} 
-                    alt="Step 1" 
-                    style={{ width: '100%', maxWidth: '600px', borderRadius: '8px', border: '1px solid var(--border-strong)', cursor: 'zoom-in' }}
-                    onClick={() => handleOpenImg(imgUrl('/img_guide/image 1.png'))}
-                  />
-                </div>
-              </div>
-
-              <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: '1.5rem' }}>
-                <h3 style={{ fontSize: '14.5px', fontWeight: 600, color: 'var(--amber)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <i className="ti ti-circle-number-2"></i> {s.register.step2_title}
-                </h3>
-                <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: '1.7', whiteSpace: 'pre-line', margin: 0 }}>
-                  {s.register.step2_text}
-                </p>
-                <div style={{ marginTop: '1.25rem', textAlign: 'center' }}>
-                  <img 
-                    src={imgUrl('/img_guide/image 2.png')} 
-                    alt="Step 2" 
-                    style={{ width: '100%', maxWidth: '600px', borderRadius: '8px', border: '1px solid var(--border-strong)', cursor: 'zoom-in' }}
-                    onClick={() => handleOpenImg(imgUrl('/img_guide/image 2.png'))}
-                  />
-                </div>
-              </div>
-
-              <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: '1.5rem' }}>
-                <h3 style={{ fontSize: '14.5px', fontWeight: 600, color: 'var(--amber)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <i className="ti ti-circle-number-3"></i> {s.register.step3_title}
-                </h3>
-                <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: '1.7', whiteSpace: 'pre-line', margin: 0 }}>
-                  {s.register.step3_text}
-                </p>
-              </div>
-
-              <div>
-                <h3 style={{ fontSize: '14.5px', fontWeight: 600, color: 'var(--amber)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <i className="ti ti-circle-number-4"></i> {s.register.step4_title}
-                </h3>
-                <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: '1.7', whiteSpace: 'pre-line', margin: 0 }}>
-                  {s.register.step4_text}
-                </p>
-              </div>
-            </div>
-          </div>
-        );
-      case 'dashboard':
-        return (
-          <div style={{ animation: 'fadeIn 0.3s ease' }}>
-            <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '1.25rem', fontFamily: 'var(--font-title)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <i className="ti ti-layout-dashboard" style={{ color: 'var(--primary)' }}></i> {s.dashboard.title}
-            </h2>
-            <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: '1.7', marginBottom: '2rem' }}>
-              {s.dashboard.text}
-            </p>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-              <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: '1.5rem' }}>
-                <h3 style={{ fontSize: '14.5px', fontWeight: 600, color: 'var(--amber)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <i className="ti ti-edit"></i> {s.dashboard.sub1_title}
-                </h3>
-                <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: '1.7', whiteSpace: 'pre-line', margin: 0 }}>
-                  {s.dashboard.sub1_text}
-                </p>
-              </div>
-
-              <div>
-                <h3 style={{ fontSize: '14.5px', fontWeight: 600, color: 'var(--amber)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <i className="ti ti-star"></i> {s.dashboard.sub2_title}
-                </h3>
-                <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: '1.7', whiteSpace: 'pre-line', margin: 0 }}>
-                  {s.dashboard.sub2_text}
-                </p>
-                <div style={{ marginTop: '1.25rem', textAlign: 'center' }}>
-                  <img 
-                    src={imgUrl('/img_guide/image 3.png')} 
-                    alt="Dashboard" 
-                    style={{ width: '100%', maxWidth: '600px', borderRadius: '8px', border: '1px solid var(--border-strong)', cursor: 'zoom-in' }}
-                    onClick={() => handleOpenImg(imgUrl('/img_guide/image 3.png'))}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      case 'post':
-        return (
-          <div style={{ animation: 'fadeIn 0.3s ease' }}>
-            <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '1.25rem', fontFamily: 'var(--font-title)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <i className="ti ti-file-text" style={{ color: 'var(--primary)' }}></i> {s.post.title}
-            </h2>
-            <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: '1.7', marginBottom: '2rem' }}>
-              {s.post.text}
-            </p>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-              <div style={{ borderBottom: '1px solid var(--border)', paddingBottom: '1.5rem' }}>
-                <h3 style={{ fontSize: '14.5px', fontWeight: 600, color: 'var(--amber)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <i className="ti ti-pencil"></i> {s.post.sub1_title}
-                </h3>
-                <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: '1.7', whiteSpace: 'pre-line', margin: 0 }}>
-                  {s.post.sub1_text}
-                </p>
-                <div style={{ marginTop: '1.25rem', textAlign: 'center' }}>
-                  <img 
-                    src={imgUrl('/img_guide/image 4.png')} 
-                    alt="Editor" 
-                    style={{ width: '100%', maxWidth: '600px', borderRadius: '8px', border: '1px solid var(--border-strong)', cursor: 'zoom-in' }}
-                    onClick={() => handleOpenImg(imgUrl('/img_guide/image 4.png'))}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <h3 style={{ fontSize: '14.5px', fontWeight: 600, color: 'var(--amber)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <i className="ti ti-circle-check"></i> {s.post.sub2_title}
-                </h3>
-                <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: '1.7', whiteSpace: 'pre-line', margin: 0 }}>
-                  {s.post.sub2_text}
-                </p>
-              </div>
-            </div>
-          </div>
-        );
-      case 'ai':
-        return (
-          <div style={{ animation: 'fadeIn 0.3s ease' }}>
-            <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '1.25rem', fontFamily: 'var(--font-title)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <i className="ti ti-robot" style={{ color: 'var(--primary)' }}></i> {s.ai.title}
-            </h2>
-            <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: '1.7', marginBottom: '2rem' }}>
-              {s.ai.text}
-            </p>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-              <div>
-                <h3 style={{ fontSize: '14.5px', fontWeight: 600, color: 'var(--amber)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <i className="ti ti-messages"></i> {s.ai.sub1_title}
-                </h3>
-                <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: '1.7', whiteSpace: 'pre-line', margin: 0 }}>
-                  {s.ai.sub1_text}
-                </p>
-                <div style={{ marginTop: '1.25rem', textAlign: 'center' }}>
-                  <img 
-                    src={imgUrl('/img_guide/image 5.png')} 
-                    alt="AI Models" 
-                    style={{ width: '100%', maxWidth: '600px', borderRadius: '8px', border: '1px solid var(--border-strong)', cursor: 'zoom-in' }}
-                    onClick={() => handleOpenImg(imgUrl('/img_guide/image 5.png'))}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      case 'connect':
-        return (
-          <div style={{ animation: 'fadeIn 0.3s ease' }}>
-            <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '1.25rem', fontFamily: 'var(--font-title)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <i className="ti ti-users" style={{ color: 'var(--primary)' }}></i> {s.connect.title}
-            </h2>
-            <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: '1.7', marginBottom: '2rem' }}>
-              {s.connect.text}
-            </p>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
-              <div>
-                <h3 style={{ fontSize: '14.5px', fontWeight: 600, color: 'var(--amber)', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <i className="ti ti-network"></i> {s.connect.sub1_title}
-                </h3>
-                <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: '1.7', whiteSpace: 'pre-line', marginBottom: '1.5rem' }}>
-                  {s.connect.sub1_text}
-                </p>
-                
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
-                  <div style={{ background: 'var(--surface-0)', padding: '1rem', borderRadius: '12px', border: '1px solid var(--border)', textAlign: 'center' }}>
-                    <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block', marginBottom: '10px', fontWeight: 600 }}>Bảng tin bài đăng</span>
-                    <img 
-                      src={imgUrl('/img_guide/image 6.png')} 
-                      alt="Feeds" 
-                      style={{ width: '100%', borderRadius: '8px', border: '1px solid var(--border-strong)', cursor: 'zoom-in' }}
-                      onClick={() => handleOpenImg(imgUrl('/img_guide/image 6.png'))}
-                    />
-                  </div>
-                  <div style={{ background: 'var(--surface-0)', padding: '1rem', borderRadius: '12px', border: '1px solid var(--border)', textAlign: 'center' }}>
-                    <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block', marginBottom: '10px', fontWeight: 600 }}>Thư mục hội viên</span>
-                    <img 
-                      src={imgUrl('/img_guide/image 7.png')} 
-                      alt="Directory" 
-                      style={{ width: '100%', borderRadius: '8px', border: '1px solid var(--border-strong)', cursor: 'zoom-in' }}
-                      onClick={() => handleOpenImg(imgUrl('/img_guide/image 7.png'))}
-                    />
-                  </div>
-                  <div style={{ background: 'var(--surface-0)', padding: '1rem', borderRadius: '12px', border: '1px solid var(--border)', textAlign: 'center' }}>
-                    <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block', marginBottom: '10px', fontWeight: 600 }}>Sự kiện</span>
-                    <img 
-                      src={imgUrl('/img_guide/image 8.png')} 
-                      alt="Events" 
-                      style={{ width: '100%', borderRadius: '8px', border: '1px solid var(--border-strong)', cursor: 'zoom-in' }}
-                      onClick={() => handleOpenImg(imgUrl('/img_guide/image 8.png'))}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      default:
-        return null;
+  const handleSwitchTab = (tabKey) => {
+    setActiveRoleTab(tabKey);
+    if (tabKey === 'member') {
+      setSearchParams({});
+    } else {
+      setSearchParams({ role: tabKey });
     }
   };
+
+  const isEn = currentLang !== 'vi';
 
   return (
     <div className="public-body">
+      <SEOHead 
+        title={isEn ? "System User Guide | Đồ Sơn Today" : "Hướng Dẫn Sử Dụng Hệ Thống | Đồ Sơn Today"} 
+        description={isEn ? "Detailed step-by-step user guide for Business Members, Content Creators, and System Administrators on Đồ Sơn Today." : "Tài liệu hướng dẫn sử dụng chi tiết các tính năng dành cho Doanh nghiệp Hội viên, Biên tập viên và Quản trị viên hệ thống Đồ Sơn Today."}
+      />
       <Navbar />
 
-      {/* Background gradient decorative elements */}
-      <div style={{ position: 'fixed', top: '-10%', left: '-10%', width: '50vw', height: '50vw', background: 'radial-gradient(circle, rgba(79,70,229,0.04) 0%, rgba(79,70,229,0) 70%)', zIndex: -1, pointerEvents: 'none', borderRadius: '50%' }}></div>
-      <div style={{ position: 'fixed', bottom: '-10%', right: '-10%', width: '50vw', height: '50vw', background: 'radial-gradient(circle, rgba(245,158,11,0.02) 0%, rgba(245,158,11,0) 70%)', zIndex: -1, pointerEvents: 'none', borderRadius: '50%' }}></div>
-
-      <div className="public-container" style={{ minHeight: '85vh', paddingBottom: '4rem', paddingTop: '2.5rem' }}>
-        {/* Header Title */}
-        <div style={{ textAlign: 'left', marginBottom: '2.5rem' }}>
-          <h1 style={{ fontFamily: 'var(--font-title)', fontSize: '28px', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '10px', margin: 0 }}>
-            <i className="ti ti-help" style={{ color: 'var(--primary)' }}></i> {langContent.title}
+      <div className="public-container" style={{ paddingBottom: '5rem', paddingTop: '2.5rem', minHeight: '85vh' }}>
+        
+        {/* Banner tiêu đề trang */}
+        <div className="glass-card" style={{ padding: '2.5rem 2rem', textAlign: 'center', marginBottom: '2.5rem', borderRadius: '20px', background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.85) 100%)', border: '1px solid var(--border-strong)' }}>
+          <div style={{ display: 'inline-block', margin: '0 auto 12px', padding: '6px 16px', borderRadius: '20px', background: 'rgba(56, 189, 248, 0.15)', color: 'var(--neon-cyan)', fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            <i className="ti ti-book" style={{ marginRight: '6px' }}></i> {isEn ? "Help & Support Center" : "Trung tâm Hướng dẫn & Hỗ trợ"}
+          </div>
+          <h1 style={{ fontFamily: 'var(--font-title)', fontSize: '32px', fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 12px 0', lineHeight: 1.3 }}>
+            {isEn ? (
+              <>User Guide for <span style={{ color: 'var(--neon-cyan)' }}>Đồ Sơn Today</span> Platform</>
+            ) : (
+              <>Hướng Dẫn Sử Dụng Nền Tảng <span style={{ color: 'var(--neon-cyan)' }}>Đồ Sơn Today</span></>
+            )}
           </h1>
-          <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', marginTop: '6px', marginBlockEnd: 0 }}>
-            {langContent.subtitle}
+          <p style={{ fontSize: '15px', color: 'var(--text-secondary)', maxWidth: '750px', margin: '0 auto', lineHeight: 1.6 }}>
+            {isEn 
+              ? "Comprehensive step-by-step user guide for trade matching, profile management, media content creation, and full system administration."
+              : "Tài liệu hướng dẫn chi tiết từng bước cho các tính năng kết nối giao thương, quản lý hồ sơ, sáng tạo nội dung truyền thông và quản trị toàn diện hệ thống."
+            }
           </p>
+
+          {/* Thanh chuyển tab vai trò */}
+          <div style={{ display: 'inline-flex', gap: '8px', background: 'rgba(15, 23, 42, 0.6)', padding: '6px', borderRadius: '12px', marginTop: '1.75rem', border: '1px solid var(--border)', flexWrap: 'wrap', justifyContent: 'center' }}>
+            <button 
+              onClick={() => handleSwitchTab('member')}
+              style={{
+                padding: '8px 18px',
+                borderRadius: '8px',
+                border: 'none',
+                fontSize: '13px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                background: activeRoleTab === 'member' ? 'var(--primary)' : 'transparent',
+                color: activeRoleTab === 'member' ? '#ffffff' : 'var(--text-secondary)'
+              }}
+            >
+              <i className="ti ti-building-store"></i> {isEn ? "Business Member" : "Hội viên Doanh nghiệp"}
+            </button>
+            <button 
+              onClick={() => handleSwitchTab('creator')}
+              style={{
+                padding: '8px 18px',
+                borderRadius: '8px',
+                border: 'none',
+                fontSize: '13px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                background: activeRoleTab === 'creator' ? 'var(--neon-cyan)' : 'transparent',
+                color: activeRoleTab === 'creator' ? '#0f172a' : 'var(--text-secondary)'
+              }}
+            >
+              <i className="ti ti-edit-circle"></i> {isEn ? "Content Creator" : "Biên tập viên (Creator)"}
+            </button>
+            <button 
+              onClick={() => handleSwitchTab('admin')}
+              style={{
+                padding: '8px 18px',
+                borderRadius: '8px',
+                border: 'none',
+                fontSize: '13px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                background: activeRoleTab === 'admin' ? '#f59e0b' : 'transparent',
+                color: activeRoleTab === 'admin' ? '#0f172a' : 'var(--text-secondary)'
+              }}
+            >
+              <i className="ti ti-shield-lock"></i> {isEn ? "System Admin" : "Quản trị viên (Admin)"}
+            </button>
+          </div>
         </div>
 
-        {/* Documentation Portal Layout */}
-        <div className="shell-doc" style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', alignItems: 'flex-start' }}>
-          {/* Left Sidebar (Navigation Tabs) */}
-          <div className="glass-card" style={{ width: '100%', maxWidth: '280px', minWidth: '220px', padding: '1rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.06)', background: 'var(--surface-2)' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              {SECTIONS.map((sec) => {
-                const isActive = activeTab === sec.id;
-                const secTitle = langContent.sections[sec.id].title;
-                return (
-                  <button
-                    key={sec.id}
-                    onClick={() => setActiveTab(sec.id)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '10px',
-                      width: '100%',
-                      padding: '12px 14px',
-                      background: isActive ? 'var(--primary-glow)' : 'transparent',
-                      border: 'none',
-                      borderRadius: '10px',
-                      color: isActive ? '#fff' : 'var(--text-secondary)',
-                      fontFamily: 'var(--font-title)',
-                      fontSize: '13.5px',
-                      fontWeight: isActive ? 600 : 550,
-                      textAlign: 'left',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                      borderLeft: isActive ? '3px solid var(--primary-light)' : '3px solid transparent'
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!isActive) e.currentTarget.style.backgroundColor = 'var(--surface-0)';
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!isActive) e.currentTarget.style.backgroundColor = 'transparent';
-                    }}
-                  >
-                    <i className={sec.icon} style={{ fontSize: '15px', color: isActive ? 'var(--primary-light)' : 'var(--text-muted)' }}></i>
-                    <span>{secTitle}</span>
-                  </button>
-                );
-              })}
+        {/* ════════════════════════════════════════════════════════════════ */}
+        {/* TAB 1: HƯỚNG DẪN DÀNH CHO HỘI VIÊN DOANH NGHIỆP (MEMBER GUIDE) */}
+        {/* ════════════════════════════════════════════════════════════════ */}
+        {activeRoleTab === 'member' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
+            
+            {/* Phần 1: Giới thiệu tổng quan */}
+            <div className="glass-card" style={{ padding: '2rem' }}>
+              <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ background: 'var(--primary)', color: '#ffffff', width: '28px', height: '28px', borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: 800 }}>1</span>
+                {isEn ? "Platform Overview & Homepage Features" : "Tổng quan Giao diện & Tính năng Trang chủ"}
+              </h2>
+              <p style={{ fontSize: '14.5px', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '1.25rem' }}>
+                {isEn 
+                  ? "Đồ Sơn Today is a premier digital trade matching platform for businesses, organizations, and visitors in Đồ Sơn. The homepage features smart search, exploration categories, featured member directories, economic events, and a 24/7 AI business assistant."
+                  : "Đồ Sơn Today là nền tảng số hóa kết nối giao thương hàng đầu dành cho các doanh nghiệp, tổ chức và du khách tại Đồ Sơn. Trang chủ cung cấp thanh tìm kiếm thông minh, danh mục khám phá đa dạng, danh bạ doanh nghiệp nổi bật, sự kiện kinh tế và trợ lý AI tư vấn kinh doanh 24/7."
+                }
+              </p>
+              <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-strong)', boxShadow: '0 10px 30px rgba(0,0,0,0.3)' }}>
+                <img src="/img_guide/Members/home page.png" alt="Trang chủ Đồ Sơn Today" style={{ width: '100%', height: 'auto', display: 'block' }} />
+                <div style={{ padding: '10px 16px', background: 'var(--surface-1)', fontSize: '12.5px', color: 'var(--text-muted)', textAlign: 'center', borderTop: '1px solid var(--border)' }}>
+                  {isEn 
+                    ? "Đồ Sơn Today homepage interface with unified navigation bar and featured media banner"
+                    : "Giao diện trang chủ Đồ Sơn Today với thanh điều hướng hợp nhất và banner truyền thông nổi bật"
+                  }
+                </div>
+              </div>
             </div>
-          </div>
 
-          {/* Right Main Content Panel */}
-          <div className="glass-card" style={{ flex: 1, minWidth: '320px', padding: '2.5rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.06)', background: 'var(--surface-2)', minHeight: '400px' }}>
-            {renderContent()}
+            {/* Phần 2: Quy trình Đăng ký tài khoản Hội viên */}
+            <div className="glass-card" style={{ padding: '2rem' }}>
+              <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ background: 'var(--primary)', color: '#ffffff', width: '28px', height: '28px', borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: 800 }}>2</span>
+                {isEn ? "4-Step Enterprise Membership Registration" : "Quy trình Đăng ký Tài khoản Hội viên (4 Bước)"}
+              </h2>
+              <p style={{ fontSize: '14.5px', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '1.25rem' }}>
+                {isEn 
+                  ? "Participating businesses simply click 'Join Now' or 'Register' to begin the 4-step registration process:"
+                  : "Các doanh nghiệp tham gia chỉ cần nhấn vào nút \"Gia nhập ngay\" hoặc \"Đăng ký\" để bắt đầu quy trình kê khai 4 bước chuẩn hóa:"
+                }
+              </p>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem', marginBottom: '1.5rem' }}>
+                <div style={{ padding: '1.25rem', background: 'var(--surface-1)', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                  <h4 style={{ color: 'var(--neon-cyan)', margin: '0 0 8px 0', fontSize: '15px' }}>
+                    {isEn ? "Step 1: Business Information" : "Bước 1: Thông tin Doanh nghiệp"}
+                  </h4>
+                  <ul style={{ margin: 0, paddingLeft: '1.2rem', fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                    {isEn ? (
+                      <>
+                        <li>Official company name per license.</li>
+                        <li>Industry sector (select or type custom).</li>
+                        <li>Headquarters city (search 63 cities).</li>
+                        <li>Tax code, scale, address & ZIP code.</li>
+                      </>
+                    ) : (
+                      <>
+                        <li>Tên doanh nghiệp chính thức theo GPKD.</li>
+                        <li>Lĩnh vực hoạt động (Chọn danh mục hoặc tự điền).</li>
+                        <li>Tỉnh/Thành phố trụ sở (Gõ tìm kiếm 63 tỉnh thành).</li>
+                        <li>Mã số thuế, Quy mô nhân sự, Địa chỉ & Mã bưu điện.</li>
+                      </>
+                    )}
+                  </ul>
+                </div>
+
+                <div style={{ padding: '1.25rem', background: 'var(--surface-1)', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                  <h4 style={{ color: 'var(--neon-cyan)', margin: '0 0 8px 0', fontSize: '15px' }}>
+                    {isEn ? "Step 2: Representative Info" : "Bước 2: Người Đại diện"}
+                  </h4>
+                  <ul style={{ margin: 0, paddingLeft: '1.2rem', fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                    {isEn ? (
+                      <>
+                        <li>Full name of legal representative.</li>
+                        <li>Position/Title at company.</li>
+                        <li>Official email for notifications.</li>
+                        <li>Verified mobile phone number.</li>
+                      </>
+                    ) : (
+                      <>
+                        <li>Họ và tên người đại diện pháp luật / liên hệ.</li>
+                        <li>Chức vụ công tác tại doanh nghiệp.</li>
+                        <li>Email chính thức nhận thông báo & duyệt bài.</li>
+                        <li>Số điện thoại di động xác thực.</li>
+                      </>
+                    )}
+                  </ul>
+                </div>
+
+                <div style={{ padding: '1.25rem', background: 'var(--surface-1)', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                  <h4 style={{ color: 'var(--neon-cyan)', margin: '0 0 8px 0', fontSize: '15px' }}>
+                    {isEn ? "Step 3: Login Credentials" : "Bước 3: Mật khẩu Đăng nhập"}
+                  </h4>
+                  <ul style={{ margin: 0, paddingLeft: '1.2rem', fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                    {isEn ? (
+                      <>
+                        <li>Login Username (alphanumeric).</li>
+                        <li>Personal password (min 8 chars).</li>
+                        <li>Confirm password verification.</li>
+                      </>
+                    ) : (
+                      <>
+                        <li>Tên đăng nhập (Username) viết liền không dấu.</li>
+                        <li>Mật khẩu bảo mật cá nhân (tối thiểu 8 ký tự).</li>
+                        <li>Xác nhận mật khẩu để đảm bảo chính xác.</li>
+                      </>
+                    )}
+                  </ul>
+                </div>
+
+                <div style={{ padding: '1.25rem', background: 'var(--surface-1)', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                  <h4 style={{ color: 'var(--amber)', margin: '0 0 8px 0', fontSize: '15px' }}>
+                    {isEn ? "Step 4: Application Review" : "Bước 4: Xét duyệt Hồ sơ"}
+                  </h4>
+                  <ul style={{ margin: 0, paddingLeft: '1.2rem', fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                    {isEn ? (
+                      <>
+                        <li>Account status is set to Pending.</li>
+                        <li>Admin reviews & approves promptly.</li>
+                        <li>Immediate login enabled upon approval.</li>
+                      </>
+                    ) : (
+                      <>
+                        <li>Hồ sơ chuyển sang trạng thái <strong>Chờ duyệt (Pending)</strong>.</li>
+                        <li>Admin kiểm tra và phê duyệt trong thời gian ngắn.</li>
+                        <li>Sau khi duyệt, tài khoản có thể đăng nhập ngay.</li>
+                      </>
+                    )}
+                  </ul>
+                </div>
+              </div>
+
+              <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-strong)' }}>
+                <img src="/img_guide/Members/register page.png" alt="Form Đăng ký Hội viên" style={{ width: '100%', height: 'auto', display: 'block' }} />
+                <div style={{ padding: '10px 16px', background: 'var(--surface-1)', fontSize: '12.5px', color: 'var(--text-muted)', textAlign: 'center', borderTop: '1px solid var(--border)' }}>
+                  {isEn 
+                    ? "Professional 4-step enterprise membership registration form"
+                    : "Form kê khai thông tin Đăng ký Hội viên 4 bước chuyên nghiệp"
+                  }
+                </div>
+              </div>
+            </div>
+
+            {/* Phần 3: Đăng nhập Hợp nhất */}
+            <div className="glass-card" style={{ padding: '2rem' }}>
+              <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ background: 'var(--primary)', color: '#ffffff', width: '28px', height: '28px', borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: 800 }}>3</span>
+                {isEn ? "Unified System Authentication Portal" : "Cổng Đăng Nhập Hợp Nhất Hệ Thống"}
+              </h2>
+              <p style={{ fontSize: '14.5px', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '1.25rem' }}>
+                {isEn 
+                  ? "Đồ Sơn Today employs a smart unified authentication mechanism. Whether you are a Business Member, Content Creator, or Admin, simply enter your Username and Password on a single form to be automatically routed to your respective Dashboard."
+                  : "Đồ Sơn Today ứng dụng cơ chế đăng nhập hợp nhất thông minh. Cho dù bạn là Hội viên Doanh nghiệp, Biên tập viên hay Admin Quản trị, bạn chỉ cần điền Tên đăng nhập và Mật khẩu tại một biểu mẫu duy nhất ➔ Hệ thống tự động chuyển hướng bạn đến Dashboard tương ứng."
+                }
+              </p>
+              <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-strong)', maxWidth: '800px', margin: '0 auto' }}>
+                <img src="/img_guide/Members/login.png" alt="Form Đăng nhập Hợp nhất" style={{ width: '100%', height: 'auto', display: 'block' }} />
+                <div style={{ padding: '10px 16px', background: 'var(--surface-1)', fontSize: '12.5px', color: 'var(--text-muted)', textAlign: 'center', borderTop: '1px solid var(--border)' }}>
+                  {isEn ? "Secure unified login portal interface" : "Giao diện Form đăng nhập hợp nhất bảo mật cao"}
+                </div>
+              </div>
+            </div>
+
+            {/* Phần 4: Dashboard Hội viên & Quản lý Phân hạng */}
+            <div className="glass-card" style={{ padding: '2rem' }}>
+              <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ background: 'var(--primary)', color: '#ffffff', width: '28px', height: '28px', borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: 800 }}>4</span>
+                {isEn ? "Member Dashboard & Subscription Tier Benefits" : "Quản trị Dashboard Hội viên & Quyền lợi Gói Giao thương"}
+              </h2>
+              <p style={{ fontSize: '14.5px', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '1.25rem' }}>
+                {isEn 
+                  ? "Upon logging in, access the Member Dashboard to manage company profiles, track remaining post counts, and request subscription upgrades:"
+                  : "Sau khi đăng nhập thành công, bạn được đưa tới Dashboard Hội viên để quản lý hồ sơ doanh nghiệp, theo dõi số lượt tin bài còn lại và nâng cấp gói hội viên:"
+                }
+              </p>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+                <div style={{ padding: '1.25rem', borderRadius: '12px', background: 'rgba(148,163,184,0.08)', border: '1px solid var(--border)' }}>
+                  <div style={{ color: '#94a3b8', fontWeight: 800, fontSize: '16px', marginBottom: '6px' }}>🥈 {isEn ? "SILVER Tier (Default)" : "Gói SILVER (Mặc định)"}</div>
+                  <div style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                    {isEn ? "Free. Up to 3 posts/month, 5 AI queries/day. Standard directory placement." : "Miễn phí. Đăng tối đa 3 bài viết/tháng, 5 câu hỏi AI/ngày. Thứ hạng danh bạ tiêu chuẩn."}
+                  </div>
+                </div>
+                <div style={{ padding: '1.25rem', borderRadius: '12px', background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.3)' }}>
+                  <div style={{ color: '#f59e0b', fontWeight: 800, fontSize: '16px', marginBottom: '6px' }}>🥇 {isEn ? "GOLD Tier (Advanced)" : "Gói GOLD (Nâng cao)"}</div>
+                  <div style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                    {isEn ? "Paid. 15 posts/month, 50 AI queries/day. Higher placement in the business directory." : "Đăng 15 bài viết/tháng, 50 lượt hỏi AI/ngày. Thứ hạng cao hơn trong danh bạ doanh nghiệp."}
+                  </div>
+                </div>
+                <div style={{ padding: '1.25rem', borderRadius: '12px', background: 'rgba(56,189,248,0.08)', border: '1px solid rgba(56,189,248,0.3)' }}>
+                  <div style={{ color: 'var(--neon-cyan)', fontWeight: 800, fontSize: '16px', marginBottom: '6px' }}>💎 {isEn ? "PLATINUM Tier (Premium)" : "Gói PLATINUM (Cao cấp)"}</div>
+                  <div style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                    {isEn ? "Unlimited posts & AI chat. Exclusive privilege to request homepage featured pinning and access advanced AI models." : "Không giới hạn tin đăng & AI chat. Độc quyền yêu cầu ghim bài nổi bật ngoài Trang chủ và dùng toàn bộ mô hình AI nâng cao."}
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-strong)' }}>
+                <img src="/img_guide/Members/member dashboard.png" alt="Dashboard Hội viên" style={{ width: '100%', height: 'auto', display: 'block' }} />
+                <div style={{ padding: '10px 16px', background: 'var(--surface-1)', fontSize: '12.5px', color: 'var(--text-muted)', textAlign: 'center', borderTop: '1px solid var(--border)' }}>
+                  {isEn ? "Member Dashboard displaying tier status, expiration dates, and post management" : "Giao diện trang Dashboard Hội viên hiển thị phân hạng, hạn sử dụng và quản lý tin bài"}
+                </div>
+              </div>
+            </div>
+
+            {/* Phần 5: Soạn & Đăng bài viết chuẩn SEO */}
+            <div className="glass-card" style={{ padding: '2rem' }}>
+              <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ background: 'var(--primary)', color: '#ffffff', width: '28px', height: '28px', borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: 800 }}>5</span>
+                {isEn ? "SEO-Optimized Article Editor (Rich Text Editor)" : "Soạn & Đăng bài viết Chuẩn SEO (Rich Text Editor)"}
+              </h2>
+              <p style={{ fontSize: '14.5px', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '1.25rem' }}>
+                {isEn 
+                  ? "Đồ Sơn Today provides a feature-rich WYSIWYG editor to create professional posts optimized for Google Search:"
+                  : "Đồ Sơn Today trang bị công cụ soạn thảo phong phú Rich Text Editor giúp bài viết của doanh nghiệp chuyên nghiệp và tối ưu cho công cụ tìm kiếm Google:"
+                }
+              </p>
+              
+              <ul style={{ color: 'var(--text-secondary)', fontSize: '14px', lineHeight: 1.7, marginBottom: '1.25rem' }}>
+                {isEn ? (
+                  <>
+                    <li><strong>Content Formatting</strong>: Custom font sizes, text color highlighting, HTML tables, alignment, and image embeds.</li>
+                    <li><strong>Post Categorization</strong>: Select post types (General News, Partner Search, Buy/Sell, Event Notification, Recruitment).</li>
+                    <li><strong>Meta Description Summary</strong>: Short snippet up to 160 characters for optimal Google Search and social media previews.</li>
+                    <li><strong>Hashtag Tags</strong>: Add comma-separated tag pills displayed at the bottom of the article.</li>
+                    <li><strong>Featured Pin Privilege (Platinum)</strong>: Platinum members can toggle <em>"Request Admin to pin this post on the home page"</em>.</li>
+                  </>
+                ) : (
+                  <>
+                    <li><strong>Định dạng nội dung</strong>: Đổi kích thước chữ, chọn màu sắc highlight, chèn bảng HTML, căn lề và chèn link/ảnh minh họa bài viết.</li>
+                    <li><strong>Phân loại bài viết</strong>: Chọn Loại tin bài (<em>Tin chung, Tìm kiếm đối tác, Cần mua/Cần bán, Thông báo sự kiện, Tuyển dụng</em>).</li>
+                    <li><strong>Tóm tắt Meta Description</strong>: Nhập mô tả ngắn tối đa 160 ký tự giúp hiển thị đẹp mắt trên Google Search & Zalo/FB preview.</li>
+                    <li><strong>Từ khóa Tags</strong>: Thêm các thẻ hashtags phân tách bằng dấu phẩy để hiển thị pills từ khóa dưới chân bài viết.</li>
+                    <li><strong>Quyền lợi Ghim bài (Platinum)</strong>: Thành viên Platinum được tích chọn <em>"Yêu cầu Ban quản trị ghim nổi bật bài đăng này ngoài trang chủ"</em>.</li>
+                  </>
+                )}
+              </ul>
+
+              <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-strong)' }}>
+                <img src="/img_guide/Members/member upload post setting.png" alt="Modal Soạn bài viết" style={{ width: '100%', height: 'auto', display: 'block' }} />
+                <div style={{ padding: '10px 16px', background: 'var(--surface-1)', fontSize: '12.5px', color: 'var(--text-muted)', textAlign: 'center', borderTop: '1px solid var(--border)' }}>
+                  {isEn ? "Trade post editor modal with Rich Text formatting tools and SEO Meta Description settings" : "Modal Soạn bài viết giao thương với đầy đủ công cụ Rich Text và thiết lập SEO Meta Description"}
+                </div>
+              </div>
+            </div>
+
+            {/* Phần 6: Khai thác Trợ lý AI Chuyên sâu */}
+            <div className="glass-card" style={{ padding: '2rem' }}>
+              <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ background: 'var(--primary)', color: '#ffffff', width: '28px', height: '28px', borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: 800 }}>6</span>
+                {isEn ? "Advanced Business AI Assistant & Model Switching" : "Khai thác Trợ lý AI Chuyên sâu & Chuyển đổi Mô hình"}
+              </h2>
+              <p style={{ fontSize: '14.5px', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '1.25rem' }}>
+                {isEn 
+                  ? "Click 'AI Assistant' in the header menu to receive business strategy consultations and market analysis. Gold & Platinum members can switch between cutting-edge LLMs: OpenAI GPT-4o, DeepSeek V3/R1, Claude 4 Opus, and Gemini 3 Flash."
+                  : "Nhấn vào mục \"Trợ lý AI\" trên thanh Header để tư vấn các chiến lược kinh doanh, tra cứu thông tin đối tác và phân tích kinh tế Đồ Sơn. Thành viên gói Gold & Platinum có quyền chuyển đổi giữa các mô hình AI tiên tiến nhất hiện nay: OpenAI GPT-4o, DeepSeek V3/R1, Claude 4 Opus, Gemini 3 Flash."
+                }
+              </p>
+              <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-strong)' }}>
+                <img src="/img_guide/Members/AI assisstant page.png" alt="Trợ lý AI Doanh nghiệp" style={{ width: '100%', height: 'auto', display: 'block' }} />
+                <div style={{ padding: '10px 16px', background: 'var(--surface-1)', fontSize: '12.5px', color: 'var(--text-muted)', textAlign: 'center', borderTop: '1px solid var(--border)' }}>
+                  {isEn ? "Business AI Assistant interface integrated with multi-LLM engine" : "Giao diện Trợ lý AI Doanh nghiệp tích hợp đa mô hình ngôn ngữ lớn"}
+                </div>
+              </div>
+            </div>
+
+            {/* Phần 7: Khám phá Bảng tin, Danh bạ & Sự kiện */}
+            <div className="glass-card" style={{ padding: '2rem' }}>
+              <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ background: 'var(--primary)', color: '#ffffff', width: '28px', height: '28px', borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: 800 }}>7</span>
+                {isEn ? "Trade Bulletin, Member Directory & B2B Events" : "Bảng tin Giao thương, Danh bạ Doanh nghiệp & Sự kiện B2B"}
+              </h2>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+                <div>
+                  <h3 style={{ fontSize: '16px', color: 'var(--neon-cyan)', marginBottom: '8px' }}>
+                    {isEn ? "a. Opportunity Feed & Networking Posts" : "a. Bảng tin Bài viết & Cơ hội Kết nối"}
+                  </h3>
+                  <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '10px' }}>
+                    {isEn 
+                      ? "Browse trade opportunities. Guest visitors see previews; full contact info (Email, Phone) is unlocked upon logging in."
+                      : "Nơi tổng hợp tin tức bài viết từ các doanh nghiệp và ban biên tập. Khách vãng lai có thể xem tóm tắt bài viết, tuy nhiên thông tin liên hệ nâng cao (Email, Số điện thoại) sẽ được bảo mật và chỉ mở khóa khi người dùng Đăng nhập tài khoản."
+                    }
+                  </p>
+                  <div style={{ borderRadius: '10px', overflow: 'hidden', border: '1px solid var(--border)' }}>
+                    <img src="/img_guide/Members/posts page.png" alt="Trang tin tức bài viết" style={{ width: '100%', height: 'auto', display: 'block' }} />
+                  </div>
+                </div>
+
+                <div>
+                  <h3 style={{ fontSize: '16px', color: 'var(--neon-cyan)', marginBottom: '8px' }}>
+                    {isEn ? "b. Business Member Directory" : "b. Danh bạ Doanh nghiệp Hội viên"}
+                  </h3>
+                  <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '10px' }}>
+                    {isEn 
+                      ? "Search and filter partners by keyword, industry, and city. Platinum and Gold members enjoy top priority placement."
+                      : "Truy cập mục \"Doanh nghiệp\" để tìm kiếm và lọc danh sách đối tác theo từ khóa, ngành nghề và tỉnh thành. Các doanh nghiệp Platinum và Gold được ưu tiên sắp xếp ở các vị trí đầu tiên."
+                    }
+                  </p>
+                  <div style={{ borderRadius: '10px', overflow: 'hidden', border: '1px solid var(--border)' }}>
+                    <img src="/img_guide/Members/members page.png" alt="Danh bạ Doanh nghiệp" style={{ width: '100%', height: 'auto', display: 'block' }} />
+                  </div>
+                </div>
+
+                <div>
+                  <h3 style={{ fontSize: '16px', color: 'var(--neon-cyan)', marginBottom: '8px' }}>
+                    {isEn ? "c. B2B Matchmaking Events" : "c. Sự kiện Kết nối B2B"}
+                  </h3>
+                  <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '10px' }}>
+                    {isEn 
+                      ? "Stay updated on economic forums and tourism fairs in Đồ Sơn. Click 'Interested' to save events to your calendar."
+                      : "Cập nhật danh sách các diễn đàn kinh tế, hội chợ du lịch và tọa đàm kết nối tại Đồ Sơn. Doanh nghiệp có thể nhấn \"Quan tâm\" để lưu sự kiện vào lịch cá nhân."
+                    }
+                  </p>
+                  <div style={{ borderRadius: '10px', overflow: 'hidden', border: '1px solid var(--border)' }}>
+                    <img src="/img_guide/Members/events page.png" alt="Trang Sự kiện" style={{ width: '100%', height: 'auto', display: 'block' }} />
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
-        </div>
+        )}
+
+        {/* ════════════════════════════════════════════════════════════════ */}
+        {/* TAB 2: HƯỚNG DẪN DÀNH CHO BIÊN TẬP VIÊN (CONTENT CREATOR GUIDE) */}
+        {/* ════════════════════════════════════════════════════════════════ */}
+        {activeRoleTab === 'creator' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
+            
+            <div className="glass-card" style={{ padding: '2rem', borderLeft: '4px solid var(--neon-cyan)' }}>
+              <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>
+                <i className="ti ti-edit-circle" style={{ color: 'var(--neon-cyan)' }}></i> {isEn ? "Content Creator Role" : "Vai Trò Biên Tập Viên (Content Creator)"}
+              </h2>
+              <p style={{ fontSize: '14.5px', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.6 }}>
+                {isEn 
+                  ? "Content Creator accounts are created by Admins to publish official media articles, tourism news, and economic reports for Đồ Sơn Today."
+                  : "Tài khoản Biên tập viên được tạo bởi Ban quản trị Admin, có nhiệm vụ chuyên trách sáng tạo, biên tập và xuất bản các bài viết truyền thông, tin tức du lịch - kinh tế chính thống cho Đồ Sơn Today."
+                }
+              </p>
+            </div>
+
+            {/* Đăng nhập Creator */}
+            <div className="glass-card" style={{ padding: '2rem' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '1rem' }}>
+                {isEn ? "1. Unified Portal Authentication" : "1. Đăng nhập Cổng Hợp Nhất"}
+              </h3>
+              <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '1.25rem' }}>
+                {isEn 
+                  ? "Content Creators log in using credentials provided by the Admin via the main login portal."
+                  : "Biên tập viên sử dụng Tên đăng nhập (Username) và Mật khẩu được Admin cấp để đăng nhập tại màn hình Đăng nhập chung của hệ thống."
+                }
+              </p>
+              <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-strong)', maxWidth: '750px', margin: '0 auto' }}>
+                <img src="/img_guide/Creator/login.png" alt="Đăng nhập Biên tập viên" style={{ width: '100%', height: 'auto', display: 'block' }} />
+              </div>
+            </div>
+
+            {/* Dashboard Creator */}
+            <div className="glass-card" style={{ padding: '2rem' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '1rem' }}>
+                {isEn ? "2. Creator Dashboard & Approval Status" : "2. Giao diện Dashboard Biên tập viên & Trạng thái Duyệt bài"}
+              </h3>
+              <p style={{ fontSize: '14.5px', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '1.25rem' }}>
+                {isEn 
+                  ? "The Content Creator Dashboard is streamlined to remove business profile distractions and focus purely on content creation:"
+                  : "Dashboard Biên tập viên được tối giản hóa toàn bộ các chi tiết doanh nghiệp để giúp người viết tập trung tối đa vào công việc sáng tạo nội dung:"
+                }
+              </p>
+
+              <ul style={{ color: 'var(--text-secondary)', fontSize: '14px', lineHeight: 1.7, marginBottom: '1.5rem' }}>
+                {isEn ? (
+                  <>
+                    <li><strong>Approval Status Badge</strong>:
+                      <ul style={{ marginTop: '4px' }}>
+                        <li><strong style={{ color: '#10b981' }}>⚡ Auto-Approved</strong>: Posts are published immediately on the homepage upon submission.</li>
+                        <li><strong style={{ color: '#f59e0b' }}>⏳ Requires Admin Review</strong>: Posts are submitted to Admins for review prior to publishing.</li>
+                      </ul>
+                    </li>
+                    <li><strong>Stats Counters</strong>: Track <em>Total Posts</em>, <em>Published Posts</em>, and <em>Total Views</em>.</li>
+                    <li><strong>Post Management</strong>: Edit, Delete, Save Drafts, or Preview live articles on the homepage.</li>
+                  </>
+                ) : (
+                  <>
+                    <li><strong>Thẻ trạng thái Quyền duyệt bài</strong>:
+                      <ul style={{ marginTop: '4px' }}>
+                        <li><strong style={{ color: '#10b981' }}>⚡ Duyệt bài tự động</strong>: Bài viết do bạn đăng sẽ có ngay trạng thái <em>"Đã duyệt"</em> và phát hành ngay ngoài Trang chủ.</li>
+                        <li><strong style={{ color: '#f59e0b' }}>⏳ Cần Admin duyệt</strong>: Bài viết khi đăng sẽ gửi yêu cầu tới Admin để phê duyệt trước khi xuất bản.</li>
+                      </ul>
+                    </li>
+                    <li><strong>Bộ thống kê bài viết</strong>: Theo dõi nhanh <em>Tổng tin bài</em>, <em>Số bài đã xuất bản</em> và <em>Tổng lượt đọc (views)</em>.</li>
+                    <li><strong>Danh sách bài đăng</strong>: Quản lý toàn bộ bài viết cá nhân, dễ dàng Chỉnh sửa, Xóa hoặc Xem trực tiếp bài đọc ngoài trang chủ.</li>
+                  </>
+                )}
+              </ul>
+
+              <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-strong)' }}>
+                <img src="/img_guide/Creator/creator dashboard.png" alt="Dashboard Biên tập viên" style={{ width: '100%', height: 'auto', display: 'block' }} />
+                <div style={{ padding: '10px 16px', background: 'var(--surface-1)', fontSize: '12.5px', color: 'var(--text-muted)', textAlign: 'center', borderTop: '1px solid var(--border)' }}>
+                  {isEn ? "Content Creator Dashboard with post management, draft saving, and view stats" : "Dashboard Biên tập viên với các tính năng đăng bài, lưu nháp và theo dõi thống kê lượt xem"}
+                </div>
+              </div>
+            </div>
+
+          </div>
+        )}
+
+        {/* ════════════════════════════════════════════════════════════════ */}
+        {/* TAB 3: HƯỚNG DẪN DÀNH CHO QUẢN TRỊ VIÊN (ADMIN GUIDE) */}
+        {/* ════════════════════════════════════════════════════════════════ */}
+        {activeRoleTab === 'admin' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
+            
+            <div className="glass-card" style={{ padding: '2rem', borderLeft: '4px solid #f59e0b' }}>
+              <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>
+                <i className="ti ti-shield-lock" style={{ color: '#f59e0b' }}></i> {isEn ? "System Admin Privileges" : "Quyền Hạn Quản Trị Viên (System Admin)"}
+              </h2>
+              <p style={{ fontSize: '14.5px', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.6 }}>
+                {isEn 
+                  ? "Admins maintain full control over the platform, including Member approval, post moderation, homepage pinning, B2B event management, category taxonomy, and Content Creator accounts."
+                  : "Admin nắm toàn bộ quyền kiểm soát hệ thống Đồ Sơn Today bao gồm: Phê duyệt Doanh nghiệp Hội viên, Xét duyệt bài viết, Ghim bài trang chủ, Quản lý Sự kiện B2B, Cấu hình Chuyên mục và Quản lý tài khoản Biên tập viên."
+                }
+              </p>
+            </div>
+
+            {/* Admin Login & Dashboard Overview */}
+            <div className="glass-card" style={{ padding: '2rem' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '1rem' }}>
+                {isEn ? "1. Authentication & Admin Dashboard Overview" : "1. Đăng nhập & Admin Dashboard Tổng quan"}
+              </h3>
+              <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '1.25rem' }}>
+                {isEn 
+                  ? "Log in via the main portal to view instant statistics on Members, Posts, and Events."
+                  : "Admin đăng nhập qua Form chung ➔ Được điều hướng đến Admin Dashboard tổng quan thống kê tức thì số lượng Hội viên, Bài viết và Sự kiện."
+                }
+              </p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+                <div style={{ borderRadius: '10px', overflow: 'hidden', border: '1px solid var(--border)' }}>
+                  <img src="/img_guide/Admin/login.png" alt="Đăng nhập Admin" style={{ width: '100%', height: 'auto', display: 'block' }} />
+                </div>
+                <div style={{ borderRadius: '10px', overflow: 'hidden', border: '1px solid var(--border)' }}>
+                  <img src="/img_guide/Admin/admin dashboard.png" alt="Admin Dashboard" style={{ width: '100%', height: 'auto', display: 'block' }} />
+                </div>
+              </div>
+            </div>
+
+            {/* Admin Manage Members */}
+            <div className="glass-card" style={{ padding: '2rem' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '1rem' }}>
+                {isEn ? "2. Member Approval & Tier Management" : "2. Quản lý & Xét Duyệt Hồ Sơ Hội Viên Doanh Nghiệp"}
+              </h3>
+              <ul style={{ color: 'var(--text-secondary)', fontSize: '14px', lineHeight: 1.7, marginBottom: '1.25rem' }}>
+                {isEn ? (
+                  <>
+                    <li><strong>Review Applications</strong>: Approve or Reject new enterprise registration profiles.</li>
+                    <li><strong>Tier Modifications</strong>: Upgrade / downgrade member tiers between <em>Silver, Gold, Platinum</em>.</li>
+                    <li><strong>Expiration Dates</strong>: Set tier expiration dates (`tier_expires_at`). Expired subscriptions automatically downgrade to Silver.</li>
+                    <li><strong>Account Suspension & Password Resets</strong>: Lock violating accounts or reset passwords securely.</li>
+                  </>
+                ) : (
+                  <>
+                    <li><strong>Xét duyệt Hồ sơ mới</strong>: Phê duyệt (Approve) hoặc Từ chối (Reject) các đăng ký của doanh nghiệp.</li>
+                    <li><strong>Thay đổi Phân hạng gói</strong>: Nâng hạng / hạ hạng giữa <em>Silver, Gold, Platinum</em>.</li>
+                    <li><strong>Cài đặt Hạn sử dụng gói</strong>: Thiết lập ngày hết hạn gói (`tier_expires_at`). Đơn hàng hết hạn sẽ tự hạ về Silver.</li>
+                    <li><strong>Khóa tài khoản (Suspend) & Đổi mật khẩu</strong>: Quản trị an toàn tài khoản hội viên khi phát hiện vi phạm.</li>
+                  </>
+                )}
+              </ul>
+              <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-strong)' }}>
+                <img src="/img_guide/Admin/admin manage members.png" alt="Quản lý Hội viên" style={{ width: '100%', height: 'auto', display: 'block' }} />
+              </div>
+            </div>
+
+            {/* Admin Manage Posts */}
+            <div className="glass-card" style={{ padding: '2rem' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '1rem' }}>
+                {isEn ? "3. Post Moderation & Homepage Featured Pinning" : "3. Quản lý Bài Viết & Ghim Nổi Bật Trang Chủ"}
+              </h3>
+              <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '1.25rem' }}>
+                {isEn 
+                  ? "Review posts submitted by Members & Creators. For Platinum members requesting featured pinning, Admins can toggle 'Featured Pin' to place posts in the top 3 homepage spotlight positions."
+                  : "Admin xem danh sách bài viết từ các doanh nghiệp & biên tập viên để kiểm duyệt nội dung. Đối với các bài viết từ tài khoản Platinum gửi yêu cầu ghim bài, Admin có nút \"Ghim nổi bật\" để đưa bài đăng lên top 3 ô vị trí đặc quyền trên Trang chủ."
+                }
+              </p>
+              <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-strong)' }}>
+                <img src="/img_guide/Admin/admin manage posts.png" alt="Quản lý Bài viết" style={{ width: '100%', height: 'auto', display: 'block' }} />
+              </div>
+            </div>
+
+            {/* Admin Manage Events & Categories & Creators */}
+            <div className="glass-card" style={{ padding: '2rem' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '1.25rem' }}>
+                {isEn ? "4. Events, Category Taxonomy & Creator Accounts" : "4. Quản lý Sự Kiện, Chuyên Mục & Tài khoản Biên Tập Viên"}
+              </h3>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+                <div>
+                  <h4 style={{ color: 'var(--neon-cyan)', marginBottom: '8px' }}>
+                    {isEn ? "a. B2B Event Management" : "a. Quản lý Sự kiện B2B"}
+                  </h4>
+                  <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: '10px' }}>
+                    {isEn 
+                      ? "Create new events, set dates, capacity, location, and update event status (Upcoming, Ongoing, Completed)."
+                      : "Tạo sự kiện mới, nhập ngày tổ chức, số lượng tham gia và cập nhật trạng thái sự kiện (*Sắp diễn ra, Đang diễn ra, Đã hoàn thành*)."
+                    }
+                  </p>
+                  <div style={{ borderRadius: '10px', overflow: 'hidden', border: '1px solid var(--border)' }}>
+                    <img src="/img_guide/Admin/admin manage events.png" alt="Quản lý Sự kiện" style={{ width: '100%', height: 'auto', display: 'block' }} />
+                  </div>
+                </div>
+
+                <div>
+                  <h4 style={{ color: 'var(--neon-cyan)', marginBottom: '8px' }}>
+                    {isEn ? "b. Category & Sub-Category Taxonomy" : "b. Quản lý Chuyên mục & Lĩnh vực"}
+                  </h4>
+                  <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: '10px' }}>
+                    {isEn 
+                      ? "Add and edit main categories & sub-categories, manage English translations, and adjust display ordering."
+                      : "Thêm mới, chỉnh sửa Chuyên mục chính & các Lĩnh vực con, nhập bản dịch tên tiếng Anh và thay đổi thứ tự hiển thị menu."
+                    }
+                  </p>
+                  <div style={{ borderRadius: '10px', overflow: 'hidden', border: '1px solid var(--border)' }}>
+                    <img src="/img_guide/Admin/admin manage category.png" alt="Quản lý Chuyên mục" style={{ width: '100%', height: 'auto', display: 'block' }} />
+                  </div>
+                </div>
+
+                <div>
+                  <h4 style={{ color: 'var(--amber)', marginBottom: '8px' }}>
+                    {isEn ? "c. Creator Management & Auto-Approve Toggle" : "c. Quản lý Biên tập viên & Cấu hình Quyền Duyệt tự động"}
+                  </h4>
+                  <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: '10px' }}>
+                    {isEn 
+                      ? "Create Content Creator accounts, reset passwords, and toggle 'Enable Auto-Approve (No Admin review required)'."
+                      : "Admin tạo tài khoản cho Biên tập viên và cấu hình ô chọn \"Cho phép Duyệt bài tự động (Không cần Admin duyệt)\". Khi tích chọn, bài đăng do Biên tập viên này tạo sẽ tự động xuất bản mà không qua khâu duyệt của Admin."
+                    }
+                  </p>
+                  <div style={{ borderRadius: '10px', overflow: 'hidden', border: '1px solid var(--border)' }}>
+                    <img src="/img_guide/Admin/admin manage creator.png" alt="Quản lý Biên tập viên" style={{ width: '100%', height: 'auto', display: 'block' }} />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        )}
+
       </div>
 
       <Footer />
-
-      {/* Screenshot Lightbox Modal overlay */}
-      {selectedImg && (
-        <div 
-          onClick={() => setSelectedImg(null)}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(5, 8, 18, 0.9)',
-            backdropFilter: 'blur(10px)',
-            WebkitBackdropFilter: 'blur(10px)',
-            zIndex: 99999,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '2rem',
-            cursor: 'zoom-out',
-            animation: 'fadeIn 0.2s ease'
-          }}
-        >
-          <img 
-            src={selectedImg} 
-            alt="Guide screenshot expanded view" 
-            style={{
-              maxWidth: '90vw',
-              maxHeight: '90vh',
-              borderRadius: '8px',
-              border: '1px solid rgba(255,255,255,0.15)',
-              boxShadow: '0 20px 50px rgba(0,0,0,0.8)',
-              objectFit: 'contain'
-            }}
-          />
-        </div>
-      )}
     </div>
   );
 };
