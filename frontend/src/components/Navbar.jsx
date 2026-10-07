@@ -76,7 +76,16 @@ export const Navbar = () => {
   return (
     <header className="header-wrapper" style={{ position: 'sticky', top: 0, zIndex: 1000, backgroundColor: '#ffffff', boxShadow: '0 2px 12px rgba(12, 35, 64, 0.08)', width: '100%' }}>
       {/* 4. Thanh thông tin phía trên (Top Info Announcement Bar) */}
-      <div className="top-info-bar">
+      <div 
+        className="top-info-bar"
+        style={{
+          backgroundColor: '#0c2340',
+          color: '#e2f0ff',
+          fontSize: '12px',
+          padding: '6px 0',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+        }}
+      >
         <div 
           className="public-container"
           style={{

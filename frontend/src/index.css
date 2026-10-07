@@ -1084,6 +1084,15 @@ body.public-body {
   }
 }
 
+.top-info-bar {
+  background-color: #0c2340;
+  color: #e2f0ff;
+  font-size: 12px;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  width: 100%;
+}
+
 nav {
   position: sticky;
   top: 0;
