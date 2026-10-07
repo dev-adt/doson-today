@@ -1713,7 +1713,7 @@ app.get('/api/posts', async (req, res) => {
     // Tự động chuyển trạng thái bài viết quá hạn sang 'hidden' (Đã bị ẩn) một cách an toàn
     try {
       await db.query(
-        "UPDATE posts SET status = 'hidden' WHERE deadline IS NOT NULL AND deadline != '' AND deadline != '0000-00-00' AND status = 'approved' AND deadline < ?",
+        "UPDATE posts SET status = 'hidden' WHERE deadline IS NOT NULL AND status = 'approved' AND deadline < ?",
         [todayStr]
       );
     } catch (e) {
@@ -1735,7 +1735,7 @@ app.get('/api/posts', async (req, res) => {
       } else {
         sql += " AND p.status = 'approved'";
       }
-      sql += " AND (p.deadline IS NULL OR p.deadline = '' OR p.deadline = '0000-00-00' OR p.deadline >= ?)";
+      sql += " AND (p.deadline IS NULL OR p.deadline >= ?)";
       params.push(todayStr);
     } else {
       // Dành cho Admin / Member / Creator đã đăng nhập
@@ -1838,7 +1838,51 @@ app.get('/api/posts/:id', async (req, res) => {
       [identifier, identifier]
     );
     if (!rows.length) return res.status(404).json({ success: false, error: 'Không tìm thấy bài viết.' });
-    res.json({ success: true, data: rows[0] });
+
+    // Kiểm tra quyền truy cập để bảo vệ thông tin liên hệ của doanh nghiệp đối với khách vãng lai
+    let isAuthenticated = false;
+    let userId = null;
+    let userRole = null;
+    const authHeader = req.headers['authorization'];
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.substring(7);
+      const [adminSess] = await db.query('SELECT id FROM admin_sessions WHERE token = ? AND expires_at > NOW()', [token]);
+      if (adminSess.length) { 
+        isAuthenticated = true; 
+        userRole = 'admin';
+      } else {
+        const [memberSess] = await db.query(
+          `SELECT s.member_id FROM member_sessions s JOIN members m ON s.member_id = m.id WHERE s.token = ? AND s.expires_at > NOW() AND m.status = 'approved'`, [token]
+        );
+        if (memberSess.length) { 
+          isAuthenticated = true; 
+          userId = memberSess[0].member_id;
+          userRole = 'member';
+        } else {
+          const [creatorSess] = await db.query(
+            `SELECT s.creator_id FROM creator_sessions s JOIN content_creators c ON s.creator_id = c.id WHERE s.token = ? AND s.expires_at > NOW()`, [token]
+          );
+          if (creatorSess.length) { 
+            isAuthenticated = true; 
+            userId = creatorSess[0].creator_id;
+            userRole = 'creator';
+          }
+        }
+      }
+    }
+
+    const postData = { ...rows[0] };
+    // Nếu bài viết chưa được duyệt, chỉ cho phép admin hoặc chính tác giả xem
+    if (postData.status !== 'approved' && !isAuthenticated) {
+      return res.status(403).json({ success: false, error: 'Bài viết này đang chờ duyệt hoặc chưa được xuất bản.' });
+    }
+
+    // Ẩn thông tin liên hệ đối với khách vãng lai (yêu cầu đăng nhập hội viên)
+    if (!isAuthenticated) {
+      postData.contact_info = 'Đăng nhập hội viên để xem thông tin liên hệ';
+    }
+
+    res.json({ success: true, data: postData });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }

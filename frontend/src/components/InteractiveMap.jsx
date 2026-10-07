@@ -392,10 +392,10 @@ export default function InteractiveMap() {
       mapInstanceRef.current = map;
       setMapReady(true);
 
-      // Voyager tile layer (clean & high resolution)
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; CARTO',
-        subdomains: 'abcd',
+      // Bản đồ OpenStreetMap chuẩn (Miễn phí 100%, không cần API key, độ nét cao, đầy đủ địa danh tiếng Việt)
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors',
+        subdomains: ['a', 'b', 'c'],
         maxZoom: 19
       }).addTo(map);
 

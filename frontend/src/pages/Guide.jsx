@@ -12,6 +12,7 @@ export const Guide = () => {
   const roleFromUrl = searchParams.get('role');
   const [activeRoleTab, setActiveRoleTab] = useState('member');
   const [activeSectionId, setActiveSectionId] = useState('');
+  const [mobileTocOpen, setMobileTocOpen] = useState(false);
 
   useEffect(() => {
     if (roleFromUrl === 'admin') {
@@ -209,21 +210,32 @@ export const Guide = () => {
         </div>
 
         {/* Khung nội dung chính: Sidebar Menu Trái + Nội dung Hướng dẫn Phải */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(250px, 280px) 1fr', gap: '2rem', alignItems: 'start' }}>
+        <div className="guide-layout-grid">
           
-          {/* MENU BÊN TRÁI (Sticky Sidebar Table of Contents) */}
-          <div className="glass-card" style={{ position: 'sticky', top: '90px', padding: '1.25rem 1rem', borderRadius: '16px', background: 'rgba(15, 23, 42, 0.85)', border: '1px solid var(--border-strong)', zIndex: 10 }}>
-            <div style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '12px', paddingLeft: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <i className="ti ti-list" style={{ color: 'var(--neon-cyan)' }}></i> {isEn ? "Navigation Menu" : "Danh mục Hướng dẫn"}
+          {/* MENU BÊN TRÁI (Sidebar Table of Contents) */}
+          <div className="glass-card guide-sidebar-toc" style={{ padding: '1.25rem 1rem', borderRadius: '16px', background: 'rgba(15, 23, 42, 0.85)', border: '1px solid var(--border-strong)', zIndex: 10 }}>
+            <div 
+              onClick={() => setMobileTocOpen(!mobileTocOpen)}
+              className="guide-toc-header"
+              style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '8px', padding: '6px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <i className="ti ti-list" style={{ color: 'var(--neon-cyan)' }}></i> {isEn ? "Navigation Menu" : "Danh mục Hướng dẫn"}
+                <span style={{ fontSize: '10px', background: 'rgba(56, 189, 248, 0.2)', color: 'var(--neon-cyan)', padding: '1px 6px', borderRadius: '10px' }}>{currentNavItems.length}</span>
+              </div>
+              <i className={`ti ${mobileTocOpen ? 'ti-chevron-up' : 'ti-chevron-down'} guide-toc-chevron`} style={{ fontSize: '14px', color: 'var(--neon-cyan)' }}></i>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <div className={`guide-toc-list ${mobileTocOpen ? 'open' : ''}`}>
               {currentNavItems.map((item) => {
                 const isActive = activeSectionId === item.id;
                 return (
                   <button
                     key={item.id}
-                    onClick={() => scrollToSection(item.id)}
+                    onClick={() => {
+                      scrollToSection(item.id);
+                      setMobileTocOpen(false);
+                    }}
                     style={{
                       width: '100%',
                       textAlign: 'left',
@@ -298,7 +310,7 @@ export const Guide = () => {
                     )}
                   </p>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1.25rem', marginBottom: '1.5rem' }}>
+                  <div className="guide-2-cols">
                     <div style={{ padding: '1.25rem', background: 'var(--surface-1)', borderRadius: '12px', border: '1px solid var(--border)' }}>
                       <h4 style={{ color: 'var(--neon-cyan)', margin: '0 0 8px 0', fontSize: '15px' }}>
                         {isEn ? "Step 1: Business Information" : "Bước 1: Thông tin Doanh nghiệp"}
@@ -841,7 +853,7 @@ export const Guide = () => {
                       <>Admin thực hiện {renderLinkPill("Đăng nhập Admin", "/login")} qua Form chung ➔ Được điều hướng đến {renderLinkPill("Admin Dashboard", "/admin-dashboard")} tổng quan thống kê tức thì số lượng Hội viên, Bài viết và Sự kiện.</>
                     )}
                   </p>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+                  <div className="guide-2-cols">
                     <div style={{ borderRadius: '10px', overflow: 'hidden', border: '1px solid var(--border)' }}>
                       <img src="/img_guide/Admin/login.png" alt="Đăng nhập Admin" style={{ width: '100%', height: 'auto', display: 'block' }} />
                     </div>

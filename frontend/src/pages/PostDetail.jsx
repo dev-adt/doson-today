@@ -189,6 +189,114 @@ export const PostDetail = () => {
     };
   }, []);
 
+  const fallbackAllSamplePosts = [
+    {
+      id: 'p-1',
+      title: 'Khách sạn ven biển Đồ Sơn ưu đãi 25% mùa du lịch hè 2026',
+      summary: 'Hệ thống phòng nghỉ view biển cao cấp, dịch vụ chu đáo trọn gói cho gia đình và đoàn doanh nghiệp đối tác.',
+      body: '<p>Khu vực biển Đồ Sơn đang bước vào cao điểm mùa du lịch với hàng loạt chương trình ưu đãi hấp dẫn. Khách sạn ven biển Đồ Sơn trân trọng gửi tới quý khách hàng và các doanh nghiệp đối tác gói nghỉ dưỡng cao cấp với mức giảm 25% giá phòng.</p><p>Tiện ích tiêu chuẩn bao gồm: phòng ngủ hướng biển ban công riêng, buffet sáng hải sản tươi sống, phòng hội thảo hội nghị sức chứa 200 khách, bể bơi vô cực và xe điện đưa đón tham quan các điểm du lịch nổi tiếng quanh bán đảo Đồ Sơn.</p>',
+      company_name: 'Khách sạn Biển Đồ Sơn',
+      company_tier: 'Platinum',
+      category: 'Du lịch',
+      sub_category: 'Khách sạn, Resort',
+      type: 'offer',
+      is_featured: 1,
+      image_url: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80',
+      contact_info: 'Hotline: 0225.3861.999 — Email: contact@dosonhotel.vn',
+      created_at: '2026-08-19'
+    },
+    {
+      id: 'p-2',
+      title: 'Cung cấp hải sản tươi sống đánh bắt trong ngày tại Cảng Đồ Sơn',
+      summary: 'Cua biển Đồ Sơn, bề bề, mực ống tươi ngon chuẩn chất lượng OCOP, giao hàng tận nơi nhà hàng khách sạn giá tốt.',
+      body: '<p>Hải Sản Đồ Sơn Tươi Sống chuyên phân phối trực tiếp nguồn hải sản đánh bắt trong ngày từ các đội tàu thuyền địa phương cập cảng Đồ Sơn mỗi sáng sớm.</p><p>Cam kết chất lượng: Cua gạch, cua thịt chắc nịch chuẩn Đồ Sơn, Bề bề tươi sống nhảy tanh tách, mực lá mực ống cấp đông mềm ngay tại tàu không ngâm hóa chất. Nhận cung ứng giá sỉ ưu đãi cho chuỗi nhà hàng, khách sạn và các sự kiện ẩm thực lớn trên toàn thành phố Hải Phòng và các tỉnh lân cận.</p>',
+      company_name: 'Hải Sản Đồ Sơn Tươi Sống',
+      company_tier: 'Gold',
+      category: 'Chợ hải sản',
+      sub_category: 'Cua, Ghẹ biển',
+      type: 'offer',
+      is_featured: 1,
+      image_url: 'https://images.unsplash.com/photo-1559742811-822863c46f43?auto=format&fit=crop&w=800&q=80',
+      contact_info: 'Hotline: 0904.555.666 — Cảng cá Đồ Sơn, Hải Phòng',
+      created_at: '2026-08-19'
+    },
+    {
+      id: 'p-3',
+      title: 'Tìm đối tác phân phối nông sản Táo Bàng Đồ Sơn trên toàn quốc',
+      summary: 'Đặc sản Táo Bàng Đồ Sơn quả giòn ngọt mát, chứng nhận OCOP 4 sao, chính sách chiết khấu đại lý phân phối hấp dẫn.',
+      body: '<p>Táo Bàng Đồ Sơn là sản phẩm nông nghiệp đặc trưng nức tiếng đã được cấp chứng nhận sản phẩm OCOP 4 sao của thành phố Hải Phòng. Quả táo tròn đều, vỏ mỏng bóng, thịt giòn ngọt thanh và giàu vitamin.</p><p>Hợp tác xã Nông nghiệp Đồ Sơn kính mời các chuỗi siêu thị, cửa hàng thực phẩm sạch và đại lý nông sản trên toàn quốc hợp tác phân phối vụ mùa 2026 với chính sách chiết khấu và hỗ trợ vận chuyển tối đa.</p>',
+      company_name: 'HTX Nông Nghiệp Đồ Sơn',
+      company_tier: 'Gold',
+      category: 'Doanh nghiệp',
+      sub_category: 'Sản phẩm OCOP',
+      type: 'cooperate',
+      is_featured: 0,
+      image_url: 'https://images.unsplash.com/photo-1550258987-190a2d41a8ba?auto=format&fit=crop&w=800&q=80',
+      contact_info: 'Hotline: 0977.222.333 — HTX Nông nghiệp Đồ Sơn',
+      created_at: '2026-08-19'
+    },
+    {
+      id: 'p-4',
+      title: 'Cơ hội đầu tư shophouse ven biển Đồi Rồng sinh lời bền vững',
+      summary: 'Khu du lịch quốc tế Đồi Rồng Đồ Sơn với tiềm năng kinh doanh vượt trội, hạ tầng hoàn thiện đồng bộ.',
+      body: '<p>Khu đô thị du lịch quốc tế Đồi Rồng (Dragon Ocean Đồ Sơn) là quần thể du lịch, nghỉ dưỡng và giải trí thể thao biển quy mô bậc nhất miền Bắc. Với bãi biển nhân tạo lọc nước trong xanh, sân golf 27 hố trên biển và công viên nước hiện đại, đây là điểm đến thu hút hàng triệu lượt khách mỗi năm.</p><p>Chính sách bán hàng đợt mới dành cho các nhà đầu tư: Hỗ trợ lãi suất 0% trong 24 tháng, chiết khấu thanh toán sớm và cam kết dòng tiền khai thác kinh doanh bền vững.</p>',
+      company_name: 'Công ty Bất Động Sản Hải Phòng',
+      company_tier: 'Platinum',
+      category: 'Đầu tư',
+      sub_category: 'Dự án trọng điểm',
+      type: 'offer',
+      is_featured: 1,
+      image_url: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=80',
+      contact_info: 'Phòng kinh doanh dự án: 0225.3888.666',
+      created_at: '2026-08-19'
+    },
+    {
+      id: 'news-1',
+      title: 'Cẩm nang giữ gìn bãi biển Đồ Sơn sạch đẹp: Những việc mỗi người đều có thể thực hiện',
+      summary: 'Hướng dẫn tham gia giữ gìn môi trường biển Đồ Sơn sáng - xanh - sạch - đẹp cho khách du lịch và cư dân địa phương.',
+      body: '<p>Bảo vệ môi trường biển là trách nhiệm và niềm tự hào chung của mỗi người dân cũng như du khách khi đặt chân đến Đồ Sơn. Hãy cùng chung tay bỏ rác đúng nơi quy định, hạn chế sử dụng túi nilon và đồ nhựa dùng một lần khi tắm biển.</p><p>Ban Quản lý Khu du lịch Đồ Sơn thường xuyên tổ chức các đợt ra quân dọn dẹp bãi biển và khuyến khích các cơ sở kinh doanh, nhà hàng sử dụng vật liệu thân thiện với môi trường sinh thái.</p>',
+      company_name: 'Ban Quản Lý Du Lịch Đồ Sơn',
+      company_tier: 'Platinum',
+      category: 'Cộng đồng',
+      sub_category: 'Môi trường biển',
+      type: 'news',
+      is_featured: 1,
+      image_url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80',
+      contact_info: 'Ban Quản lý Du lịch Đồ Sơn',
+      created_at: '2026-08-19'
+    },
+    {
+      id: 'news-2',
+      title: 'Khách sạn phù hợp gia đình tại Đồ Sơn – những điều cần biết trước khi trải nghiệm',
+      summary: 'Tổng hợp danh sách các khách sạn, resort sở hữu không gian tiện nghi, an toàn phù hợp cho các gia đình nghỉ dưỡng.',
+      body: '<p>Khi đi du lịch cùng trẻ nhỏ và người lớn tuổi, các gia đình cần chú ý lựa chọn những khách sạn có khuôn viên yên tĩnh, bể bơi có khu vực trẻ em và khoảng cách di chuyển thuận lợi ra bãi tắm.</p><p>Khu vực Khu 2 và Khu Đồi Rồng hiện nay tập trung nhiều cơ sở lưu trú 3 - 5 sao đáp ứng xuất sắc các tiêu chí an toàn, ẩm thực phong phú và dịch vụ tận tâm.</p>',
+      company_name: 'Hiệp Hội Du Lịch Đồ Sơn',
+      company_tier: 'Gold',
+      category: 'Du lịch',
+      sub_category: 'Khách sạn, Resort',
+      type: 'news',
+      is_featured: 1,
+      image_url: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80',
+      contact_info: 'Hiệp Hội Du Lịch Đồ Sơn',
+      created_at: '2026-08-19'
+    },
+    {
+      id: 'news-3',
+      title: 'Nhà hàng hải sản uy tín tại Đồ Sơn: Hướng dẫn đầy đủ dành cho người mới',
+      summary: 'Bỏ túi bí quyết chọn nhà hàng hải sản tươi sống chất lượng, niêm yết giá công khai chuẩn hóa tại vùng biển Đồ Sơn.',
+      body: '<p>Thưởng thức hải sản là trải nghiệm không thể bỏ qua tại Đồ Sơn. Du khách nên ưu tiên chọn các nhà hàng có bể chứa tươi sống chọn món tại chỗ và có bảng niêm yết giá niêm phong công khai theo quy định của chính quyền quận.</p><p>Các món đặc sản trứ danh nhất định phải thử: Cua biển Đồ Sơn hấp sả, bề bề rang muối, nộm sứa đỏ giòn mát và chả cá thu Đồ Sơn nóng hổi thơm phức.</p>',
+      company_name: 'Ẩm Thực Đồ Sơn',
+      company_tier: 'Gold',
+      category: 'Du lịch',
+      sub_category: 'Ẩm thực & Nhà hàng',
+      type: 'news',
+      is_featured: 0,
+      image_url: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80',
+      contact_info: 'Ẩm Thực Đồ Sơn',
+      created_at: '2026-08-19'
+    }
+  ];
+
   useEffect(() => {
     const fetchPost = async () => {
       setTranslatedTitle('');
@@ -196,6 +304,7 @@ export const PostDetail = () => {
       setTranslatedBody('');
       setIsTranslated(false);
       setLoading(true);
+      setError('');
       try {
         const activeToken = token || localStorage.getItem('doson_creator_token') || localStorage.getItem('doson_member_token') || localStorage.getItem('doson_admin_token');
         const headers = activeToken ? { 'Authorization': 'Bearer ' + activeToken } : {};
@@ -204,14 +313,23 @@ export const PostDetail = () => {
           const data = await res.json();
           if (data.success && data.data) {
             setPost(data.data);
-          } else {
-            setError('Không tìm thấy bài viết.');
+            return;
           }
+        }
+        // Nếu không có trong cơ sở dữ liệu (ví dụ tin bài mẫu demo), tìm trong danh sách fallback
+        const fallbackMatch = fallbackAllSamplePosts.find(p => String(p.id) === String(id) || p.slug === id);
+        if (fallbackMatch) {
+          setPost(fallbackMatch);
         } else {
           setError('Không tìm thấy bài viết hoặc bạn không có quyền xem.');
         }
       } catch (err) {
-        setError('Có lỗi xảy ra: ' + err.message);
+        const fallbackMatch = fallbackAllSamplePosts.find(p => String(p.id) === String(id) || p.slug === id);
+        if (fallbackMatch) {
+          setPost(fallbackMatch);
+        } else {
+          setError('Có lỗi xảy ra: ' + err.message);
+        }
       } finally {
         setLoading(false);
       }
