@@ -547,6 +547,19 @@ db.query(`
     try {
       const [eventsCols] = await db.query("SHOW COLUMNS FROM events");
       const eventColNames = eventsCols.map(c => c.Field);
+
+      // Đảm bảo event_date và end_date có kiểu DATETIME chuẩn xác (tránh bị MySQL cắt bỏ giờ phút nếu trước đó là DATE)
+      try {
+        await db.query("ALTER TABLE events MODIFY COLUMN event_date DATETIME NOT NULL");
+      } catch (e) {
+        console.warn('⚠️ Kiểm tra event_date DATETIME:', e.message);
+      }
+      try {
+        await db.query("ALTER TABLE events MODIFY COLUMN end_date DATETIME DEFAULT NULL");
+      } catch (e) {
+        console.warn('⚠️ Kiểm tra end_date DATETIME:', e.message);
+      }
+
       if (!eventColNames.includes('slug')) {
         await db.query("ALTER TABLE events ADD COLUMN slug VARCHAR(255) DEFAULT NULL AFTER title, ADD INDEX idx_slug (slug)");
       }
@@ -3629,7 +3642,10 @@ app.get('/api/events', async (req, res) => {
     }
 
     const [rows] = await db.query(sql, params);
-    res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=120');
+    // Vô hiệu hóa cache hoàn toàn để đảm bảo thêm/sửa/xóa sự kiện cập nhật tức thì, không bị lưu cache cũ 60s
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
     res.json({ success: true, data: rows });
   } catch (err) {
     console.error('Lỗi GET /api/events:', err.message);
@@ -4246,6 +4262,21 @@ app.post('/api/admin/events/checkin', eventManagerAuthMiddleware, async (req, re
   }
 });
 
+// Hàm chuẩn hóa chuỗi ngày giờ sang định dạng chuẩn MySQL DATETIME 'YYYY-MM-DD HH:MM:SS'
+function formatMySqlDateTime(dateVal) {
+  if (!dateVal) return null;
+  const str = String(dateVal).trim();
+  if (/^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(:\d{2})?/.test(str)) {
+    let clean = str.replace('T', ' ');
+    if (clean.length === 16) clean += ':00';
+    return clean.slice(0, 19);
+  }
+  const d = new Date(dateVal);
+  if (isNaN(d.getTime())) return null;
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+
 // Admin & Ban tổ chức: Thêm sự kiện mới
 app.post('/api/admin/events', eventManagerAuthMiddleware, async (req, res) => {
   if (req.organizer && req.organizer.role === 'ticket_inspector') {
@@ -4276,8 +4307,11 @@ app.post('/api/admin/events', eventManagerAuthMiddleware, async (req, res) => {
     bank_account_name
   } = req.body;
 
-  if (!title || !title.trim() || !event_date) {
-    return res.status(400).json({ success: false, error: 'Vui lòng nhập Tiêu đề và Thời gian bắt đầu.' });
+  const finalEventDate = formatMySqlDateTime(event_date);
+  const finalEndDate = end_date ? formatMySqlDateTime(end_date) : null;
+
+  if (!title || !title.trim() || !finalEventDate) {
+    return res.status(400).json({ success: false, error: 'Vui lòng nhập Tiêu đề và Thời gian bắt đầu hợp lệ.' });
   }
 
   try {
@@ -4297,8 +4331,8 @@ app.post('/api/admin/events', eventManagerAuthMiddleware, async (req, res) => {
         short_desc || null,
         description || short_desc || null,
         content || null,
-        event_date,
-        end_date || null,
+        finalEventDate,
+        finalEndDate,
         location || null,
         organizer || 'Đồ Sơn Today',
         finalCapacity,
@@ -4351,8 +4385,11 @@ app.put('/api/admin/events/:id', eventManagerAuthMiddleware, async (req, res) =>
     bank_account_name
   } = req.body;
 
-  if (!title || !title.trim() || !event_date) {
-    return res.status(400).json({ success: false, error: 'Vui lòng nhập Tiêu đề và Thời gian bắt đầu.' });
+  const finalEventDate = formatMySqlDateTime(event_date);
+  const finalEndDate = end_date ? formatMySqlDateTime(end_date) : null;
+
+  if (!title || !title.trim() || !finalEventDate) {
+    return res.status(400).json({ success: false, error: 'Vui lòng nhập Tiêu đề và Thời gian bắt đầu hợp lệ.' });
   }
 
   try {
@@ -4374,8 +4411,8 @@ app.put('/api/admin/events/:id', eventManagerAuthMiddleware, async (req, res) =>
         short_desc || null,
         description || short_desc || null,
         content || null,
-        event_date,
-        end_date || null,
+        finalEventDate,
+        finalEndDate,
         location || null,
         organizer || 'Đồ Sơn Today',
         finalCapacity,

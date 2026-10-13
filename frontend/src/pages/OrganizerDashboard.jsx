@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import brandConfig from '../brand.config';
 import RichTextEditor from '../components/RichTextEditor';
-import { formatVNTime } from '../utils/dateUtils';
+import { formatVNTime, formatVNDateWithWeekday, formatDateTimeLocal } from '../utils/dateUtils';
 
 export const OrganizerDashboard = () => {
   const { user, logout, getAuthHeaders } = useAuth();
@@ -51,8 +51,12 @@ export const OrganizerDashboard = () => {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch('/api/events?all=true', {
-        headers: getAuthHeaders()
+      const res = await fetch(`/api/events?all=true&_t=${Date.now()}`, {
+        headers: {
+          ...getAuthHeaders(),
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache'
+        }
       });
       if (!res.ok) throw new Error('Không thể tải danh sách sự kiện.');
       const data = await res.json();
@@ -68,13 +72,6 @@ export const OrganizerDashboard = () => {
   useEffect(() => {
     loadEvents();
   }, []);
-
-  const formatDateTimeLocal = (dateStr) => {
-    if (!dateStr) return '';
-    const d = new Date(dateStr);
-    const pad = (n) => String(n).padStart(2, '0');
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-  };
 
   const handleOpenAddModal = () => {
     const now = new Date();
@@ -124,14 +121,28 @@ export const OrganizerDashboard = () => {
   const handleSubmitEvent = async (e) => {
     e.preventDefault();
     setSubmitting(true);
+    const payload = {
+      ...formData,
+      description: formData.content || formData.short_desc || '',
+      event_date: formData.event_date ? formData.event_date.replace('T', ' ') : '',
+      end_date: formData.end_date ? formData.end_date.replace('T', ' ') : null,
+      is_paid: formData.is_paid ? 1 : 0,
+      price: formData.is_paid ? parseFloat(formData.price) || 0 : 0,
+      capacity: parseInt(formData.capacity, 10) || 0,
+      is_published: formData.is_published ? 1 : 0
+    };
+
     try {
       const url = editingEventId ? `/api/admin/events/${editingEventId}` : '/api/admin/events';
       const method = editingEventId ? 'PUT' : 'POST';
 
       const res = await fetch(url, {
         method,
-        headers: getAuthHeaders(),
-        body: JSON.stringify(formData)
+        headers: {
+          ...getAuthHeaders(),
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
       });
 
       const data = await res.json();
@@ -140,7 +151,7 @@ export const OrganizerDashboard = () => {
       }
 
       setModalOpen(false);
-      loadEvents();
+      await loadEvents();
     } catch (err) {
       alert(err.message);
     } finally {
@@ -152,6 +163,7 @@ export const OrganizerDashboard = () => {
     if (!window.confirm(`Bạn có chắc chắn muốn xóa sự kiện "${title}" không?`)) return;
 
     try {
+      setEvents(prev => prev.filter(e => e.id !== eventId));
       const res = await fetch(`/api/admin/events/${eventId}`, {
         method: 'DELETE',
         headers: getAuthHeaders()
@@ -160,9 +172,10 @@ export const OrganizerDashboard = () => {
       if (!res.ok || !data.success) {
         throw new Error(data.error || 'Không thể xóa sự kiện.');
       }
-      loadEvents();
+      await loadEvents();
     } catch (err) {
       alert(err.message);
+      await loadEvents();
     }
   };
 
@@ -562,7 +575,7 @@ export const OrganizerDashboard = () => {
                           <div style={{ fontWeight: '700', color: '#0F172A', fontSize: '13.5px' }}>{evt.title}</div>
                           <div style={{ fontSize: '11.5px', color: '#64748B', marginTop: '2px' }}>
                             <i className="ti ti-calendar" style={{ marginRight: '4px' }}></i>
-                            {new Date(evt.event_date).toLocaleString('vi-VN')}
+                            {formatVNDateWithWeekday(evt.event_date)}
                           </div>
                         </td>
                         <td style={{ padding: '12px 16px', color: '#475569' }}>

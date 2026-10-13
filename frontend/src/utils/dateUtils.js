@@ -62,3 +62,26 @@ export const formatVNDateWithWeekday = (val) => {
   return `${hours}:${minutes} ${dayName}, ${day}/${month}/${year}`;
 };
 
+export const formatDateTimeLocal = (val) => {
+  if (!val) return '';
+  const d = parseVNTime(val);
+  if (!d || isNaN(d.getTime())) return '';
+  
+  // Format sang YYYY-MM-DDTHH:mm theo giờ Việt Nam
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Ho_Chi_Minh',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  });
+  const parts = formatter.formatToParts(d);
+  const map = {};
+  parts.forEach(p => { map[p.type] = p.value; });
+  let hr = map.hour === '24' ? '00' : (map.hour || '00');
+  if (hr.length === 1) hr = '0' + hr;
+  return `${map.year}-${map.month}-${map.day}T${hr}:${map.minute}`;
+};
+

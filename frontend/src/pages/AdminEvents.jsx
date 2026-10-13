@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import AdminLayout from '../components/AdminLayout';
 import RichTextEditor from '../components/RichTextEditor';
-import { formatVNTime } from '../utils/dateUtils';
+import { formatVNTime, formatVNDateWithWeekday, formatDateTimeLocal } from '../utils/dateUtils';
 
 export const AdminEvents = () => {
   const { getAuthHeaders } = useAuth();
@@ -54,8 +54,12 @@ export const AdminEvents = () => {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch('/api/events?all=true', {
-        headers: getAuthHeaders()
+      const res = await fetch(`/api/events?all=true&_t=${Date.now()}`, {
+        headers: {
+          ...getAuthHeaders(),
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache'
+        }
       });
       if (!res.ok) throw new Error('Không thể tải danh sách sự kiện.');
       const data = await res.json();
@@ -71,13 +75,6 @@ export const AdminEvents = () => {
   useEffect(() => {
     loadEvents();
   }, []);
-
-  const formatDateTimeLocal = (dateStr) => {
-    if (!dateStr) return '';
-    const d = new Date(dateStr);
-    const pad = (n) => String(n).padStart(2, '0');
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-  };
 
   const handleOpenAddModal = () => {
     const now = new Date();
@@ -133,6 +130,9 @@ export const AdminEvents = () => {
 
     const payload = {
       ...formData,
+      description: formData.content || formData.short_desc || '',
+      event_date: formData.event_date ? formData.event_date.replace('T', ' ') : '',
+      end_date: formData.end_date ? formData.end_date.replace('T', ' ') : null,
       is_paid: formData.is_paid ? 1 : 0,
       price: formData.is_paid ? parseFloat(formData.price) || 0 : 0,
       capacity: parseInt(formData.capacity, 10) || 0,
@@ -155,7 +155,7 @@ export const AdminEvents = () => {
       if (res.ok && data.success) {
         alert(editingEventId ? 'Cập nhật sự kiện thành công!' : 'Tạo sự kiện mới thành công!');
         setModalOpen(false);
-        loadEvents();
+        await loadEvents();
       } else {
         alert(data.error || 'Thao tác thất bại.');
       }
@@ -168,19 +168,23 @@ export const AdminEvents = () => {
     if (!confirm(`Bạn có chắc chắn muốn xóa sự kiện "${title}"?\nThao tác này sẽ xóa toàn bộ vé đăng ký liên quan.`)) return;
 
     try {
+      // Cập nhật giao diện ngay lập tức
+      setEvents(prev => prev.filter(e => e.id !== id));
       const res = await fetch(`/api/admin/events/${id}`, {
         method: 'DELETE',
         headers: getAuthHeaders()
       });
       if (res.ok) {
         alert('Đã xóa sự kiện thành công!');
-        loadEvents();
+        await loadEvents();
       } else {
         const err = await res.json();
         alert(err.error || 'Thao tác thất bại.');
+        await loadEvents();
       }
     } catch (err) {
       alert('Lỗi: ' + err.message);
+      await loadEvents();
     }
   };
 
@@ -278,13 +282,9 @@ export const AdminEvents = () => {
     }
   };
 
-  // Format ngày hiển thị tiếng Việt giống ảnh: "15:24 Thứ Sáu, 30/10/2026"
+  // Format ngày hiển thị tiếng Việt chuẩn múi giờ Việt Nam: "15:24 Thứ Sáu, 30/10/2026"
   const formatEventDateTime = (dStr) => {
-    if (!dStr) return '';
-    const d = new Date(dStr);
-    const dayNames = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
-    const pad = (n) => String(n).padStart(2, '0');
-    return `${pad(d.getHours())}:${pad(d.getMinutes())} ${dayNames[d.getDay()]}, ${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
+    return formatVNDateWithWeekday(dStr);
   };
 
   const filteredEvents = events.filter(e => {

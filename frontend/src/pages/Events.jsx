@@ -5,7 +5,7 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import SEOHead from '../components/SEOHead';
 import brandConfig from '../brand.config';
-import { fetchJsonWithTimeout, FALLBACK_EVENTS } from '../utils/api';
+import { fetchJsonWithTimeout } from '../utils/api';
 
 export const Events = () => {
   const { id: routeParamId } = useParams();
@@ -174,16 +174,17 @@ export const Events = () => {
     let isMounted = true;
     const fetchEvents = async () => {
       try {
-        const json = await fetchJsonWithTimeout('/api/events', {}, 8000);
-        if (json.success && Array.isArray(json.data) && isMounted) {
-          if (json.data.length > 0) {
-            setEventsList(json.data);
-            try {
-              localStorage.setItem('dnvn_cached_events', JSON.stringify(json.data));
-            } catch (e) {}
-          } else {
-            setEventsList(FALLBACK_EVENTS);
+        const json = await fetchJsonWithTimeout(`/api/events?_t=${Date.now()}`, {
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache'
           }
+        }, 8000);
+        if (json.success && Array.isArray(json.data) && isMounted) {
+          setEventsList(json.data);
+          try {
+            localStorage.setItem('dnvn_cached_events', JSON.stringify(json.data));
+          } catch (e) {}
         }
       } catch (e) {
         console.warn('Lỗi tải danh sách sự kiện:', e.message);

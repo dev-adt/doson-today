@@ -196,7 +196,13 @@ export const Home = () => {
       setLoadingEvents(true);
       try {
         const headers = token ? { 'Authorization': 'Bearer ' + token } : {};
-        const res = await fetch('/api/events?limit=8&upcoming=true', { headers });
+        const res = await fetch(`/api/events?limit=8&upcoming=true&_t=${Date.now()}`, {
+          headers: {
+            ...headers,
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache'
+          }
+        });
         if (res.ok) {
           const data = await res.json();
           setEvents(data.data || []);
@@ -500,70 +506,6 @@ export const Home = () => {
 
 
 
-  // Fallback events with dynamic future dates so the realtime countdown always shows live time
-  const defaultEvents = useMemo(() => {
-    const now = Date.now();
-    const futureDate1 = new Date(now + 18 * 24 * 60 * 60 * 1000).toISOString();
-    const futureDate2 = new Date(now + 25 * 24 * 60 * 60 * 1000).toISOString();
-    const futureDate3 = new Date(now + 35 * 24 * 60 * 60 * 1000).toISOString();
-    const futureDate4 = new Date(now + 48 * 24 * 60 * 60 * 1000).toISOString();
-
-    return [
-      {
-        id: 'ev-ds-1',
-        title: 'Lễ hội Du lịch Biển Đồ Sơn 2026 & Đêm hội Âm nhạc Rồng Biển',
-        short_desc: 'Quảng bá tiềm năng du lịch, thương mại và các hoạt động văn hóa đặc sắc tại Đồ Sơn. Không gian giao thương, kết nối doanh nghiệp và chuỗi ẩm thực biển phong phú.',
-        event_date: futureDate1,
-        location: 'Quảng trường Biển Đồi Rồng, Vạn Hương, Đồ Sơn, Hải Phòng',
-        image_url: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=1200&q=80',
-        is_paid: 0,
-        price: 0,
-        capacity: 1000,
-        registered_count: 320,
-        interest_count: 58
-      },
-      {
-        id: 'ev-ds-2',
-        title: 'Diễn đàn Doanh nghiệp Đồ Sơn Today: Chuyển đổi số & Kết nối Đầu tư',
-        short_desc: 'Hội thảo chuyên sâu kết nối các doanh nghiệp dịch vụ, lữ hành, F&B và nhà đầu tư bất động sản du lịch Đồ Sơn.',
-        event_date: futureDate2,
-        location: 'Trung tâm Hội nghị Khách sạn Hải Yến, Đồ Sơn',
-        image_url: 'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=800&q=80',
-        is_paid: 0,
-        price: 0,
-        capacity: 300,
-        registered_count: 140,
-        interest_count: 42
-      },
-      {
-        id: 'ev-ds-3',
-        title: 'Hội chợ Hải sản Đặc sản & Không gian Ẩm thực Miền Biển Đồ Sơn 2026',
-        short_desc: 'Quy tụ hơn 100 gian hàng thủy hải sản tươi sống và chế biến, kết nối chuỗi cung ứng trực tiếp từ ngư dân tới nhà hàng.',
-        event_date: futureDate3,
-        location: 'Khu ẩm thực Bến Nghiêng, Bến Thồ, Đồ Sơn',
-        image_url: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80',
-        is_paid: 0,
-        price: 0,
-        capacity: 500,
-        registered_count: 85,
-        interest_count: 31
-      },
-      {
-        id: 'ev-ds-4',
-        title: 'Giải Marathon Biển Đồ Sơn & Ngày hội Thể thao Bãi biển 2026',
-        short_desc: 'Giải chạy việt dã ven biển ngắm bình minh Đồ Sơn cự ly 5km, 10km, 21km kết hợp biểu diễn nhạc nước sôi động.',
-        event_date: futureDate4,
-        location: 'Tuyến đường ven biển Khu 2, Quận Đồ Sơn',
-        image_url: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=800&q=80',
-        is_paid: 1,
-        price: 200000,
-        capacity: 800,
-        registered_count: 210,
-        interest_count: 67
-      }
-    ];
-  }, []);
-
   // Lọc chỉ lấy các sự kiện sắp diễn ra hoặc đang diễn ra, LOẠI BỎ hoàn toàn các sự kiện đã qua khỏi trang chủ
   const realUpcomingEvents = useMemo(() => {
     const now = Date.now();
@@ -586,20 +528,10 @@ export const Home = () => {
       });
   }, [events]);
 
-  // Danh sách sự kiện hiển thị trên trang chủ: Ưu tiên sự kiện sắp diễn ra gần nhất từ API
+  // Danh sách sự kiện hiển thị trên trang chủ: CHỈ hiển thị sự kiện thật từ admin/DB, tuyệt đối không dùng dữ liệu ảo/mặc định
   const displayEventsList = useMemo(() => {
-    if (realUpcomingEvents.length >= 4) {
-      return realUpcomingEvents.slice(0, 4);
-    }
-    if (realUpcomingEvents.length > 0) {
-      const remainingSlots = 4 - realUpcomingEvents.length;
-      const filteredDefaults = defaultEvents.filter(
-        d => !realUpcomingEvents.some(r => r.title === d.title)
-      );
-      return [...realUpcomingEvents, ...filteredDefaults.slice(0, remainingSlots)];
-    }
-    return defaultEvents;
-  }, [realUpcomingEvents, defaultEvents]);
+    return realUpcomingEvents.slice(0, 4);
+  }, [realUpcomingEvents]);
 
   const featuredEvent = displayEventsList[0];
   const subEvents = displayEventsList.slice(1, 4);
@@ -1308,7 +1240,7 @@ export const Home = () => {
           </div>
 
           {/* Spotlight Featured Event Card (Hero Card - Matching Image 2) */}
-          {featuredEvent && (
+          {featuredEvent ? (
             <div
               style={{
                 backgroundColor: '#0c2340',
@@ -1547,10 +1479,16 @@ export const Home = () => {
                 />
               </div>
             </div>
+          ) : (
+            <div style={{ textAlign: 'center', padding: '3.5rem 1.5rem', background: '#ffffff', borderRadius: '16px', border: '1px dashed #cbd5e1', marginBottom: '2rem' }}>
+              <i className="ti ti-calendar-event" style={{ fontSize: '38px', color: '#94a3b8', display: 'block', marginBottom: '10px' }}></i>
+              <p style={{ color: '#64748b', fontSize: '15px', fontWeight: '500', margin: 0 }}>Hiện chưa có sự kiện nào sắp diễn ra.</p>
+            </div>
           )}
 
           {/* Sub-grid of other upcoming events (Matching image 2 bottom row) */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
+          {subEvents.length > 0 && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
             {subEvents.map((e) => {
               const isPaid = e.is_paid === 1;
               const priceText = isPaid ? `${new Intl.NumberFormat('vi-VN').format(e.price)} đ` : 'Miễn phí';
@@ -1683,6 +1621,7 @@ export const Home = () => {
               );
             })}
           </div>
+        )}
         </section>
 
         {/* BLOCK 11: Community Network (2-Row Title) */}
