@@ -2,6 +2,8 @@ import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { LanguageProvider } from './contexts/LanguageContext';
+import { PWAProvider } from './contexts/PWAContext';
+import PWABanner from './components/PWABanner';
 import ProtectedRoute from './components/ProtectedRoute';
 
 // Pages
@@ -44,9 +46,11 @@ function App() {
   return (
     <LanguageProvider>
       <AuthProvider>
-        <Router>
-          <ScrollToTop />
-          <Routes>
+        <PWAProvider>
+          <Router>
+            <ScrollToTop />
+            <PWABanner />
+            <Routes>
             {/* Tuyến đường công khai */}
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
@@ -186,7 +190,8 @@ function App() {
             />
 
           </Routes>
-        </Router>
+          </Router>
+        </PWAProvider>
       </AuthProvider>
     </LanguageProvider>
   );

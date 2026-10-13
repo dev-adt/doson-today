@@ -48,3 +48,17 @@ export const formatVNDate = (val) => {
     year: 'numeric'
   });
 };
+
+export const formatVNDateWithWeekday = (val) => {
+  const d = parseVNTime(val);
+  if (!d || isNaN(d.getTime())) return '';
+  const weekdays = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+  const dayName = weekdays[d.getDay()];
+  const hours = String(d.getHours()).padStart(2, '0');
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  return `${hours}:${minutes} ${dayName}, ${day}/${month}/${year}`;
+};
+

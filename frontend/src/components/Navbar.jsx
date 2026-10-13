@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../contexts/LanguageContext';
+import { usePWA } from '../contexts/PWAContext';
 
 import { CATEGORIES_DATA, getCategoryLabel } from '../constants/categories';
 
 export const Navbar = () => {
   const { role, user, logout } = useAuth();
   const { currentLang, changeLang, t, getLangDetails, LANGS } = useTranslation();
+  const { installPWA, isInstalled } = usePWA();
   const [langOpen, setLangOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [expandedMobileCat, setExpandedMobileCat] = useState(null);
@@ -197,6 +199,31 @@ export const Navbar = () => {
                 </div>
               )}
             </div>
+
+            {/* PWA Install Button */}
+            {!isInstalled && (
+              <button
+                onClick={installPWA}
+                style={{
+                  background: 'rgba(56, 189, 248, 0.15)',
+                  border: '1px solid rgba(56, 189, 248, 0.4)',
+                  color: '#38bdf8',
+                  fontSize: '11px',
+                  fontWeight: '700',
+                  padding: '2px 8px',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  transition: 'all 0.2s ease'
+                }}
+                title="Cài đặt ứng dụng Đồ Sơn Today"
+              >
+                <i className="ti ti-download" style={{ fontSize: '11px' }}></i>
+                <span>Cài App</span>
+              </button>
+            )}
 
             {/* Auth / User Status */}
             {role === 'guest' ? (
@@ -598,6 +625,36 @@ export const Navbar = () => {
                 ))}
               </div>
             </div>
+
+            {/* Mobile PWA Install Button */}
+            {!isInstalled && (
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  installPWA();
+                }}
+                style={{
+                  width: '100%',
+                  marginTop: '10px',
+                  backgroundColor: '#0284c7',
+                  color: '#ffffff',
+                  border: 'none',
+                  padding: '10px 14px',
+                  borderRadius: '10px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  fontWeight: '700',
+                  fontSize: '13.5px',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 8px rgba(2, 132, 199, 0.3)'
+                }}
+              >
+                <i className="ti ti-download" style={{ fontSize: '16px' }}></i>
+                <span>Cài đặt ứng dụng (PWA)</span>
+              </button>
+            )}
 
             {/* User Account / Auth Actions */}
             <div style={{ marginTop: '8px', paddingTop: '12px', borderTop: '1px solid #e2e8f0' }}>

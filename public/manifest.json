@@ -1,0 +1,25 @@
+{
+  "short_name": "Đồ Sơn Today",
+  "name": "Đồ Sơn Today — Cổng thông tin Doanh nghiệp & Du lịch",
+  "description": "Cổng thông tin Doanh nghiệp, Dịch vụ, Sự kiện và Du lịch Đồ Sơn, Hải Phòng",
+  "icons": [
+    {
+      "src": "/doson_logo.png",
+      "type": "image/png",
+      "sizes": "192x192 512x512",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.png",
+      "type": "image/png",
+      "sizes": "192x192 512x512",
+      "purpose": "any"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#0c2340",
+  "theme_color": "#0284c7",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "categories": ["business", "tourism", "news", "events"]
+}
