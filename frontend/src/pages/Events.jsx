@@ -25,6 +25,7 @@ export const Events = () => {
   const [eventsList, setEventsList] = useState([]);
   const [loadingList, setLoadingList] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState('upcoming'); // 'upcoming' | 'past' | 'all'
 
   // Sự kiện chi tiết hiện tại (khi có routeParamId hoặc chọn từ danh sách)
   const [currentEvent, setCurrentEvent] = useState(null);
@@ -1652,15 +1653,41 @@ export const Events = () => {
   // =========================================================================
   // VIEW DANH SÁCH TẤT CẢ SỰ KIỆN (KHI TRUY CẬP /events HOẶC /su-kien)
   // =========================================================================
-  const filteredList = eventsList.filter(e => {
-    if (!searchQuery) return true;
-    const q = searchQuery.toLowerCase();
-    return (
-      (e.title && e.title.toLowerCase().includes(q)) ||
-      (e.location && e.location.toLowerCase().includes(q)) ||
-      (e.short_desc && e.short_desc.toLowerCase().includes(q))
-    );
-  });
+  const now = Date.now();
+  const isEventPast = (e) => {
+    if (!e) return false;
+    if (e.status === 'completed' || e.status === 'cancelled') return true;
+    const targetDate = e.end_date || e.event_date;
+    if (!targetDate) return false;
+    const t = new Date(targetDate).getTime();
+    if (isNaN(t)) return false;
+    return t < (now - 6 * 60 * 60 * 1000);
+  };
+
+  const filteredList = eventsList
+    .filter(e => {
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        const match = (
+          (e.title && e.title.toLowerCase().includes(q)) ||
+          (e.location && e.location.toLowerCase().includes(q)) ||
+          (e.short_desc && e.short_desc.toLowerCase().includes(q))
+        );
+        if (!match) return false;
+      }
+      const isPast = isEventPast(e);
+      if (activeTab === 'upcoming') return !isPast;
+      if (activeTab === 'past') return isPast;
+      return true;
+    })
+    .sort((a, b) => {
+      const timeA = new Date(a.event_date || a.end_date || 0).getTime();
+      const timeB = new Date(b.event_date || b.end_date || 0).getTime();
+      if (activeTab === 'past') {
+        return timeB - timeA; // Sự kiện vừa qua gần nhất xếp trước
+      }
+      return timeA - timeB; // Sự kiện sắp diễn ra gần nhất xếp trước
+    });
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#F8FAFC', color: '#0F172A', display: 'flex', flexDirection: 'column' }}>
@@ -1677,7 +1704,7 @@ export const Events = () => {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          marginBottom: '2rem',
+          marginBottom: '1.5rem',
           flexWrap: 'wrap',
           gap: '1rem',
           borderBottom: '1px solid #E2E8F0',
@@ -1710,6 +1737,61 @@ export const Events = () => {
               }}
             />
           </div>
+        </div>
+
+        {/* Tab Filters: Sắp diễn ra / Đã kết thúc / Tất cả */}
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '2rem', flexWrap: 'wrap' }}>
+          <button
+            onClick={() => setActiveTab('upcoming')}
+            style={{
+              padding: '8px 18px',
+              borderRadius: '24px',
+              border: activeTab === 'upcoming' ? '1px solid #0284c7' : '1px solid #e2e8f0',
+              backgroundColor: activeTab === 'upcoming' ? '#0284c7' : '#ffffff',
+              color: activeTab === 'upcoming' ? '#ffffff' : '#334155',
+              fontWeight: '700',
+              fontSize: '13px',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              boxShadow: activeTab === 'upcoming' ? '0 2px 8px rgba(2, 132, 199, 0.3)' : 'none'
+            }}
+          >
+            Sắp & Đang diễn ra ({eventsList.filter(e => !isEventPast(e)).length})
+          </button>
+          <button
+            onClick={() => setActiveTab('past')}
+            style={{
+              padding: '8px 18px',
+              borderRadius: '24px',
+              border: activeTab === 'past' ? '1px solid #0284c7' : '1px solid #e2e8f0',
+              backgroundColor: activeTab === 'past' ? '#0284c7' : '#ffffff',
+              color: activeTab === 'past' ? '#ffffff' : '#334155',
+              fontWeight: '700',
+              fontSize: '13px',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              boxShadow: activeTab === 'past' ? '0 2px 8px rgba(2, 132, 199, 0.3)' : 'none'
+            }}
+          >
+            Đã kết thúc ({eventsList.filter(isEventPast).length})
+          </button>
+          <button
+            onClick={() => setActiveTab('all')}
+            style={{
+              padding: '8px 18px',
+              borderRadius: '24px',
+              border: activeTab === 'all' ? '1px solid #0284c7' : '1px solid #e2e8f0',
+              backgroundColor: activeTab === 'all' ? '#0284c7' : '#ffffff',
+              color: activeTab === 'all' ? '#ffffff' : '#334155',
+              fontWeight: '700',
+              fontSize: '13px',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              boxShadow: activeTab === 'all' ? '0 2px 8px rgba(2, 132, 199, 0.3)' : 'none'
+            }}
+          >
+            Tất cả ({eventsList.length})
+          </button>
         </div>
 
         {/* Grid Sự Kiện */}
@@ -1763,21 +1845,38 @@ export const Events = () => {
                       alt={evt.title}
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
-                    {/* Badge Giá */}
-                    <div style={{
-                      position: 'absolute',
-                      top: '12px',
-                      left: '12px',
-                      backgroundColor: isPaid ? '#F59E0B' : '#1E63E9',
-                      color: '#ffffff',
-                      padding: '4px 10px',
-                      borderRadius: '12px',
-                      fontSize: '11px',
-                      fontWeight: '700',
-                      boxShadow: '0 2px 6px rgba(0,0,0,0.2)'
-                    }}>
-                      {isPaid ? `${Number(evt.price).toLocaleString('vi-VN')} đ` : 'Miễn phí'}
-                    </div>
+                    {/* Badge Giá hoặc Trạng thái */}
+                    {isEventPast(evt) ? (
+                      <div style={{
+                        position: 'absolute',
+                        top: '12px',
+                        left: '12px',
+                        backgroundColor: '#64748B',
+                        color: '#ffffff',
+                        padding: '4px 10px',
+                        borderRadius: '12px',
+                        fontSize: '11px',
+                        fontWeight: '800',
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.2)'
+                      }}>
+                        ĐÃ DIỄN RA
+                      </div>
+                    ) : (
+                      <div style={{
+                        position: 'absolute',
+                        top: '12px',
+                        left: '12px',
+                        backgroundColor: isPaid ? '#F59E0B' : '#1E63E9',
+                        color: '#ffffff',
+                        padding: '4px 10px',
+                        borderRadius: '12px',
+                        fontSize: '11px',
+                        fontWeight: '700',
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.2)'
+                      }}>
+                        {isPaid ? `${Number(evt.price).toLocaleString('vi-VN')} đ` : 'Miễn phí'}
+                      </div>
+                    )}
                   </div>
 
                   {/* Body Info */}
@@ -1808,16 +1907,21 @@ export const Events = () => {
                     </div>
 
                     <div style={{ marginTop: '1.25rem', paddingTop: '10px', borderTop: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <span style={{ fontSize: '11.5px', color: '#1E63E9', fontWeight: '600' }}>
-                        Còn: <strong>{remaining}</strong> {capacity > 0 ? 'vé' : ''}
+                      <span style={{ fontSize: '11.5px', color: isEventPast(evt) ? '#64748B' : '#1E63E9', fontWeight: '600' }}>
+                        {isEventPast(evt) ? (
+                          <span>Đã khép lại</span>
+                        ) : (
+                          <>Còn: <strong>{remaining}</strong> {capacity > 0 ? 'vé' : ''}</>
+                        )}
                       </span>
 
                       <Link
                         to={`/events/${evt.slug || evt.id}`}
                         style={{
                           padding: '6px 14px',
-                          backgroundColor: '#1E63E9',
-                          color: '#ffffff',
+                          backgroundColor: isEventPast(evt) ? '#F1F5F9' : '#1E63E9',
+                          color: isEventPast(evt) ? '#475569' : '#ffffff',
+                          border: isEventPast(evt) ? '1px solid #CBD5E1' : 'none',
                           borderRadius: '6px',
                           textDecoration: 'none',
                           fontSize: '12px',
@@ -1825,7 +1929,7 @@ export const Events = () => {
                           transition: 'background-color 0.15s'
                         }}
                       >
-                        Đăng ký ngay
+                        {isEventPast(evt) ? 'Xem tư liệu >' : 'Đăng ký ngay'}
                       </Link>
                     </div>
                   </div>

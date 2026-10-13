@@ -503,10 +503,10 @@ export const Home = () => {
   // Fallback events with dynamic future dates so the realtime countdown always shows live time
   const defaultEvents = useMemo(() => {
     const now = Date.now();
-    const futureDate1 = new Date(now + (8 * 24 + 22) * 60 * 60 * 1000 + 36 * 60 * 1000).toISOString();
-    const futureDate2 = new Date(now + 17 * 24 * 60 * 60 * 1000).toISOString();
-    const futureDate3 = new Date(now + 32 * 24 * 60 * 60 * 1000).toISOString();
-    const futureDate4 = new Date(now + 45 * 24 * 60 * 60 * 1000).toISOString();
+    const futureDate1 = new Date(now + 18 * 24 * 60 * 60 * 1000).toISOString();
+    const futureDate2 = new Date(now + 25 * 24 * 60 * 60 * 1000).toISOString();
+    const futureDate3 = new Date(now + 35 * 24 * 60 * 60 * 1000).toISOString();
+    const futureDate4 = new Date(now + 48 * 24 * 60 * 60 * 1000).toISOString();
 
     return [
       {
@@ -564,16 +564,42 @@ export const Home = () => {
     ];
   }, []);
 
-  // Merge real events from API with fallback events so we always have >= 4
+  // Lọc chỉ lấy các sự kiện sắp diễn ra hoặc đang diễn ra, LOẠI BỎ hoàn toàn các sự kiện đã qua khỏi trang chủ
+  const realUpcomingEvents = useMemo(() => {
+    const now = Date.now();
+    return (events || [])
+      .filter(e => {
+        if (!e) return false;
+        if (e.status === 'completed' || e.status === 'cancelled') return false;
+        const targetDate = e.end_date || e.event_date;
+        if (!targetDate) return false;
+        const t = new Date(targetDate).getTime();
+        if (isNaN(t)) return false;
+        // Sự kiện chưa kết thúc (còn thời gian từ hiện tại trở đi)
+        return t >= (now - 6 * 60 * 60 * 1000);
+      })
+      .sort((a, b) => {
+        // Sắp xếp tăng dần theo thời gian: sự kiện sắp diễn ra gần nhất đứng đầu tiên!
+        const timeA = new Date(a.event_date || a.end_date || 0).getTime();
+        const timeB = new Date(b.event_date || b.end_date || 0).getTime();
+        return timeA - timeB;
+      });
+  }, [events]);
+
+  // Danh sách sự kiện hiển thị trên trang chủ: Ưu tiên sự kiện sắp diễn ra gần nhất từ API
   const displayEventsList = useMemo(() => {
-    if (events && events.length > 0) {
-      if (events.length < 4) {
-        return [...events, ...defaultEvents.slice(events.length)];
-      }
-      return events;
+    if (realUpcomingEvents.length >= 4) {
+      return realUpcomingEvents.slice(0, 4);
+    }
+    if (realUpcomingEvents.length > 0) {
+      const remainingSlots = 4 - realUpcomingEvents.length;
+      const filteredDefaults = defaultEvents.filter(
+        d => !realUpcomingEvents.some(r => r.title === d.title)
+      );
+      return [...realUpcomingEvents, ...filteredDefaults.slice(0, remainingSlots)];
     }
     return defaultEvents;
-  }, [events, defaultEvents]);
+  }, [realUpcomingEvents, defaultEvents]);
 
   const featuredEvent = displayEventsList[0];
   const subEvents = displayEventsList.slice(1, 4);

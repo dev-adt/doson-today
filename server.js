@@ -3534,7 +3534,7 @@ Preserve all HTML tags, line breaks, formatting, and markdown if present. Do not
 // Lấy danh sách sự kiện (Công khai & Quản trị)
 app.get('/api/events', async (req, res) => {
   try {
-    const { status, search, limit, all } = req.query;
+    const { status, search, limit, all, upcoming } = req.query;
 
     let isAdmin = false;
     let memberId = null;
@@ -3593,7 +3593,10 @@ app.get('/api/events', async (req, res) => {
       sql += ' AND (e.is_published = 1 OR e.is_published IS NULL)';
     }
 
-    if (status && status !== 'all') {
+    // Lọc sự kiện sắp diễn ra cho trang chủ
+    if (upcoming === 'true') {
+      sql += ` AND (COALESCE(e.end_date, e.event_date) >= NOW()) AND e.status != 'cancelled' AND e.status != 'completed'`;
+    } else if (status && status !== 'all') {
       sql += ' AND e.status = ?';
       params.push(status);
     }
@@ -3604,17 +3607,21 @@ app.get('/api/events', async (req, res) => {
       params.push(searchPattern, searchPattern, searchPattern, searchPattern, searchPattern);
     }
 
-    sql += `
-      ORDER BY 
-        CASE e.status
-          WHEN 'ongoing' THEN 1
-          WHEN 'upcoming' THEN 2
-          WHEN 'completed' THEN 3
-          WHEN 'cancelled' THEN 4
-          ELSE 5
-        END ASC,
-        e.event_date ASC
-    `;
+    if (upcoming === 'true') {
+      sql += ` ORDER BY e.event_date ASC`;
+    } else {
+      sql += `
+        ORDER BY 
+          CASE e.status
+            WHEN 'ongoing' THEN 1
+            WHEN 'upcoming' THEN 2
+            WHEN 'completed' THEN 3
+            WHEN 'cancelled' THEN 4
+            ELSE 5
+          END ASC,
+          e.event_date ASC
+      `;
+    }
 
     if (limit && Number(limit) > 0) {
       sql += ' LIMIT ?';
