@@ -157,6 +157,23 @@ export const Sidebar = () => {
       </NavLink>
 
       <NavLink 
+        to="/admin-checkin" 
+        className={({ isActive }) => `sb-item ${isActive ? 'active' : ''}`}
+        style={{ textDecoration: 'none' }}
+      >
+        <i className="ti ti-qrcode"></i> Soát vé QR
+      </NavLink>
+
+      <NavLink 
+        to="/admin-organizers" 
+        className={({ isActive }) => `sb-item ${isActive ? 'active' : ''}`}
+        style={{ textDecoration: 'none' }}
+      >
+        <i className="ti ti-id-badge-2"></i> Ban tổ chức & Soát vé
+      </NavLink>
+
+
+      <NavLink 
         to="/admin-categories" 
         className={({ isActive }) => `sb-item ${isActive ? 'active' : ''}`}
         style={{ textDecoration: 'none' }}

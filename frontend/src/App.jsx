@@ -24,6 +24,10 @@ import AdminConfig from './pages/AdminConfig';
 import AdminEvents from './pages/AdminEvents';
 import AdminCategories from './pages/AdminCategories';
 import AdminCreators from './pages/AdminCreators';
+import AdminCheckin from './pages/AdminCheckin';
+import AdminOrganizers from './pages/AdminOrganizers';
+import OrganizerDashboard from './pages/OrganizerDashboard';
+
 
 // Tự động cuộn lên đầu trang khi chuyển tuyến đường
 function ScrollToTop() {
@@ -51,9 +55,13 @@ function App() {
             <Route path="/posts" element={<Posts />} />
             <Route path="/posts/:id" element={<PostDetail />} />
             <Route path="/events" element={<Events />} />
+            <Route path="/events/:id" element={<Events />} />
+            <Route path="/su-kien" element={<Events />} />
+            <Route path="/su-kien/:id" element={<Events />} />
             <Route path="/ai-chat" element={<AIChat />} />
             <Route path="/search" element={<Search />} />
             <Route path="/guide" element={<Guide />} />
+
 
             {/* Tuyến đường bảo vệ dành cho Hội viên */}
             <Route 
@@ -71,6 +79,42 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={['creator']}>
                   <CreatorDashboard />
+                </ProtectedRoute>
+              } 
+            />
+
+            {/* Tuyến đường bảo vệ dành cho Ban tổ chức Sự kiện */}
+            <Route 
+              path="/organizer-dashboard" 
+              element={
+                <ProtectedRoute allowedRoles={['organizer']}>
+                  <OrganizerDashboard />
+                </ProtectedRoute>
+              } 
+            />
+
+            {/* Check-in QR Code (Dành cho Admin & Ban tổ chức) */}
+            <Route 
+              path="/admin/checkin" 
+              element={
+                <ProtectedRoute allowedRoles={['admin', 'organizer']}>
+                  <AdminCheckin />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin-checkin" 
+              element={
+                <ProtectedRoute allowedRoles={['admin', 'organizer']}>
+                  <AdminCheckin />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/organizer/checkin" 
+              element={
+                <ProtectedRoute allowedRoles={['admin', 'organizer']}>
+                  <AdminCheckin />
                 </ProtectedRoute>
               } 
             />
@@ -109,6 +153,14 @@ function App() {
               } 
             />
             <Route 
+              path="/admin-organizers" 
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <AdminOrganizers />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
               path="/admin-categories" 
               element={
                 <ProtectedRoute allowedRoles={['admin']}>
@@ -132,6 +184,7 @@ function App() {
                 </ProtectedRoute>
               } 
             />
+
           </Routes>
         </Router>
       </AuthProvider>

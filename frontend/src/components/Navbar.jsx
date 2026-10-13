@@ -309,6 +309,24 @@ export const Navbar = () => {
           ))}
 
           <Link 
+            to="/events" 
+            className="nav-link"
+            style={{
+              fontWeight: '600',
+              color: '#1e293b',
+              fontSize: '13px',
+              textDecoration: 'none',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            <i className="ti ti-calendar-event" style={{ fontSize: '14px', color: '#0284c7' }}></i>
+            {currentLang === 'vi' ? 'Sự kiện' : 'Events'}
+          </Link>
+
+          <Link 
             to="/ai-chat" 
             className="nav-link"
             style={{
@@ -484,6 +502,27 @@ export const Navbar = () => {
                 );
               })}
             </div>
+
+            {/* Events Link */}
+            <Link 
+              to="/events" 
+              onClick={() => setMobileMenuOpen(false)} 
+              style={{ 
+                textDecoration: 'none', 
+                color: '#1e293b', 
+                fontWeight: '600', 
+                fontSize: '13.5px', 
+                padding: '9px 12px', 
+                borderRadius: '8px', 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '8px',
+                backgroundColor: '#f8fafc'
+              }}
+            >
+              <i className="ti ti-calendar-event" style={{ fontSize: '16px', color: '#0284c7' }}></i>
+              <span>{currentLang === 'vi' ? 'Sự kiện' : 'Events'}</span>
+            </Link>
 
             {/* AI Assistant Quick Link */}
             <Link 

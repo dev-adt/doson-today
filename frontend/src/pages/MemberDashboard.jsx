@@ -5,6 +5,7 @@ import Navbar from '../components/Navbar';
 import RichTextEditor from '../components/RichTextEditor';
 import { useTranslation } from '../contexts/LanguageContext';
 import { CATEGORIES_DATA, ALL_CATEGORIES, getSubcategoriesByCategory, getCategoryLabel } from '../constants/categories';
+import { formatVNDateTime } from '../utils/dateUtils';
 
 export const MemberDashboard = () => {
   const { user, token, getAuthHeaders, logout } = useAuth();
@@ -46,6 +47,12 @@ export const MemberDashboard = () => {
   const [updatingPassword, setUpdatingPassword] = useState(false);
   const [passMessage, setPassMessage] = useState({ text: '', type: '' });
 
+  // Event Registrations & Tickets State
+  const [memberEvents, setMemberEvents] = useState([]);
+  const [loadingEvents, setLoadingEvents] = useState(false);
+  const [selectedTicket, setSelectedTicket] = useState(null);
+  const [copiedTicketField, setCopiedTicketField] = useState('');
+
   // Modal State for new Post
   const [modalOpen, setModalOpen] = useState(false);
   const [newPostData, setNewPostData] = useState({
@@ -54,6 +61,7 @@ export const MemberDashboard = () => {
     image_url: '', featured_requested: 0
   });
   const [creatingPost, setCreatingPost] = useState(false);
+  const [imagePreview, setImagePreview] = useState('');
   const [categoriesList, setCategoriesList] = useState(CATEGORIES_DATA);
 
   useEffect(() => {
@@ -114,8 +122,33 @@ export const MemberDashboard = () => {
     }
   };
 
+  const loadMemberEvents = async () => {
+    try {
+      setLoadingEvents(true);
+      const res = await fetch('/api/member/events', {
+        headers: getAuthHeaders()
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          setMemberEvents(json.data);
+        } else {
+          setMemberEvents([]);
+        }
+      } else {
+        setMemberEvents([]);
+      }
+    } catch (e) {
+      console.warn("Lỗi tải lịch sử vé sự kiện:", e);
+      setMemberEvents([]);
+    } finally {
+      setLoadingEvents(false);
+    }
+  };
+
   useEffect(() => {
     loadDashboardData();
+    loadMemberEvents();
   }, [token]);
 
   const handleProfileChange = (e) => {
@@ -244,6 +277,11 @@ export const MemberDashboard = () => {
       alert(t('err_image_size'));
       return;
     }
+
+    try {
+      const localUrl = URL.createObjectURL(file);
+      setImagePreview(localUrl);
+    } catch (_) {}
 
     setUploadingImage(true);
     const reader = new FileReader();
@@ -833,6 +871,115 @@ export const MemberDashboard = () => {
                 </div>
               )}
             </div>
+
+            {/* Thẻ Card: Lịch sử Đăng ký Sự kiện & Vé Điện Tử */}
+            <div className="dash-card" style={{ marginTop: '1.5rem' }}>
+              <div className="card-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <i className="ti ti-ticket" style={{ color: '#0D9488' }}></i>
+                  <span>Lịch sử Đăng ký Sự kiện & Vé của tôi</span>
+                </span>
+                <Link to="/events" className="btn btn-secondary" style={{ fontSize: '11px', padding: '4px 10px', textDecoration: 'none' }}>
+                  <i className="ti ti-calendar-plus"></i> Khám phá sự kiện
+                </Link>
+              </div>
+
+              {loadingEvents ? (
+                <div style={{ padding: '2rem 1rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '12px' }}>
+                  <i className="ti ti-loader animate-spin" style={{ marginRight: '6px' }}></i> Đang tải danh sách vé...
+                </div>
+              ) : memberEvents.length === 0 ? (
+                <div style={{ padding: '2rem 1rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '12px' }}>
+                  <i className="ti ti-ticket-off" style={{ fontSize: '28px', opacity: 0.4, display: 'block', marginBottom: '8px' }}></i>
+                  Bạn chưa đăng ký tham gia sự kiện nào.
+                  <div style={{ marginTop: '6px' }}>
+                    <Link to="/events" style={{ color: '#0D9488', fontWeight: '600', textDecoration: 'none' }}>
+                      Xem lịch sự kiện kết nối doanh nghiệp →
+                    </Link>
+                  </div>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {memberEvents.map(evt => {
+                    const isPaid = evt.payment_status === 'paid';
+                    const isPending = evt.payment_status === 'pending';
+                    const isFree = evt.payment_status === 'free';
+                    const isCheckedIn = evt.checkin_status === 'checked_in';
+
+                    return (
+                      <div
+                        key={evt.id}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: '12px',
+                          padding: '12px',
+                          borderRadius: '8px',
+                          border: '1px solid var(--border)',
+                          backgroundColor: 'var(--bg-card)',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
+                          <div style={{ fontWeight: '700', fontSize: '13.5px', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {evt.event_title}
+                          </div>
+                          <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '3px', display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center' }}>
+                            <span><i className="ti ti-ticket"></i> Mã: <strong style={{ color: 'var(--text-primary)' }}>{evt.ticket_code}</strong></span>
+                            <span>·</span>
+                            <span>SL: <strong>{evt.quantity} vé</strong></span>
+                            <span>·</span>
+                            <span>
+                              {isFree ? 'Miễn phí' : `${Number(evt.total_amount).toLocaleString('vi-VN')} đ`}
+                            </span>
+                            {evt.location && (
+                              <>
+                                <span>·</span>
+                                <span><i className="ti ti-map-pin"></i> {evt.location}</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                          <span
+                            style={{
+                              fontSize: '11px',
+                              fontWeight: '600',
+                              padding: '3px 8px',
+                              borderRadius: '6px',
+                              backgroundColor: isCheckedIn ? '#D1FAE5' : isPaid ? '#DBEAFE' : isPending ? '#FEF3C7' : '#F1F5F9',
+                              color: isCheckedIn ? '#065F46' : isPaid ? '#1E40AF' : isPending ? '#B45309' : '#475569'
+                            }}
+                          >
+                            {isCheckedIn ? '✓ Đã Check-in' : isPaid ? 'Đã thanh toán' : isPending ? 'Chờ duyệt thanh toán' : 'Vé miễn phí'}
+                          </span>
+
+                          <button
+                            type="button"
+                            onClick={() => setSelectedTicket(evt)}
+                            className="btn btn-primary"
+                            style={{
+                              padding: '5px 12px',
+                              fontSize: '11.5px',
+                              fontWeight: '700',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              borderRadius: '6px'
+                            }}
+                          >
+                            <i className={isPending ? 'ti ti-file-info' : 'ti ti-qrcode'}></i>
+                            {isPending ? 'Xem trạng thái' : 'Xem vé'}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
 
         </div>
@@ -907,7 +1054,7 @@ export const MemberDashboard = () => {
 
                   <div className="fg">
                     <label>Từ khoá (phân tách bằng dấu phẩy)</label>
-                    <input type="text" id="tags" value={newPostData.tags} onChange={handleNewPostChange} placeholder="Ví dụ: du lịch Đồ Sơn, khách sạn, đối tác thương mại" />
+                    <input type="text" id="tags" value={newPostData.tags} onChange={handleNewPostChange} placeholder="Ví dụ: du lịch di sản, khách sạn Hội An, ẩm thực Huế" />
                   </div>
                 </div>
 
@@ -984,6 +1131,32 @@ export const MemberDashboard = () => {
                     </label>
                   </div>
                   {uploadingImage && <div style={{ fontSize: '11px', color: 'var(--primary-light)', marginTop: '2px' }}><i className="ti ti-loader animate-spin"></i> {t('status_uploading_image')}</div>}
+                  {(imagePreview || newPostData.image_url) && (
+                    <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <img 
+                        src={imagePreview || newPostData.image_url} 
+                        alt="Preview" 
+                        onError={(e) => {
+                          if (!imagePreview) {
+                            e.target.onerror = null;
+                            e.target.src = 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=800&q=80';
+                          }
+                        }}
+                        style={{ height: '70px', width: '110px', objectFit: 'cover', borderRadius: '6px', border: '1px solid var(--border)' }} 
+                      />
+                      <button 
+                        type="button" 
+                        onClick={() => {
+                          setImagePreview('');
+                          setNewPostData(prev => ({ ...prev, image_url: '' }));
+                        }}
+                        className="btn"
+                        style={{ fontSize: '11px', padding: '4px 8px', color: 'var(--rose)', background: 'rgba(239, 68, 68, 0.1)', border: 'none' }}
+                      >
+                        <i className="ti ti-trash"></i> {t('delete') || 'Xóa ảnh'}
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 {profileData.tier === 'Platinum' && (
@@ -1023,6 +1196,168 @@ export const MemberDashboard = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Chi tiết Vé & QR Check-in */}
+      {selectedTicket && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(8,14,30,0.85)', backdropFilter: 'blur(8px)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.25rem' }}>
+          <div className="glass-card" style={{ width: '100%', maxWidth: '520px', padding: '0', borderColor: 'var(--border-strong)', textAlign: 'left', overflow: 'hidden', borderRadius: '16px', backgroundColor: '#ffffff', color: '#1E293B', boxShadow: '0 20px 40px rgba(0,0,0,0.25)' }}>
+            
+            {/* Header Modal */}
+            <div style={{ backgroundColor: '#064E3B', color: '#ffffff', padding: '1.25rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.6px', color: '#6EE7B7', fontWeight: '700' }}>
+                  Vé Tham Dự Điện Tử
+                </div>
+                <h3 style={{ margin: '2px 0 0 0', fontSize: '16px', fontWeight: '800', color: '#ffffff' }}>
+                  {selectedTicket.event_title}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedTicket(null)}
+                style={{ background: 'none', border: 'none', color: '#ffffff', fontSize: '20px', cursor: 'pointer', padding: '4px' }}
+              >
+                <i className="ti ti-x"></i>
+              </button>
+            </div>
+
+            {/* Body Vé */}
+            <div style={{ padding: '1.5rem', maxHeight: '72vh', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              
+              {/* Box Mã vé & QR HOẶC Thông báo chờ duyệt thanh toán */}
+              {selectedTicket.payment_status === 'pending' && Number(selectedTicket.total_amount) > 0 ? (
+                <div style={{ border: '2px dashed #F59E0B', borderRadius: '12px', padding: '1.25rem', backgroundColor: '#FFFBEB', textAlign: 'center' }}>
+                  <div style={{
+                    width: '48px',
+                    height: '48px',
+                    borderRadius: '50%',
+                    backgroundColor: '#FEF3C7',
+                    color: '#D97706',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto 8px',
+                    fontSize: '24px'
+                  }}>
+                    <i className="ti ti-clock"></i>
+                  </div>
+                  <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#B45309', fontWeight: '800', letterSpacing: '0.6px' }}>
+                    TRẠNG THÁI VÉ
+                  </div>
+                  <div style={{ fontSize: '18px', fontWeight: '900', color: '#92400E', margin: '4px 0 8px' }}>
+                    Đang chờ duyệt thanh toán
+                  </div>
+                  <div style={{ fontSize: '12.5px', color: '#78350F', lineHeight: 1.5, margin: '0 auto', maxWidth: '420px' }}>
+                    Bạn đã đăng ký sự kiện có phí và gửi thông tin thanh toán. Ban tổ chức đang kiểm tra và đối soát chuyển khoản. Vé tham dự chính thức kèm mã QR check-in sẽ tự động hiển thị tại đây ngay khi thanh toán được chuyển sang trạng thái <strong>Đã thanh toán</strong>.
+                  </div>
+
+                  {selectedTicket.payment_proof && (
+                    <div style={{ marginTop: '12px', padding: '8px 12px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #FDE68A', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                      <i className="ti ti-receipt" style={{ color: '#D97706', fontSize: '18px' }}></i>
+                      <span style={{ fontSize: '12px', color: '#451A03', fontWeight: '600' }}>Chứng từ thanh toán:</span>
+                      <a href={selectedTicket.payment_proof} target="_blank" rel="noreferrer" style={{ fontSize: '12px', color: '#2563EB', fontWeight: '700', textDecoration: 'underline' }}>
+                        Xem ảnh bill đã gửi
+                      </a>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div style={{ border: '2px dashed #0D9488', borderRadius: '12px', padding: '1.25rem', backgroundColor: '#F0FDFA', textAlign: 'center' }}>
+                  <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#0F766E', fontWeight: '700', letterSpacing: '0.6px' }}>
+                    MÃ VÉ CHECK-IN CHÍNH THỨC
+                  </div>
+                  <div style={{ fontSize: '22px', fontWeight: '900', color: '#0F172A', letterSpacing: '1px', margin: '4px 0 10px' }}>
+                    {selectedTicket.ticket_code}
+                  </div>
+
+                  {selectedTicket.qr_image ? (
+                    <div style={{ width: '180px', height: '180px', margin: '0 auto', backgroundColor: '#ffffff', padding: '8px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+                      <img
+                        src={selectedTicket.qr_image}
+                        alt="QR Check-in"
+                        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                      />
+                    </div>
+                  ) : (
+                    <div style={{ padding: '2rem', color: '#64748B', fontSize: '12px' }}>
+                      Mã QR sẽ hiển thị sau khi kích hoạt vé.
+                    </div>
+                  )}
+                  <div style={{ fontSize: '11px', color: '#64748B', marginTop: '8px' }}>
+                    Vui lòng xuất trình mã QR này tại cổng sự kiện để check-in.
+                  </div>
+                </div>
+              )}
+
+              {/* Thông tin vé */}
+              <div style={{ fontSize: '12.5px', color: '#334155', backgroundColor: '#F8FAFC', padding: '10px 14px', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                <div><strong>Người đăng ký:</strong> {selectedTicket.full_name}</div>
+                <div><strong>Số điện thoại:</strong> {selectedTicket.phone}</div>
+                {selectedTicket.email && <div><strong>Email:</strong> {selectedTicket.email}</div>}
+                <div><strong>Số lượng:</strong> {selectedTicket.quantity} vé</div>
+                <div><strong>Tổng tiền:</strong> {Number(selectedTicket.total_amount) > 0 ? `${Number(selectedTicket.total_amount).toLocaleString('vi-VN')} VNĐ` : 'Miễn phí'}</div>
+                <div>
+                  <strong>Trạng thái thanh toán:</strong>{' '}
+                  <span style={{ fontWeight: '700', color: selectedTicket.payment_status === 'paid' ? '#059669' : selectedTicket.payment_status === 'pending' ? '#D97706' : '#2563EB' }}>
+                    {selectedTicket.payment_status === 'paid' ? 'Đã thanh toán' : selectedTicket.payment_status === 'pending' ? 'Chờ duyệt thanh toán' : 'Miễn phí'}
+                  </span>
+                </div>
+                <div>
+                  <strong>Trạng thái check-in:</strong>{' '}
+                  <span style={{ fontWeight: '700', color: selectedTicket.checkin_status === 'checked_in' ? '#059669' : '#64748B' }}>
+                    {selectedTicket.checkin_status === 'checked_in'
+                      ? `✓ Đã Check-in (${selectedTicket.checkin_time ? formatVNDateTime(selectedTicket.checkin_time) : 'đã ghi nhận'})`
+                      : 'Chưa check-in'}
+                  </span>
+                </div>
+              </div>
+
+              {/* VietQR nếu đang chờ thanh toán */}
+              {selectedTicket.payment_status === 'pending' && Number(selectedTicket.total_amount) > 0 && selectedTicket.vietqr_url && (
+                <div style={{ border: '1px solid #FCD34D', backgroundColor: '#FFFBEB', borderRadius: '12px', padding: '1rem', textAlign: 'center' }}>
+                  <div style={{ color: '#B45309', fontWeight: '800', fontSize: '13px', marginBottom: '6px' }}>
+                    Quét mã VietQR để thanh toán chuyển khoản
+                  </div>
+                  <img
+                    src={selectedTicket.vietqr_url}
+                    alt="VietQR"
+                    style={{ maxWidth: '220px', width: '100%', borderRadius: '8px', border: '1px solid #FDE68A', margin: '0 auto' }}
+                  />
+                  <div style={{ fontSize: '12px', color: '#451A03', marginTop: '8px' }}>
+                    Cú pháp chuyển khoản: <code style={{ fontWeight: '800', color: '#B45309' }}>{selectedTicket.payment_note}</code>
+                  </div>
+                </div>
+              )}
+
+            </div>
+
+            {/* Footer Modal */}
+            <div style={{ padding: '1rem 1.5rem', borderTop: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', backgroundColor: '#F8FAFC' }}>
+              {selectedTicket.payment_status === 'paid' || Number(selectedTicket.total_amount) === 0 ? (
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid #CBD5E1', backgroundColor: '#ffffff', color: '#334155', fontSize: '12.5px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <i className="ti ti-printer"></i> In vé
+                </button>
+              ) : (
+                <span style={{ fontSize: '12px', color: '#94A3B8', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <i className="ti ti-lock"></i> In vé sau khi duyệt
+                </span>
+              )}
+              <button
+                type="button"
+                onClick={() => setSelectedTicket(null)}
+                style={{ padding: '8px 20px', borderRadius: '8px', backgroundColor: '#064E3B', color: '#ffffff', border: 'none', fontSize: '12.5px', fontWeight: '700', cursor: 'pointer' }}
+              >
+                Đóng
+              </button>
+            </div>
+
           </div>
         </div>
       )}

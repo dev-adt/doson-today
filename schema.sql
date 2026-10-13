@@ -67,14 +67,82 @@ CREATE TABLE IF NOT EXISTS posts (
 CREATE TABLE IF NOT EXISTS events (
   id            INT AUTO_INCREMENT PRIMARY KEY,
   title         VARCHAR(500) NOT NULL,
+  slug          VARCHAR(255) DEFAULT NULL,
+  short_desc    TEXT DEFAULT NULL,
   description   TEXT,
-  event_date    DATE         NOT NULL,
+  content       LONGTEXT DEFAULT NULL,
+  event_date    DATETIME     NOT NULL,
+  end_date      DATETIME     DEFAULT NULL,
   location      VARCHAR(255),
   organizer     VARCHAR(255) COMMENT 'Đơn vị tổ chức',
-  capacity      INT          COMMENT 'Số lượng tham dự tối đa',
+  capacity      INT          DEFAULT 0 COMMENT 'Giới hạn số vé (0 = không giới hạn)',
+  image_url     VARCHAR(500) DEFAULT NULL,
+  is_paid       TINYINT(1)   DEFAULT 0 COMMENT '0: Miễn phí, 1: Có phí',
+  price         DECIMAL(15,2) DEFAULT 0 COMMENT 'Giá vé (VNĐ)',
+  is_published  TINYINT(1)   DEFAULT 1,
+  bank_name     VARCHAR(100) DEFAULT NULL,
+  bank_account_number VARCHAR(100) DEFAULT NULL,
+  bank_account_name   VARCHAR(150) DEFAULT NULL,
   status        ENUM('upcoming','ongoing','completed','cancelled') DEFAULT 'upcoming',
-  created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_status (status),
+  INDEX idx_slug (slug)
 ) ENGINE=InnoDB COMMENT='Sự kiện của hội';
+
+-- ── Bảng danh sách đăng ký vé sự kiện & mã QR ────────────────
+CREATE TABLE IF NOT EXISTS event_registrations (
+  id              INT AUTO_INCREMENT PRIMARY KEY,
+  event_id        INT          NOT NULL,
+  member_id       INT          DEFAULT NULL COMMENT 'Liên kết hội viên nếu có',
+  ticket_code     VARCHAR(50)  NOT NULL UNIQUE COMMENT 'Mã vé định danh DS-TK-XXXXXX',
+  full_name       VARCHAR(150) NOT NULL COMMENT 'Họ tên người tham gia',
+  phone           VARCHAR(30)  NOT NULL COMMENT 'Số điện thoại',
+  email           VARCHAR(255) DEFAULT NULL COMMENT 'Email nhận vé',
+  company         VARCHAR(255) DEFAULT NULL COMMENT 'Đơn vị / Doanh nghiệp',
+  quantity        INT          DEFAULT 1    COMMENT 'Số lượng vé',
+  total_amount    DECIMAL(15,2) DEFAULT 0   COMMENT 'Tổng tiền thanh toán (VNĐ)',
+  payment_status  ENUM('free','pending','paid','cancelled') DEFAULT 'free',
+  payment_note    VARCHAR(255) DEFAULT NULL COMMENT 'Nội dung chuyển khoản',
+  payment_proof   VARCHAR(500) DEFAULT NULL COMMENT 'Ảnh chụp màn hình biên lai chuyển khoản',
+  checkin_status  ENUM('not_checked_in','checked_in') DEFAULT 'not_checked_in',
+  checkin_time    DATETIME     DEFAULT NULL COMMENT 'Thời gian quét mã QR',
+  create_account  TINYINT(1)   DEFAULT 0    COMMENT '1 nếu yêu cầu tạo tài khoản theo dõi vé',
+  notes           TEXT         DEFAULT NULL,
+  created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE,
+  INDEX idx_event (event_id),
+  INDEX idx_ticket (ticket_code),
+  INDEX idx_phone (phone),
+  INDEX idx_reg_member (member_id),
+  INDEX idx_payment_status (payment_status)
+) ENGINE=InnoDB COMMENT='Danh sách đăng ký tham gia sự kiện và vé QR';
+
+-- ── Bảng tài khoản Ban tổ chức & Nhân viên soát vé ─────────────
+CREATE TABLE IF NOT EXISTS event_organizers (
+  id            INT AUTO_INCREMENT PRIMARY KEY,
+  name          VARCHAR(255) NOT NULL COMMENT 'Họ tên / Đơn vị tổ chức',
+  username      VARCHAR(100) NOT NULL UNIQUE,
+  password_hash VARCHAR(255) NOT NULL,
+  phone         VARCHAR(50)  DEFAULT NULL,
+  email         VARCHAR(191) DEFAULT NULL,
+  role          VARCHAR(50)  DEFAULT 'organizer' COMMENT 'organizer hoặc ticket_inspector',
+  status        VARCHAR(50)  DEFAULT 'active',
+  created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB COMMENT='Tài khoản Ban tổ chức Sự kiện & Soát vé';
+
+-- ── Bảng phiên đăng nhập Ban tổ chức Sự kiện ─────────────────
+CREATE TABLE IF NOT EXISTS organizer_sessions (
+  id            INT AUTO_INCREMENT PRIMARY KEY,
+  organizer_id  INT NOT NULL,
+  token         VARCHAR(255) NOT NULL UNIQUE,
+  expires_at    DATETIME NOT NULL,
+  created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (organizer_id) REFERENCES event_organizers(id) ON DELETE CASCADE,
+  INDEX idx_token (token)
+) ENGINE=InnoDB COMMENT='Phiên đăng nhập Ban tổ chức Sự kiện';
+
 
 -- ── Bảng admin ────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS admins (
@@ -165,3 +233,22 @@ INSERT INTO events (title, event_date, location, organizer, status) VALUES
 
 -- Cấu hình AI mặc định
 INSERT INTO ai_config (provider, model, is_active) VALUES ('openrouter', 'google/gemini-3-flash-preview', 1);
+
+-- ==============================================================
+-- SCRIPT NÂNG CẤP DÀNH CHO CSDL ĐÃ TỒN TẠI (SQL MIGRATION)
+-- ==============================================================
+-- 1. Nâng cấp các cột trong bảng events nếu chưa có
+ALTER TABLE events 
+  ADD COLUMN IF NOT EXISTS slug VARCHAR(255) DEFAULT NULL AFTER title,
+  ADD COLUMN IF NOT EXISTS short_desc TEXT DEFAULT NULL AFTER slug,
+  ADD COLUMN IF NOT EXISTS content LONGTEXT DEFAULT NULL AFTER description,
+  ADD COLUMN IF NOT EXISTS end_date DATETIME DEFAULT NULL AFTER event_date,
+  ADD COLUMN IF NOT EXISTS capacity INT DEFAULT 0 COMMENT 'Giới hạn số vé (0 = không giới hạn)' AFTER organizer,
+  ADD COLUMN IF NOT EXISTS image_url VARCHAR(500) DEFAULT NULL AFTER capacity,
+  ADD COLUMN IF NOT EXISTS is_paid TINYINT(1) DEFAULT 0 COMMENT '0: Miễn phí, 1: Có phí' AFTER image_url,
+  ADD COLUMN IF NOT EXISTS price DECIMAL(15,2) DEFAULT 0 COMMENT 'Giá vé (VNĐ)' AFTER is_paid,
+  ADD COLUMN IF NOT EXISTS is_published TINYINT(1) DEFAULT 1 AFTER price,
+  ADD COLUMN IF NOT EXISTS bank_name VARCHAR(100) DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS bank_account_number VARCHAR(100) DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS bank_account_name VARCHAR(150) DEFAULT NULL;
+
