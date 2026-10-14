@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../contexts/LanguageContext';
@@ -14,6 +14,9 @@ export const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [expandedMobileCat, setExpandedMobileCat] = useState(null);
   const [categoriesList, setCategoriesList] = useState(CATEGORIES_DATA);
+  const [isForceCollapsed, setIsForceCollapsed] = useState(false);
+  const navContainerRef = useRef(null);
+  const navLinksRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -68,6 +71,45 @@ export const Navbar = () => {
     fetchCategories();
   }, []);
 
+  // Tự động kiểm tra không gian hiển thị của header khi màn hình thay đổi
+  // Khi header không thu nhỏ được nữa thì tự động chuyển sang menu 3 gạch để không bao giờ bị tràn vỡ giao diện
+  useEffect(() => {
+    const checkOverflow = () => {
+      // 1. Nếu màn hình <= 1200px: luôn bật chế độ menu 3 gạch để đảm bảo an toàn tuyệt đối
+      if (window.innerWidth <= 1200) {
+        setIsForceCollapsed(true);
+        return;
+      }
+
+      // 2. Với màn hình lớn hơn 1200px: kiểm tra thực tế xem danh sách chuyên mục có bị tràn ép không
+      if (navContainerRef.current && navLinksRef.current) {
+        const containerWidth = navContainerRef.current.clientWidth;
+        const logoEl = navContainerRef.current.querySelector('.nav-brand-logo');
+        const rightEl = navContainerRef.current.querySelector('.nav-right-actions');
+        const logoWidth = logoEl ? logoEl.offsetWidth : 160;
+        const rightWidth = rightEl ? rightEl.offsetWidth : 100;
+        const linksScrollWidth = navLinksRef.current.scrollWidth || 0;
+
+        // Khoảng đệm an toàn 40px
+        const availableSpace = containerWidth - logoWidth - rightWidth - 40;
+        if (linksScrollWidth > availableSpace) {
+          setIsForceCollapsed(true);
+        } else {
+          setIsForceCollapsed(false);
+        }
+      } else {
+        setIsForceCollapsed(false);
+      }
+    };
+
+    const timer = setTimeout(checkOverflow, 60);
+    window.addEventListener('resize', checkOverflow);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', checkOverflow);
+    };
+  }, [categoriesList]);
+
   const getInitials = (name) => {
     if (!name) return 'DS';
     return name.trim().split(/\s+/).map(w => w[0]).join('').substring(0, 2).toUpperCase();
@@ -89,21 +131,21 @@ export const Navbar = () => {
         }}
       >
         <div 
-          className="public-container"
+          className="public-container top-info-container"
           style={{
             margin: '0 auto',
-            maxWidth: '1360px',
+            maxWidth: '1440px',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
             gap: '12px',
-            padding: '0 1.5rem',
+            padding: '0 clamp(0.75rem, 1.6vw, 1.75rem)',
             width: '100%',
             boxSizing: 'border-box'
           }}
         >
           {/* Left Announcement Message */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, overflow: 'hidden' }}>
+          <div className="top-info-left" style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, overflow: 'hidden' }}>
             <span 
               style={{
                 backgroundColor: '#0284c7',
@@ -118,7 +160,7 @@ export const Navbar = () => {
             >
               DOSON.TODAY
             </span>
-            <span style={{ color: '#93b4d4', fontWeight: '400', fontSize: '12px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <span style={{ color: '#93b4d4', fontWeight: '400', fontSize: '12px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '380px' }}>
               {t('topbar_msg')}
             </span>
           </div>
@@ -237,9 +279,9 @@ export const Navbar = () => {
                 </Link>
               </div>
             ) : (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11.5px' }}>
-                <span style={{ color: '#93b4d4' }}>
-                  {t('topbar_welcome')}, <strong style={{ color: '#ffffff' }}>{user?.name || 'Thành viên'}</strong>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11.5px', minWidth: 0 }}>
+                <span style={{ color: '#93b4d4', display: 'inline-flex', alignItems: 'center', gap: '4px', minWidth: 0 }}>
+                  {t('topbar_welcome')}, <strong style={{ color: '#ffffff', maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'inline-block', verticalAlign: 'bottom' }} title={user?.name}>{user?.name || 'Thành viên'}</strong>
                 </span>
                 <button
                   onClick={() => logout()}
@@ -262,17 +304,17 @@ export const Navbar = () => {
       </div>
 
       {/* 5. Thanh đầu trang chính (Main Header Nav) */}
-      <nav className="main-nav-bar">
+      <nav ref={navContainerRef} className={`main-nav-bar ${isForceCollapsed ? 'nav-collapsed' : ''}`}>
         {/* Brand Logo & Name */}
         <Link 
           to="/" 
+          className="nav-brand-logo"
           onClick={(e) => {
             if (location.pathname === '/') {
               e.preventDefault();
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }
           }}
-          style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none', flexShrink: 0 }}
         >
           <div 
             style={{
@@ -293,27 +335,19 @@ export const Navbar = () => {
             <div style={{ fontFamily: 'var(--font-title, sans-serif)', fontSize: '18px', fontWeight: '800', color: '#0c2340', lineHeight: '1.1' }}>
               Đồ Sơn
             </div>
-            <div className="nav-logo-sub" style={{ fontSize: '9.5px', color: '#64748b', fontWeight: '500' }}>
+            <div className="nav-logo-sub">
               Nền tảng kết nối & quảng bá
             </div>
           </div>
         </Link>
 
-        {/* Navigation Submenus - 6 Chuyên mục chính & các Lĩnh vực con (Hidden on <= 1024px) */}
-        <div 
-          className="nav-links" 
-          style={{ 
-            alignItems: 'center', 
-            gap: 'clamp(0.4rem, 1.2vw, 0.85rem)', 
-            flexWrap: 'nowrap',
-            whiteSpace: 'nowrap'
-          }}
-        >
+        {/* Navigation Submenus - 6 Chuyên mục chính & các Lĩnh vực con (Tự động co nhỏ & chuyển sang 3 gạch khi không đủ chỗ) */}
+        <div ref={navLinksRef} className="nav-links">
           {categoriesList.map((cat) => (
-            <div key={cat.id || cat.name} className="nav-link nav-dropdown" style={{ position: 'relative', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+            <div key={cat.id || cat.name} className="nav-link nav-dropdown" style={{ position: 'relative', cursor: 'pointer' }}>
               <Link
                 to={`/posts?category=${encodeURIComponent(cat.name)}`}
-                style={{ fontWeight: '600', color: '#1e293b', fontSize: '13px', whiteSpace: 'nowrap', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '2px' }}
+                style={{ fontWeight: '600', color: '#1e293b', fontSize: 'inherit', whiteSpace: 'nowrap', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '2px' }}
               >
                 {getCategoryLabel(cat, currentLang)} <i className="ti ti-chevron-down" style={{ fontSize: '10px' }}></i>
               </Link>
@@ -338,19 +372,9 @@ export const Navbar = () => {
           <Link 
             to="/events" 
             className="nav-link"
-            style={{
-              fontWeight: '600',
-              color: '#1e293b',
-              fontSize: '13px',
-              textDecoration: 'none',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '4px',
-              whiteSpace: 'nowrap'
-            }}
           >
-            <i className="ti ti-calendar-event" style={{ fontSize: '14px', color: '#0284c7' }}></i>
-            {currentLang === 'vi' ? 'Sự kiện' : 'Events'}
+            <i className="ti ti-calendar-event" style={{ fontSize: '13px', color: '#0284c7' }}></i>
+            <span>{currentLang === 'vi' ? 'Sự kiện' : 'Events'}</span>
           </Link>
 
           <Link 
@@ -359,25 +383,25 @@ export const Navbar = () => {
             style={{
               fontWeight: '700',
               color: '#0284c7',
-              fontSize: '12.5px',
+              fontSize: '12px',
               textDecoration: 'none',
               backgroundColor: '#e0f2fe',
-              padding: '3px 10px',
+              padding: '3px 9px',
               borderRadius: '20px',
-              display: 'flex',
+              display: 'inline-flex',
               alignItems: 'center',
               gap: '4px',
               whiteSpace: 'nowrap',
               flexShrink: 0
             }}
           >
-            <i className="ti ti-sparkles" style={{ fontSize: '13px' }}></i>
-            {t('nav_ai')}
+            <i className="ti ti-sparkles" style={{ fontSize: '12px' }}></i>
+            <span>{t('nav_ai')}</span>
           </Link>
         </div>
 
         {/* Right side Actions: Search & Profile Avatar & Mobile Toggle */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+        <div className="nav-right-actions">
           {/* Search Button Icon */}
           <Link 
             to="/search" 
