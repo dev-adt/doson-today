@@ -6,22 +6,17 @@
 html {
   scroll-behavior: smooth;
   width: 100%;
-  max-width: 100vw;
-  overflow-x: hidden;
 }
 
 body {
   width: 100%;
-  max-width: 100vw;
   min-height: 100vh;
-  overflow-x: hidden;
   position: relative;
 }
 
 #root, .public-body {
   width: 100%;
-  max-width: 100vw;
-  overflow-x: hidden;
+  min-height: 100vh;
 }
 
 img, svg, video {
@@ -1118,13 +1113,13 @@ body.public-body {
 
 /* HEADER & NAVIGATION SYSTEM */
 .header-wrapper {
-  position: sticky;
-  top: 0;
-  z-index: 1000;
+  position: -webkit-sticky !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 1000 !important;
   background-color: #ffffff;
   box-shadow: 0 2px 12px rgba(12, 35, 64, 0.08);
   width: 100%;
-  max-width: 100vw;
   box-sizing: border-box;
 }
 
