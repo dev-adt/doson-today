@@ -3039,6 +3039,41 @@ select option {
   white-space: nowrap;
 }
 
+.org-logout-btn {
+  background: none;
+  border: 1px solid #CBD5E1;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  color: #EF4444;
+  cursor: pointer;
+  font-weight: 600;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.15s ease;
+}
+
+.org-logout-btn:hover {
+  background-color: #FEF2F2;
+  border-color: #FCA5A5;
+}
+
+.btn-label-mobile {
+  display: none;
+}
+.btn-label-desktop {
+  display: inline;
+}
+
+.org-role-badge-short {
+  display: none;
+}
+.org-role-badge-full {
+  display: inline;
+}
+
 .org-stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -3078,46 +3113,58 @@ select option {
 /* Mobile Responsive (< 768px) */
 @media (max-width: 768px) {
   .org-dash-header {
-    padding: 0.65rem 0.85rem;
+    padding: 0.6rem 0.75rem;
   }
   .org-dash-header-inner {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-  }
-  .org-dash-header-row1 {
-    display: flex;
+    flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    width: 100%;
-    gap: 8px;
-  }
-  .org-dash-header-row2 {
-    display: flex;
-    align-items: center;
     gap: 8px;
     width: 100%;
-    overflow-x: auto;
-    padding-bottom: 2px;
-  }
-  .org-dash-header-row2::-webkit-scrollbar {
-    display: none;
   }
   .org-dash-left {
-    gap: 8px;
+    gap: 6px;
+    min-width: 0;
+  }
+  .org-dash-right {
+    gap: 6px;
+  }
+  .btn-label-desktop {
+    display: none !important;
+  }
+  .btn-label-mobile {
+    display: inline !important;
+  }
+  .org-role-badge-full {
+    display: none !important;
+  }
+  .org-role-badge-short {
+    display: inline !important;
+  }
+  .org-header-divider {
+    display: none !important;
+  }
+  .org-user-name {
+    display: none !important;
   }
   .org-role-badge {
     font-size: 10px;
-    padding: 2px 8px;
+    padding: 2px 7px;
   }
   .org-checkin-btn {
-    padding: 7px 12px;
+    padding: 6px 10px;
     font-size: 12px;
+    gap: 4px;
     flex-shrink: 0;
   }
   .org-guide-btn {
-    padding: 7px 10px;
-    font-size: 12px;
+    padding: 6px 8px;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  .org-logout-btn {
+    padding: 6px 8px;
+    font-size: 13px;
     flex-shrink: 0;
   }
   .org-main-content {

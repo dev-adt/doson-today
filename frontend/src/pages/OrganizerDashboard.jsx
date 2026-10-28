@@ -256,115 +256,79 @@ export const OrganizerDashboard = () => {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#F8FAFC', color: '#0F172A', display: 'flex', flexDirection: 'column', fontFamily: 'Inter, system-ui, sans-serif', width: '100%', overflowX: 'hidden' }}>
       
-      {/* TOPBAR CHO BAN TỔ CHỨC & SOÁT VÉ */}
+      {/* TOPBAR CHO BAN TỔ CHỨC & SOÁT VÉ (CHỈ 1 DÒNG DUY NHẤT, GỌN GÀNG, KHÔNG TRÙNG NÚT) */}
       <header className="org-dash-header">
         <div className="org-dash-header-inner">
           
-          {/* Header Row 1: Logo & Brand + Account Profile / Logout */}
-          <div className="org-dash-header-row1">
-            <div className="org-dash-left">
-              <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <div style={{
-                  width: '34px',
-                  height: '34px',
-                  borderRadius: '10px',
-                  background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                  boxShadow: '0 2px 8px rgba(2, 132, 199, 0.25)'
-                }}>
-                  <img src="/doson_logo.png" alt="doson.today" style={{ width: '22px', height: '22px', objectFit: 'contain' }} />
-                </div>
-                <div>
-                  <div style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.01em' }}>
-                    Đồ Sơn<span style={{ color: '#0284c7' }}>.today</span>
-                  </div>
-                </div>
-              </Link>
-
-              <span className="org-role-badge desktop-only" style={{
-                backgroundColor: isTicketInspector ? '#E0E7FF' : '#FEF3C7',
-                color: isTicketInspector ? '#3730A3' : '#92400E'
+          {/* Logo & Brand + Role Badge (Chỉ 1 badge duy nhất) */}
+          <div className="org-dash-left">
+            <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '8px',
+                background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+                boxShadow: '0 2px 6px rgba(2, 132, 199, 0.25)'
               }}>
-                {isTicketInspector ? 'NHÂN VIÊN SOÁT VÉ' : 'BAN TỔ CHỨC SỰ KIỆN'}
-              </span>
-            </div>
-
-            <div className="org-dash-right">
-              {/* Desktop quick action buttons */}
-              <div className="desktop-only" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Link
-                  to="/organizer/checkin"
-                  className="org-checkin-btn"
-                >
-                  <i className="ti ti-camera" style={{ fontSize: '15px' }}></i>
-                  Quét QR Check-in
-                </Link>
-
-                <Link
-                  to="/guide?role=creator"
-                  target="_blank"
-                  className="org-guide-btn"
-                >
-                  <i className="ti ti-help-circle" style={{ fontSize: '15px' }}></i>
-                  Hướng dẫn
-                </Link>
-
-                <div style={{ height: '20px', width: '1px', backgroundColor: '#E2E8F0', margin: '0 4px' }}></div>
+                <img src="/doson_logo.png" alt="doson.today" style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
               </div>
-
-              <div style={{ fontSize: '13px', fontWeight: '600', color: '#334155', maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {user?.name || user?.username || 'Ban tổ chức'}
+              <div style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.01em', whiteSpace: 'nowrap' }}>
+                Đồ Sơn<span style={{ color: '#0284c7' }}>.today</span>
               </div>
+            </Link>
 
-              <button
-                onClick={() => {
-                  if (window.confirm('Bạn có muốn đăng xuất không?')) logout();
-                }}
-                style={{
-                  background: 'none',
-                  border: '1px solid #CBD5E1',
-                  padding: '5px 10px',
-                  borderRadius: '6px',
-                  fontSize: '12px',
-                  color: '#EF4444',
-                  cursor: 'pointer',
-                  fontWeight: '600',
-                  whiteSpace: 'nowrap'
-                }}
-              >
-                Đăng xuất
-              </button>
-            </div>
-          </div>
-
-          {/* Header Row 2: Mobile Action Bar */}
-          <div className="org-dash-header-row2 mobile-only">
             <span className="org-role-badge" style={{
               backgroundColor: isTicketInspector ? '#E0E7FF' : '#FEF3C7',
               color: isTicketInspector ? '#3730A3' : '#92400E'
             }}>
-              {isTicketInspector ? 'SOÁT VÉ' : 'BAN TỔ CHỨC'}
+              <span className="org-role-badge-full">{isTicketInspector ? 'NHÂN VIÊN SOÁT VÉ' : 'BAN TỔ CHỨC'}</span>
+              <span className="org-role-badge-short">{isTicketInspector ? 'SOÁT VÉ' : 'BTC'}</span>
             </span>
+          </div>
 
+          {/* Quick Action Buttons & Profile (Chỉ 1 nút Quét QR & 1 nút Hướng dẫn) */}
+          <div className="org-dash-right">
             <Link
               to="/organizer/checkin"
               className="org-checkin-btn"
-              style={{ flex: 1, justifyContent: 'center' }}
+              title="Quét QR Check-in"
             >
               <i className="ti ti-camera" style={{ fontSize: '15px' }}></i>
-              Quét QR Check-in
+              <span className="btn-label-desktop">Quét QR Check-in</span>
+              <span className="btn-label-mobile">Quét QR</span>
             </Link>
 
             <Link
               to="/guide?role=creator"
               target="_blank"
               className="org-guide-btn"
+              title="Hướng dẫn sử dụng"
             >
-              <i className="ti ti-help-circle"></i>
+              <i className="ti ti-help-circle" style={{ fontSize: '15px' }}></i>
+              <span className="btn-label-desktop">Hướng dẫn</span>
             </Link>
+
+            <div className="org-header-divider" style={{ height: '20px', width: '1px', backgroundColor: '#E2E8F0', margin: '0 2px' }}></div>
+
+            <div className="org-user-name" style={{ fontSize: '13px', fontWeight: '600', color: '#334155', maxWidth: '130px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={user?.name || user?.username || 'Ban tổ chức'}>
+              {user?.name || user?.username || 'Ban tổ chức'}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                if (window.confirm('Bạn có muốn đăng xuất không?')) logout();
+              }}
+              className="org-logout-btn"
+              title="Đăng xuất"
+            >
+              <i className="ti ti-logout" style={{ fontSize: '14px' }}></i>
+              <span className="btn-label-desktop">Đăng xuất</span>
+            </button>
           </div>
 
         </div>
