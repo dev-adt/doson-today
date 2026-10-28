@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
 import RichTextEditor from '../components/RichTextEditor';
 import { useTranslation } from '../contexts/LanguageContext';
 import { CATEGORIES_DATA, ALL_CATEGORIES, getSubcategoriesByCategory, getCategoryLabel } from '../constants/categories';
@@ -63,6 +64,12 @@ export const MemberDashboard = () => {
   const [creatingPost, setCreatingPost] = useState(false);
   const [imagePreview, setImagePreview] = useState('');
   const [categoriesList, setCategoriesList] = useState(CATEGORIES_DATA);
+
+  useEffect(() => {
+    if (modalOpen) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [modalOpen]);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -445,10 +452,11 @@ export const MemberDashboard = () => {
   const userTier = profileData.tier || user?.tier || 'Silver';
 
   return (
-    <div className="public-body">
+    <div className="public-body" style={modalOpen ? { backgroundColor: '#F8FAFC' } : undefined}>
       <Navbar />
 
-      <div className="dashboard-wrap">
+      {!modalOpen && (
+        <div className="dashboard-wrap">
         
         {/* Top Header Banner */}
         <div style={{ background: '#0C2340', borderBottom: '1px solid rgba(2,132,199,0.2)', padding: '2rem 0' }}>
@@ -984,28 +992,91 @@ export const MemberDashboard = () => {
 
         </div>
       </div>
+      )}
 
-      {/* Modal đăng cơ hội giao thương mới */}
+      {/* Giao diện Đăng / Sửa bài dạng Trang mới (Full Page View) */}
       {modalOpen && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(8,14,30,0.85)', backdropFilter: 'blur(8px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem' }}>
-          <div className="glass-card" style={{ width: '100%', maxWidth: '600px', padding: '2rem', borderColor: 'var(--border-strong)', textAlign: 'left' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '12px' }}>
-              <h3 style={{ fontFamily: 'var(--font-title)', fontSize: '16px', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
-                <i className="ti ti-plus" style={{ color: 'var(--neon-cyan)' }}></i> {editingPostId ? t('modal_edit_post_title') : t('modal_create_post_title')}
-              </h3>
-              <button onClick={() => setModalOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '18px', cursor: 'pointer' }}><i className="ti ti-x"></i></button>
+        <div className="post-editor-page-wrapper">
+          <div className="post-editor-page-inner">
+            
+            {/* Nút quay lại Dashboard */}
+            <button 
+              type="button" 
+              onClick={() => setModalOpen(false)} 
+              className="post-editor-back-btn"
+            >
+              <i className="ti ti-arrow-left"></i> Quay lại Dashboard
+            </button>
+
+            {/* Tiêu đề & Cụm nút hành động trên */}
+            <div className="post-editor-header">
+              <div>
+                <h1 className="post-editor-title">
+                  <span>✍️</span> {editingPostId ? (t('modal_edit_post_title') || 'Chỉnh Sửa Bài Đăng') : 'Đăng Tin Cơ Hội Giao Thương Mới'}
+                </h1>
+                <p className="post-editor-subtitle">
+                  Soạn thảo thông tin hợp tác, tìm kiếm đối tác và giới thiệu sản phẩm nông sản & đặc sản Đồ Sơn trên không gian rộng rãi, trực quan.
+                </p>
+              </div>
+
+              <div className="post-editor-actions-group">
+                <button 
+                  type="button" 
+                  onClick={() => setModalOpen(false)} 
+                  className="btn-editor-cancel"
+                >
+                  {t('btn_cancel')}
+                </button>
+                <button 
+                  type="button" 
+                  onClick={() => handleSubmitAction(true)} 
+                  disabled={creatingPost || uploadingImage} 
+                  className="btn-editor-draft"
+                >
+                  {t('btn_save_draft')}
+                </button>
+                <button 
+                  type="button" 
+                  onClick={() => handleSubmitAction(false)} 
+                  disabled={creatingPost || uploadingImage} 
+                  className="btn-editor-publish"
+                >
+                  {creatingPost ? (
+                    <><i className="ti ti-loader animate-spin"></i> {t('btn_sending')}</>
+                  ) : editingPostId ? (
+                    <><i className="ti ti-device-floppy"></i> {t('btn_update_publish')}</>
+                  ) : (
+                    <>+ {t('btn_publish')}</>
+                  )}
+                </button>
+              </div>
             </div>
 
-            <form onSubmit={(e) => e.preventDefault()}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '60vh', overflowY: 'auto', paddingRight: '6px' }}>
-                <div className="fg">
-                  <label>{t('modal_post_title_label')} <span style={{ color: 'var(--rose)' }}>*</span></label>
-                  <input type="text" id="title" value={newPostData.title} onChange={handleNewPostChange} placeholder={t('modal_post_title_placeholder')} required />
+            {/* Khung Form Soạn Thảo Chính */}
+            <div className="post-editor-card">
+              <form onSubmit={(e) => e.preventDefault()}>
+                
+                {/* 1. Tiêu đề bài đăng */}
+                <div className="pe-field">
+                  <label className="pe-label" htmlFor="title">
+                    {t('modal_post_title_label')} <span className="pe-req">*</span>
+                  </label>
+                  <input 
+                    type="text" 
+                    id="title" 
+                    value={newPostData.title} 
+                    onChange={handleNewPostChange} 
+                    placeholder="Ví dụ: Cần tìm nhà cung cấp hạt điều xuất khẩu..." 
+                    required 
+                  />
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                  <div className="fg">
-                    <label>Chuyên mục <span style={{ color: 'var(--rose)' }}>*</span></label>
+                {/* 2. Chuyên mục & Lĩnh vực */}
+                <div className="pe-grid-2 pe-field">
+                  <div>
+                    <label className="pe-label" htmlFor="category">
+                      Chuyên mục <span className="pe-req">*</span>
+                    </label>
                     <select 
                       id="category" 
                       value={newPostData.category} 
@@ -1022,8 +1093,10 @@ export const MemberDashboard = () => {
                     </select>
                   </div>
 
-                  <div className="fg">
-                    <label>Lĩnh vực <span style={{ color: 'var(--rose)' }}>*</span></label>
+                  <div>
+                    <label className="pe-label" htmlFor="sub_category">
+                      Lĩnh vực <span className="pe-req">*</span>
+                    </label>
                     <select 
                       id="sub_category" 
                       value={newPostData.sub_category} 
@@ -1039,9 +1112,12 @@ export const MemberDashboard = () => {
                   </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                  <div className="fg">
-                    <label>{t('modal_post_type_label')}</label>
+                {/* 3. Loại tin bài & Từ khoá */}
+                <div className="pe-grid-2 pe-field">
+                  <div>
+                    <label className="pe-label" htmlFor="type">
+                      {t('modal_post_type_label')}
+                    </label>
                     <select id="type" value={newPostData.type || 'Tin chung'} onChange={handleNewPostChange}>
                       <option value="Tin chung">{t('type_general_news')} (Mặc định)</option>
                       <option value="Tìm kiếm đối tác">{t('type_find_partner')}</option>
@@ -1052,16 +1128,27 @@ export const MemberDashboard = () => {
                     </select>
                   </div>
 
-                  <div className="fg">
-                    <label>Từ khoá (phân tách bằng dấu phẩy)</label>
-                    <input type="text" id="tags" value={newPostData.tags} onChange={handleNewPostChange} placeholder="Ví dụ: du lịch di sản, khách sạn Hội An, ẩm thực Huế" />
+                  <div>
+                    <label className="pe-label" htmlFor="tags">
+                      Từ khoá (phân tách bằng dấu phẩy)
+                    </label>
+                    <input 
+                      type="text" 
+                      id="tags" 
+                      value={newPostData.tags} 
+                      onChange={handleNewPostChange} 
+                      placeholder="Ví dụ: nhãn lồng Phố Hiến, KCN Thăng Long, OCOP" 
+                    />
                   </div>
                 </div>
 
-                <div className="fg">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                    <label style={{ margin: 0 }}>Tóm tắt bài đăng (Meta Description — Tối đa 160 ký tự)</label>
-                    <span style={{ fontSize: '11px', color: (newPostData.summary || '').length >= 160 ? '#ef4444' : 'var(--text-muted)', fontWeight: 600 }}>
+                {/* 4. Tóm tắt bài đăng Meta Description (160 ký tự) */}
+                <div className="pe-field">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                    <label className="pe-label" htmlFor="summary" style={{ margin: 0 }}>
+                      Tóm tắt bài đăng (Meta Description — Tối đa 160 ký tự)
+                    </label>
+                    <span style={{ fontSize: '12px', color: (newPostData.summary || '').length >= 160 ? '#EF4444' : '#64748B', fontWeight: 600 }}>
                       {(newPostData.summary || '').length}/160 ký tự
                     </span>
                   </div>
@@ -1075,50 +1162,78 @@ export const MemberDashboard = () => {
                   />
                 </div>
 
-                <div className="fg">
-                  <label>{t('modal_post_body_label')} <span style={{ color: 'var(--rose)' }}>*</span></label>
-                  <RichTextEditor 
-                    value={newPostData.body} 
-                    onChange={(val) => setNewPostData(prev => ({ ...prev, body: val }))} 
-                    placeholder={t('modal_post_body_label')} 
-                  />
+                {/* 5. Nội dung chi tiết RichTextEditor */}
+                <div className="pe-field">
+                  <label className="pe-label">
+                    {t('modal_post_body_label')} <span className="pe-req">*</span>
+                  </label>
+                  <div style={{ border: '1px solid #E2E8F0', borderRadius: '10px', overflow: 'hidden' }}>
+                    <RichTextEditor 
+                      value={newPostData.body} 
+                      onChange={(val) => setNewPostData(prev => ({ ...prev, body: val }))} 
+                      placeholder={t('modal_post_body_label')} 
+                    />
+                  </div>
                 </div>
 
-                <div className="fg">
-                  <label>{t('modal_post_contact_label')} <span style={{ color: 'var(--rose)' }}>*</span></label>
-                  <input type="text" id="contact_info" value={newPostData.contact_info} onChange={handleNewPostChange} placeholder={t('modal_post_contact_placeholder')} required />
+                {/* 6. Thông tin liên hệ trực tiếp & Hạn đăng bài */}
+                <div className="pe-grid-2 pe-field">
+                  <div>
+                    <label className="pe-label" htmlFor="contact_info">
+                      {t('modal_post_contact_label')} <span className="pe-req">*</span>
+                    </label>
+                    <input 
+                      type="text" 
+                      id="contact_info" 
+                      value={newPostData.contact_info} 
+                      onChange={handleNewPostChange} 
+                      placeholder="Ví dụ: email@vinatech.vn | 0901 111 222 (Mr. Đức)" 
+                      required 
+                    />
+                  </div>
+
+                  <div>
+                    <label className="pe-label" htmlFor="deadline">
+                      Hạn đăng bài (Tự động ẩn khi đến hạn, để trống nếu hiển thị vĩnh viễn)
+                    </label>
+                    <input 
+                      type="date" 
+                      id="deadline" 
+                      value={newPostData.deadline} 
+                      onChange={handleNewPostChange} 
+                    />
+                  </div>
                 </div>
 
-                <div className="fg">
-                  <label>Hạn đăng bài (Tự động ẩn khi đến ngày cài đặt, để trống nếu hiển thị vĩnh viễn)</label>
-                  <input type="date" id="deadline" value={newPostData.deadline} onChange={handleNewPostChange} />
-                </div>
-
-                <div className="fg">
-                  <label>{t('modal_post_image_label')}</label>
+                {/* 7. Ảnh minh họa */}
+                <div className="pe-field">
+                  <label className="pe-label">
+                    {t('modal_post_image_label')}
+                  </label>
                   <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                     <input 
                       type="text" 
                       id="image_url" 
                       value={newPostData.image_url} 
                       onChange={handleNewPostChange} 
-                      placeholder={t('modal_post_image_placeholder')} 
+                      placeholder="Dán link ảnh hoặc chọn tệp tải lên..." 
                       style={{ flex: 1 }} 
                     />
                     <label 
-                      className="btn" 
                       style={{ 
-                        fontSize: '11px', 
-                        padding: '9px 12px', 
+                        fontSize: '13px', 
+                        fontWeight: 600,
+                        padding: '10px 18px', 
                         cursor: 'pointer', 
                         margin: 0, 
                         flexShrink: 0,
-                        backgroundColor: 'rgba(255,255,255,0.05)',
-                        border: '1px solid rgba(255,255,255,0.1)',
+                        backgroundColor: '#F1F5F9',
+                        border: '1px solid #CBD5E1',
+                        borderRadius: '8px',
                         display: 'inline-flex',
                         alignItems: 'center',
-                        gap: '4px',
-                        color: '#FFF'
+                        gap: '6px',
+                        color: '#334155'
                       }}
                     >
                       <i className="ti ti-upload"></i> {t('btn_choose_file')}
@@ -1130,9 +1245,9 @@ export const MemberDashboard = () => {
                       />
                     </label>
                   </div>
-                  {uploadingImage && <div style={{ fontSize: '11px', color: 'var(--primary-light)', marginTop: '2px' }}><i className="ti ti-loader animate-spin"></i> {t('status_uploading_image')}</div>}
+                  {uploadingImage && <div style={{ fontSize: '12px', color: '#0284C7', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}><i className="ti ti-loader animate-spin"></i> {t('status_uploading_image')}</div>}
                   {(imagePreview || newPostData.image_url) && (
-                    <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '12px' }}>
                       <img 
                         src={imagePreview || newPostData.image_url} 
                         alt="Preview" 
@@ -1142,7 +1257,7 @@ export const MemberDashboard = () => {
                             e.target.src = 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=800&q=80';
                           }
                         }}
-                        style={{ height: '70px', width: '110px', objectFit: 'cover', borderRadius: '6px', border: '1px solid var(--border)' }} 
+                        style={{ height: '76px', width: '120px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #E2E8F0' }} 
                       />
                       <button 
                         type="button" 
@@ -1150,8 +1265,7 @@ export const MemberDashboard = () => {
                           setImagePreview('');
                           setNewPostData(prev => ({ ...prev, image_url: '' }));
                         }}
-                        className="btn"
-                        style={{ fontSize: '11px', padding: '4px 8px', color: 'var(--rose)', background: 'rgba(239, 68, 68, 0.1)', border: 'none' }}
+                        style={{ fontSize: '12px', fontWeight: 600, padding: '6px 12px', color: '#EF4444', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '6px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                       >
                         <i className="ti ti-trash"></i> {t('delete') || 'Xóa ảnh'}
                       </button>
@@ -1159,46 +1273,62 @@ export const MemberDashboard = () => {
                   )}
                 </div>
 
+                {/* 8. Yêu cầu tin nổi bật (Platinum) */}
                 {profileData.tier === 'Platinum' && (
-                  <div className="fg" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '15px', background: 'rgba(245, 158, 11, 0.05)', padding: '10px 12px', borderRadius: '8px', border: '1px solid rgba(245,158,11,0.15)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '1.25rem', background: '#FFFBEB', padding: '12px 16px', borderRadius: '8px', border: '1px solid #FDE68A' }}>
                     <input 
                       type="checkbox" 
                       id="featured_requested" 
                       checked={newPostData.featured_requested === 1}
                       onChange={(e) => setNewPostData(prev => ({ ...prev, featured_requested: e.target.checked ? 1 : 0 }))} 
-                      style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                      style={{ width: '18px', height: '18px', cursor: 'pointer' }}
                     />
-                    <label htmlFor="featured_requested" style={{ margin: 0, cursor: 'pointer', fontSize: '13px', fontWeight: 650, color: 'var(--amber)' }}>
+                    <label htmlFor="featured_requested" style={{ margin: 0, cursor: 'pointer', fontSize: '13.5px', fontWeight: 650, color: '#B45309', display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <i className="ti ti-star-filled"></i> {t('modal_request_featured_label')}
                     </label>
                   </div>
                 )}
-              </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '1.5rem', borderTop: '1px solid var(--border)', paddingTop: '12px' }}>
-                <button type="button" className="btn" onClick={() => setModalOpen(false)}>{t('btn_cancel')}</button>
-                <button 
-                  type="button" 
-                  onClick={() => handleSubmitAction(true)} 
-                  className="btn" 
-                  style={{ backgroundColor: 'rgba(12,35,64,0.06)', borderColor: 'var(--border-strong)', color: 'var(--text-primary)' }}
-                  disabled={creatingPost || uploadingImage}
-                >
-                  {t('btn_save_draft')}
-                </button>
-                <button 
-                  type="button" 
-                  onClick={() => handleSubmitAction(false)} 
-                  className="btn btn-primary" 
-                  disabled={creatingPost || uploadingImage}
-                >
-                  {creatingPost ? <><i className="ti ti-loader animate-spin"></i> {t('btn_sending')}</> : (editingPostId ? <><i className="ti ti-save"></i> {t('btn_update_publish')}</> : <><i className="ti ti-plus"></i> {t('btn_publish')}</>)}
-                </button>
-              </div>
-            </form>
+                {/* 9. Nút hành động phía dưới */}
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '2rem', borderTop: '1px solid #F1F5F9', paddingTop: '1.5rem' }}>
+                  <button 
+                    type="button" 
+                    onClick={() => setModalOpen(false)} 
+                    className="btn-editor-cancel"
+                  >
+                    {t('btn_cancel')}
+                  </button>
+                  <button 
+                    type="button" 
+                    onClick={() => handleSubmitAction(true)} 
+                    disabled={creatingPost || uploadingImage} 
+                    className="btn-editor-draft"
+                  >
+                    {t('btn_save_draft')}
+                  </button>
+                  <button 
+                    type="button" 
+                    onClick={() => handleSubmitAction(false)} 
+                    disabled={creatingPost || uploadingImage} 
+                    className="btn-editor-publish"
+                  >
+                    {creatingPost ? (
+                      <><i className="ti ti-loader animate-spin"></i> {t('btn_sending')}</>
+                    ) : editingPostId ? (
+                      <><i className="ti ti-device-floppy"></i> {t('btn_update_publish')}</>
+                    ) : (
+                      <>+ {t('btn_publish')}</>
+                    )}
+                  </button>
+                </div>
+
+              </form>
+            </div>
+
           </div>
         </div>
       )}
+
 
       {/* Modal Chi tiết Vé & QR Check-in */}
       {selectedTicket && (
@@ -1361,6 +1491,9 @@ export const MemberDashboard = () => {
           </div>
         </div>
       )}
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };
