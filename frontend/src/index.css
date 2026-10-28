@@ -2957,3 +2957,222 @@ select option {
   }
 }
 
+/* ──────────────────────────────────────────────────────── */
+/* ORGANIZER & TICKET INSPECTOR RESPONSIVE DASHBOARD STYLES */
+/* ──────────────────────────────────────────────────────── */
+.org-dash-header {
+  background-color: #FFFFFF;
+  border-bottom: 1px solid #E2E8F0;
+  padding: 0.85rem 1.5rem;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.org-dash-header-inner {
+  max-width: 1360px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.org-dash-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.org-dash-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.org-role-badge {
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.org-checkin-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background-color: #064E3B;
+  color: #FFFFFF !important;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 2px 4px rgba(6, 78, 59, 0.2);
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.org-checkin-btn:hover {
+  background-color: #047857;
+  color: #FFFFFF !important;
+}
+
+.org-guide-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background-color: #F1F5F9;
+  color: #475569 !important;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  border: 1px solid #CBD5E1;
+  white-space: nowrap;
+}
+
+.org-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.org-filter-bar {
+  background-color: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #E2E8F0;
+  padding: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.org-filter-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.org-search-box {
+  position: relative;
+  width: 280px;
+}
+
+.org-action-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+/* Mobile Responsive (< 768px) */
+@media (max-width: 768px) {
+  .org-dash-header {
+    padding: 0.65rem 0.85rem;
+  }
+  .org-dash-header-inner {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  .org-dash-header-row1 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    gap: 8px;
+  }
+  .org-dash-header-row2 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+  .org-dash-header-row2::-webkit-scrollbar {
+    display: none;
+  }
+  .org-dash-left {
+    gap: 8px;
+  }
+  .org-role-badge {
+    font-size: 10px;
+    padding: 2px 8px;
+  }
+  .org-checkin-btn {
+    padding: 7px 12px;
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+  .org-guide-btn {
+    padding: 7px 10px;
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+  .org-main-content {
+    padding: 1rem 0.85rem 3rem !important;
+  }
+  .org-page-title-row {
+    flex-direction: column;
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+  .org-action-buttons {
+    width: 100%;
+    display: flex;
+    gap: 8px;
+  }
+  .org-action-buttons > * {
+    flex: 1;
+    justify-content: center;
+    text-align: center;
+    font-size: 12.5px !important;
+    padding: 9px 12px !important;
+  }
+  .org-stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.65rem !important;
+    margin-bottom: 1.25rem !important;
+  }
+  .org-stat-card {
+    padding: 0.9rem !important;
+  }
+  .org-stat-card .stat-val-text {
+    font-size: 20px !important;
+  }
+  .org-filter-bar {
+    padding: 0.75rem;
+    gap: 10px;
+  }
+  .org-filter-tabs {
+    width: 100%;
+    overflow-x: auto;
+    white-space: nowrap;
+    padding-bottom: 4px;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+  .org-filter-tabs::-webkit-scrollbar {
+    height: 3px;
+  }
+  .org-filter-tabs button {
+    font-size: 11.5px !important;
+    padding: 5px 10px !important;
+    flex-shrink: 0;
+  }
+  .org-search-box {
+    width: 100% !important;
+  }
+}
+

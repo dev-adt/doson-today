@@ -254,134 +254,127 @@ export const OrganizerDashboard = () => {
   const totalCheckedIn = events.reduce((sum, e) => sum + (Number(e.checked_in_count) || 0), 0);
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#F8FAFC', color: '#0F172A', display: 'flex', flexDirection: 'column', fontFamily: 'Inter, system-ui, sans-serif' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: '#F8FAFC', color: '#0F172A', display: 'flex', flexDirection: 'column', fontFamily: 'Inter, system-ui, sans-serif', width: '100%', overflowX: 'hidden' }}>
       
-      {/* TOPBAR CHO BAN TỔ CHỨC */}
-      <header style={{
-        backgroundColor: '#FFFFFF',
-        borderBottom: '1px solid #E2E8F0',
-        padding: '0.85rem 1.5rem',
-        position: 'sticky',
-        top: 0,
-        zIndex: 50,
-        boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
-      }}>
-        <div style={{ maxWidth: '1360px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      {/* TOPBAR CHO BAN TỔ CHỨC & SOÁT VÉ */}
+      <header className="org-dash-header">
+        <div className="org-dash-header-inner">
           
-          {/* Logo & Role Badge */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div style={{
-                width: '36px',
-                height: '36px',
-                borderRadius: '8px',
-                overflow: 'hidden',
-                backgroundColor: '#2A160D',
-                border: '1px solid rgba(213, 163, 63, 0.4)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0
-              }}>
-                <img src="/logo_icon.svg" alt="doson.today" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.src = '/logo_icon.png'; }} />
-              </div>
-              <div>
-                <div style={{ fontSize: '15px', fontWeight: 800, color: '#2A160D' }}>
-                  Đồ Sơn<span style={{ color: '#D5A33F' }}>.today</span>
+          {/* Header Row 1: Logo & Brand + Account Profile / Logout */}
+          <div className="org-dash-header-row1">
+            <div className="org-dash-left">
+              <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{
+                  width: '34px',
+                  height: '34px',
+                  borderRadius: '10px',
+                  background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                  boxShadow: '0 2px 8px rgba(2, 132, 199, 0.25)'
+                }}>
+                  <img src="/doson_logo.png" alt="doson.today" style={{ width: '22px', height: '22px', objectFit: 'contain' }} />
                 </div>
-              </div>
-            </Link>
+                <div>
+                  <div style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', letterSpacing: '-0.01em' }}>
+                    Đồ Sơn<span style={{ color: '#0284c7' }}>.today</span>
+                  </div>
+                </div>
+              </Link>
 
-            <span style={{
-              backgroundColor: isTicketInspector ? '#E0E7FF' : '#FEF3C7',
-              color: isTicketInspector ? '#3730A3' : '#92400E',
-              padding: '3px 10px',
-              borderRadius: '20px',
-              fontSize: '11px',
-              fontWeight: 700,
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px'
-            }}>
-              {isTicketInspector ? 'NHÂN VIÊN SOÁT VÉ' : 'BAN TỔ CHỨC SỰ KIỆN'}
-            </span>
+              <span className="org-role-badge desktop-only" style={{
+                backgroundColor: isTicketInspector ? '#E0E7FF' : '#FEF3C7',
+                color: isTicketInspector ? '#3730A3' : '#92400E'
+              }}>
+                {isTicketInspector ? 'NHÂN VIÊN SOÁT VÉ' : 'BAN TỔ CHỨC SỰ KIỆN'}
+              </span>
+            </div>
+
+            <div className="org-dash-right">
+              {/* Desktop quick action buttons */}
+              <div className="desktop-only" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Link
+                  to="/organizer/checkin"
+                  className="org-checkin-btn"
+                >
+                  <i className="ti ti-camera" style={{ fontSize: '15px' }}></i>
+                  Quét QR Check-in
+                </Link>
+
+                <Link
+                  to="/guide?role=creator"
+                  target="_blank"
+                  className="org-guide-btn"
+                >
+                  <i className="ti ti-help-circle" style={{ fontSize: '15px' }}></i>
+                  Hướng dẫn
+                </Link>
+
+                <div style={{ height: '20px', width: '1px', backgroundColor: '#E2E8F0', margin: '0 4px' }}></div>
+              </div>
+
+              <div style={{ fontSize: '13px', fontWeight: '600', color: '#334155', maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {user?.name || user?.username || 'Ban tổ chức'}
+              </div>
+
+              <button
+                onClick={() => {
+                  if (window.confirm('Bạn có muốn đăng xuất không?')) logout();
+                }}
+                style={{
+                  background: 'none',
+                  border: '1px solid #CBD5E1',
+                  padding: '5px 10px',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  color: '#EF4444',
+                  cursor: 'pointer',
+                  fontWeight: '600',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                Đăng xuất
+              </button>
+            </div>
           </div>
 
-          {/* Action buttons & Profile */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {/* Header Row 2: Mobile Action Bar */}
+          <div className="org-dash-header-row2 mobile-only">
+            <span className="org-role-badge" style={{
+              backgroundColor: isTicketInspector ? '#E0E7FF' : '#FEF3C7',
+              color: isTicketInspector ? '#3730A3' : '#92400E'
+            }}>
+              {isTicketInspector ? 'SOÁT VÉ' : 'BAN TỔ CHỨC'}
+            </span>
+
             <Link
               to="/organizer/checkin"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '8px 16px',
-                backgroundColor: '#064E3B',
-                color: '#FFFFFF',
-                borderRadius: '8px',
-                fontSize: '13px',
-                fontWeight: '700',
-                textDecoration: 'none',
-                boxShadow: '0 2px 4px rgba(6, 78, 59, 0.2)'
-              }}
+              className="org-checkin-btn"
+              style={{ flex: 1, justifyContent: 'center' }}
             >
-              <i className="ti ti-camera" style={{ fontSize: '16px' }}></i>
+              <i className="ti ti-camera" style={{ fontSize: '15px' }}></i>
               Quét QR Check-in
             </Link>
 
             <Link
               to="/guide?role=creator"
               target="_blank"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '8px 14px',
-                backgroundColor: '#F1F5F9',
-                color: '#475569',
-                borderRadius: '8px',
-                fontSize: '13px',
-                fontWeight: '600',
-                textDecoration: 'none',
-                border: '1px solid #CBD5E1'
-              }}
+              className="org-guide-btn"
             >
-              <i className="ti ti-help-circle" style={{ fontSize: '15px' }}></i>
-              Hướng dẫn
+              <i className="ti ti-help-circle"></i>
             </Link>
-
-            <div style={{ height: '24px', width: '1px', backgroundColor: '#E2E8F0' }}></div>
-
-            <div style={{ fontSize: '13px', fontWeight: '600', color: '#334155' }}>
-              {user?.name || user?.username || 'Ban tổ chức'}
-            </div>
-
-            <button
-              onClick={() => {
-                if (window.confirm('Bạn có muốn đăng xuất không?')) logout();
-              }}
-              style={{
-                background: 'none',
-                border: '1px solid #CBD5E1',
-                padding: '6px 12px',
-                borderRadius: '6px',
-                fontSize: '12px',
-                color: '#EF4444',
-                cursor: 'pointer',
-                fontWeight: '600'
-              }}
-            >
-              Đăng xuất
-            </button>
           </div>
 
         </div>
       </header>
 
       {/* NỘI DUNG CHÍNH */}
-      <main style={{ maxWidth: '1360px', margin: '0 auto', width: '100%', padding: '2rem 1.5rem 4rem', flex: 1 }}>
+      <main className="org-main-content" style={{ maxWidth: '1360px', margin: '0 auto', width: '100%', padding: '2rem 1.5rem 4rem', flex: 1, boxSizing: 'border-box' }}>
         
         {/* Header Section */}
-        <div style={{
+        <div className="org-page-title-row" style={{
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
@@ -390,18 +383,18 @@ export const OrganizerDashboard = () => {
           gap: '1rem'
         }}>
           <div>
-            <h1 style={{ fontSize: '24px', fontWeight: '800', color: '#0F172A', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <h1 style={{ fontSize: '22px', fontWeight: '800', color: '#0F172A', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
               <i className="ti ti-calendar-event" style={{ color: '#0D9488' }}></i>
               {isTicketInspector ? 'Soát vé & Check-in Sự kiện' : 'Quản lý Sự kiện & Check-in'}
             </h1>
-            <p style={{ fontSize: '13px', color: '#64748B', margin: '4px 0 0' }}>
+            <p style={{ fontSize: '13px', color: '#64748B', margin: '4px 0 0', lineHeight: 1.4 }}>
               {isTicketInspector
                 ? 'Theo dõi danh sách sự kiện, danh sách đăng ký vé và thực hiện soát vé / check-in đồng bộ dữ liệu thời gian thực.'
                 : 'Khởi tạo sự kiện, quản lý danh sách đăng ký vé, và thực hiện check-in khách tham dự đồng bộ theo thời gian thực.'}
             </p>
           </div>
 
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div className="org-action-buttons">
             <Link
               to="/organizer/checkin"
               style={{
@@ -415,7 +408,8 @@ export const OrganizerDashboard = () => {
                 color: '#334155',
                 fontSize: '13px',
                 fontWeight: '600',
-                textDecoration: 'none'
+                textDecoration: 'none',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.03)'
               }}
             >
               <i className="ti ti-qrcode" style={{ color: '#0D9488' }}></i>
@@ -448,44 +442,28 @@ export const OrganizerDashboard = () => {
         </div>
 
         {/* THỐNG KÊ NHANH */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-          gap: '1.25rem',
-          marginBottom: '2rem'
-        }}>
-          <div style={{ backgroundColor: '#ffffff', padding: '1.25rem', borderRadius: '12px', border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
-            <div style={{ fontSize: '12px', color: '#64748B', fontWeight: '600' }}>TỔNG SỐ SỰ KIỆN</div>
-            <div style={{ fontSize: '26px', fontWeight: '800', color: '#0F172A', marginTop: '6px' }}>{totalEvents}</div>
+        <div className="org-stats-grid">
+          <div className="org-stat-card" style={{ backgroundColor: '#ffffff', padding: '1.25rem', borderRadius: '12px', border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+            <div style={{ fontSize: '11.5px', color: '#64748B', fontWeight: '700', letterSpacing: '0.04em' }}>TỔNG SỐ SỰ KIỆN</div>
+            <div className="stat-val-text" style={{ fontSize: '26px', fontWeight: '800', color: '#0F172A', marginTop: '6px' }}>{totalEvents}</div>
           </div>
-          <div style={{ backgroundColor: '#ffffff', padding: '1.25rem', borderRadius: '12px', border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
-            <div style={{ fontSize: '12px', color: '#64748B', fontWeight: '600' }}>SỰ KIỆN SẮP DIỄN RA</div>
-            <div style={{ fontSize: '26px', fontWeight: '800', color: '#0D9488', marginTop: '6px' }}>{upcomingEvents}</div>
+          <div className="org-stat-card" style={{ backgroundColor: '#ffffff', padding: '1.25rem', borderRadius: '12px', border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+            <div style={{ fontSize: '11.5px', color: '#64748B', fontWeight: '700', letterSpacing: '0.04em' }}>SỰ KIỆN SẮP DIỄN RA</div>
+            <div className="stat-val-text" style={{ fontSize: '26px', fontWeight: '800', color: '#0D9488', marginTop: '6px' }}>{upcomingEvents}</div>
           </div>
-          <div style={{ backgroundColor: '#ffffff', padding: '1.25rem', borderRadius: '12px', border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
-            <div style={{ fontSize: '12px', color: '#64748B', fontWeight: '600' }}>TỔNG VÉ ĐÃ ĐĂNG KÝ</div>
-            <div style={{ fontSize: '26px', fontWeight: '800', color: '#3B82F6', marginTop: '6px' }}>{totalRegistrations}</div>
+          <div className="org-stat-card" style={{ backgroundColor: '#ffffff', padding: '1.25rem', borderRadius: '12px', border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+            <div style={{ fontSize: '11.5px', color: '#64748B', fontWeight: '700', letterSpacing: '0.04em' }}>TỔNG VÉ ĐÃ ĐĂNG KÝ</div>
+            <div className="stat-val-text" style={{ fontSize: '26px', fontWeight: '800', color: '#3B82F6', marginTop: '6px' }}>{totalRegistrations}</div>
           </div>
-          <div style={{ backgroundColor: '#ffffff', padding: '1.25rem', borderRadius: '12px', border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
-            <div style={{ fontSize: '12px', color: '#64748B', fontWeight: '600' }}>ĐÃ CHECK-IN</div>
-            <div style={{ fontSize: '26px', fontWeight: '800', color: '#16A34A', marginTop: '6px' }}>{totalCheckedIn}</div>
+          <div className="org-stat-card" style={{ backgroundColor: '#ffffff', padding: '1.25rem', borderRadius: '12px', border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+            <div style={{ fontSize: '11.5px', color: '#64748B', fontWeight: '700', letterSpacing: '0.04em' }}>ĐÃ CHECK-IN</div>
+            <div className="stat-val-text" style={{ fontSize: '26px', fontWeight: '800', color: '#16A34A', marginTop: '6px' }}>{totalCheckedIn}</div>
           </div>
         </div>
 
         {/* BỘ LỌC VÀ TÌM KIẾM */}
-        <div style={{
-          backgroundColor: '#ffffff',
-          borderRadius: '12px',
-          border: '1px solid #E2E8F0',
-          padding: '1rem',
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: '12px',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '1.5rem'
-        }}>
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+        <div className="org-filter-bar">
+          <div className="org-filter-tabs">
             {[
               { id: 'all', label: 'Tất cả' },
               { id: 'upcoming', label: 'Sắp diễn ra' },
@@ -503,7 +481,8 @@ export const OrganizerDashboard = () => {
                   fontWeight: '600',
                   cursor: 'pointer',
                   backgroundColor: statusFilter === btn.id ? '#0D9488' : '#F1F5F9',
-                  color: statusFilter === btn.id ? '#ffffff' : '#475569'
+                  color: statusFilter === btn.id ? '#ffffff' : '#475569',
+                  whiteSpace: 'nowrap'
                 }}
               >
                 {btn.label}
@@ -511,7 +490,7 @@ export const OrganizerDashboard = () => {
             ))}
           </div>
 
-          <div style={{ position: 'relative', width: '280px' }}>
+          <div className="org-search-box">
             <i className="ti ti-search" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }}></i>
             <input
               type="text"
@@ -524,7 +503,8 @@ export const OrganizerDashboard = () => {
                 borderRadius: '6px',
                 border: '1px solid #CBD5E1',
                 fontSize: '12.5px',
-                outline: 'none'
+                outline: 'none',
+                boxSizing: 'border-box'
               }}
             />
           </div>

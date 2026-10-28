@@ -266,13 +266,34 @@ export const AdminCheckin = () => {
       minHeight: '100vh',
       backgroundColor: '#F8FAFC',
       color: '#0F172A',
-      padding: '2rem 1.25rem 4rem',
-      fontFamily: 'Inter, system-ui, -apple-system, sans-serif'
+      padding: '1.25rem 0.85rem 4rem',
+      fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
+      width: '100%',
+      overflowX: 'hidden',
+      boxSizing: 'border-box'
     }}>
-      <div style={{ maxWidth: '720px', margin: '0 auto' }}>
+      <div style={{ maxWidth: '720px', margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
         
-        {/* Nút Quay lại & User Info */}
-        <div style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+        {/* Brand Header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', paddingBottom: '0.85rem', borderBottom: '1px solid #E2E8F0' }}>
+          <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{
+              width: '32px',
+              height: '32px',
+              borderRadius: '8px',
+              background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 2px 6px rgba(2, 132, 199, 0.25)'
+            }}>
+              <img src="/doson_logo.png" alt="Logo" style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
+            </div>
+            <div style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A' }}>
+              Đồ Sơn<span style={{ color: '#0284c7' }}>.today</span>
+            </div>
+          </Link>
+
           <Link
             to={backUrl}
             style={{
@@ -281,19 +302,21 @@ export const AdminCheckin = () => {
               gap: '6px',
               color: '#475569',
               textDecoration: 'none',
-              fontSize: '13.5px',
-              fontWeight: '600',
-              transition: 'color 0.15s ease'
+              fontSize: '13px',
+              fontWeight: '600'
             }}
             onMouseEnter={(e) => { e.currentTarget.style.color = '#0D9488'; }}
             onMouseLeave={(e) => { e.currentTarget.style.color = '#475569'; }}
           >
-            <i className="ti ti-arrow-left" style={{ fontSize: '15px' }}></i>
-            Quay lại quản lý sự kiện
+            <i className="ti ti-arrow-left" style={{ fontSize: '14px' }}></i>
+            Quay lại
           </Link>
+        </div>
 
-          {user && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        {/* User Info & Quick Logout */}
+        {user && (
+          <div style={{ marginBottom: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{
                 fontSize: '11px',
                 fontWeight: '700',
@@ -308,26 +331,27 @@ export const AdminCheckin = () => {
               <span style={{ fontSize: '13px', fontWeight: '600', color: '#334155' }}>
                 {user?.name || user?.username}
               </span>
-              <button
-                onClick={() => {
-                  if (window.confirm('Bạn có muốn đăng xuất không?')) logout();
-                }}
-                style={{
-                  background: 'none',
-                  border: '1px solid #CBD5E1',
-                  padding: '4px 10px',
-                  borderRadius: '6px',
-                  fontSize: '12px',
-                  color: '#EF4444',
-                  cursor: 'pointer',
-                  fontWeight: '600'
-                }}
-              >
-                Đăng xuất
-              </button>
             </div>
-          )}
-        </div>
+
+            <button
+              onClick={() => {
+                if (window.confirm('Bạn có muốn đăng xuất không?')) logout();
+              }}
+              style={{
+                background: 'none',
+                border: '1px solid #CBD5E1',
+                padding: '4px 10px',
+                borderRadius: '6px',
+                fontSize: '12px',
+                color: '#EF4444',
+                cursor: 'pointer',
+                fontWeight: '600'
+              }}
+            >
+              Đăng xuất
+            </button>
+          </div>
+        )}
 
         {/* ========================================================================= */}
         {/* KHỐI 1: CHECK-IN SỰ KIỆN (CHUẨN THEO ẢNH 3) */}
@@ -335,10 +359,11 @@ export const AdminCheckin = () => {
         <div style={{
           backgroundColor: '#FFFFFF',
           borderRadius: '16px',
-          padding: '2rem 2.25rem',
+          padding: 'clamp(1.25rem, 3vw, 2rem)',
           border: '1px solid #E2E8F0',
           boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05)',
-          marginBottom: '1.75rem'
+          marginBottom: '1.75rem',
+          boxSizing: 'border-box'
         }}>
           {/* Header Card */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
