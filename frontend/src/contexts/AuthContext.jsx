@@ -19,6 +19,9 @@ export const AuthProvider = ({ children }) => {
       const creatorToken = localStorage.getItem('doson_creator_token');
       const creatorUserStr = localStorage.getItem('doson_creator_user');
 
+      const organizerToken = localStorage.getItem('doson_organizer_token');
+      const organizerUserStr = localStorage.getItem('doson_organizer_user');
+
       if (adminToken && adminUserStr) {
         try {
           const res = await fetch('/api/admin/check-auth', {
@@ -39,6 +42,30 @@ export const AuthProvider = ({ children }) => {
         }
         localStorage.removeItem('doson_admin_token');
         localStorage.removeItem('doson_admin_user');
+      }
+
+      if (organizerToken && organizerUserStr) {
+        try {
+          const res = await fetch('/api/organizer/check-auth', {
+            headers: { 'Authorization': 'Bearer ' + organizerToken }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data.success) {
+              const org = data.organizer || data.user;
+              const orgRole = org.role === 'ticket_inspector' ? 'ticket_inspector' : 'organizer';
+              setRole(orgRole);
+              setUser(org);
+              setToken(organizerToken);
+              setLoading(false);
+              return;
+            }
+          }
+        } catch (e) {
+          console.error("Organizer session verification failed", e);
+        }
+        localStorage.removeItem('doson_organizer_token');
+        localStorage.removeItem('doson_organizer_user');
       }
 
       if (creatorToken && creatorUserStr) {
@@ -117,6 +144,8 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('doson_admin_user');
     localStorage.removeItem('doson_member_token');
     localStorage.removeItem('doson_member_user');
+    localStorage.removeItem('doson_organizer_token');
+    localStorage.removeItem('doson_organizer_user');
 
     return data;
   };
@@ -134,7 +163,10 @@ export const AuthProvider = ({ children }) => {
     }
 
     setToken(data.token);
-    setRole(data.role);
+    const resolvedRole = data.role === 'ticket_inspector' || data.user?.role === 'ticket_inspector' || data.user?.staff_role === 'ticket_inspector'
+      ? 'ticket_inspector'
+      : (data.role || 'member');
+    setRole(resolvedRole);
 
     if (data.role === 'admin') {
       setUser(data.admin);
@@ -144,6 +176,8 @@ export const AuthProvider = ({ children }) => {
       localStorage.removeItem('doson_member_user');
       localStorage.removeItem('doson_creator_token');
       localStorage.removeItem('doson_creator_user');
+      localStorage.removeItem('doson_organizer_token');
+      localStorage.removeItem('doson_organizer_user');
     } else if (data.role === 'member') {
       setUser(data.user);
       localStorage.setItem('doson_member_token', data.token);
@@ -152,6 +186,8 @@ export const AuthProvider = ({ children }) => {
       localStorage.removeItem('doson_admin_user');
       localStorage.removeItem('doson_creator_token');
       localStorage.removeItem('doson_creator_user');
+      localStorage.removeItem('doson_organizer_token');
+      localStorage.removeItem('doson_organizer_user');
     } else if (data.role === 'creator') {
       const creatorObj = data.creator || data.user;
       setUser(creatorObj);
@@ -161,6 +197,19 @@ export const AuthProvider = ({ children }) => {
       localStorage.removeItem('doson_admin_user');
       localStorage.removeItem('doson_member_token');
       localStorage.removeItem('doson_member_user');
+      localStorage.removeItem('doson_organizer_token');
+      localStorage.removeItem('doson_organizer_user');
+    } else if (data.role === 'organizer' || data.role === 'ticket_inspector') {
+      const orgObj = data.organizer || data.user;
+      setUser(orgObj);
+      localStorage.setItem('doson_organizer_token', data.token);
+      localStorage.setItem('doson_organizer_user', JSON.stringify(orgObj));
+      localStorage.removeItem('doson_admin_token');
+      localStorage.removeItem('doson_admin_user');
+      localStorage.removeItem('doson_member_token');
+      localStorage.removeItem('doson_member_user');
+      localStorage.removeItem('doson_creator_token');
+      localStorage.removeItem('doson_creator_user');
     }
 
     return data;
@@ -183,6 +232,11 @@ export const AuthProvider = ({ children }) => {
           method: 'POST',
           headers: { 'Authorization': 'Bearer ' + token }
         });
+      } else if ((role === 'organizer' || role === 'ticket_inspector') && token) {
+        await fetch('/api/organizer/logout', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
       }
     } catch (e) {
       console.error("Logout API call failed", e);
@@ -194,6 +248,8 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('doson_member_user');
     localStorage.removeItem('doson_creator_token');
     localStorage.removeItem('doson_creator_user');
+    localStorage.removeItem('doson_organizer_token');
+    localStorage.removeItem('doson_organizer_user');
     
     setRole('guest');
     setUser(null);
@@ -207,6 +263,8 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('doson_member_user');
     localStorage.removeItem('doson_creator_token');
     localStorage.removeItem('doson_creator_user');
+    localStorage.removeItem('doson_organizer_token');
+    localStorage.removeItem('doson_organizer_user');
     setRole('guest');
     setUser(null);
     setToken(null);

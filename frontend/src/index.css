@@ -149,16 +149,43 @@ a {
   border-right: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: 100vh;
+  max-height: 100vh;
   color: #FFFFFF;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.sidebar::-webkit-scrollbar {
+  width: 5px;
+}
+.sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+.sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sb-logo-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .sb-logo {
-  padding: 1.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 1.25rem 1.5rem;
   display: flex;
   align-items: center;
   gap: 12px;
+  flex: 1;
+}
+
+.sb-close-btn {
+  display: none;
 }
 
 .sb-logo-icon {
@@ -348,6 +375,28 @@ a {
   transition: var(--transition);
 }
 
+.tb-menu-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid var(--border-strong);
+  background-color: var(--surface-0);
+  color: var(--text-primary);
+  font-size: 18px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: var(--transition);
+}
+
+.tb-menu-btn:hover {
+  background-color: var(--surface-2);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
 .tb-title {
   font-family: var(--font-title);
   font-size: 18px;
@@ -523,6 +572,8 @@ a {
   padding: 1.5rem;
   box-shadow: var(--shadow);
   transition: var(--transition);
+  overflow: hidden;
+  position: relative;
 }
 
 .stat-card:hover {
@@ -1594,8 +1645,50 @@ nav, .main-nav-bar {
   .top-info-bar {
     display: none !important;
   }
-  .shell{grid-template-columns: 1fr;}
-  .sidebar{display:none}
+  .shell {
+    grid-template-columns: 1fr !important;
+  }
+  .tb-menu-btn {
+    display: inline-flex !important;
+  }
+  .sidebar {
+    display: none;
+  }
+  .sidebar.mobile-open {
+    display: flex !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 280px;
+    max-width: 85vw;
+    z-index: 9999;
+    box-shadow: 6px 0 30px rgba(0, 0, 0, 0.5);
+    animation: sbSlideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .sb-close-btn {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.06);
+    color: #FFFFFF;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  .sb-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(8, 14, 30, 0.65);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 9998;
+    animation: fadeIn 0.2s ease;
+  }
   .stats-row{grid-template-columns: 1fr 1fr}
   .grid2{grid-template-columns: 1fr}
   .form-row{grid-template-columns: 1fr}
@@ -1607,6 +1700,11 @@ nav, .main-nav-bar {
     grid-template-columns: 1fr !important;
     gap: 1rem !important;
   }
+}
+
+@keyframes sbSlideIn {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
 }
 
 /* Small Smartphone Breakpoint (<= 480px) */
@@ -2266,8 +2364,9 @@ nav, .main-nav-bar {
 /* --- 5. Admin Dashboard & Admin Layout styles (from admin-dashboard.html) --- */
 .db-sparkline {
   width: 100%;
-  height: 30px;
+  height: 36px;
   margin-top: 10px;
+  overflow: hidden;
 }
 .db-activity-timeline {
   position: relative;
@@ -2699,6 +2798,12 @@ select option {
 .light-theme .card-title {
   color: var(--text-primary) !important;
   border-bottom-color: var(--border) !important;
+}
+
+.card-header .card-title,
+.light-theme .card-header .card-title {
+  border-bottom: none !important;
+  padding-bottom: 0 !important;
 }
 
 /* ============================================================

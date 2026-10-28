@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Sidebar from './Sidebar';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../contexts/LanguageContext';
@@ -6,6 +6,7 @@ import { useTranslation } from '../contexts/LanguageContext';
 export const AdminLayout = ({ children, title }) => {
   const { user } = useAuth();
   const { currentLang } = useTranslation();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     document.body.classList.add('light-theme');
@@ -23,10 +24,19 @@ export const AdminLayout = ({ children, title }) => {
 
   return (
     <div className="shell light-theme">
-      <Sidebar />
+      <Sidebar isMobileOpen={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />
       <div className="main">
         {/* TOPBAR */}
         <div className="topbar">
+          <button 
+            type="button" 
+            className="tb-menu-btn" 
+            onClick={() => setMobileMenuOpen(true)}
+            aria-label="Mở menu quản trị"
+            title="Mở menu quản trị"
+          >
+            <i className="ti ti-menu-2"></i>
+          </button>
           <div className="tb-title"><i className="ti ti-layout-dashboard"></i> <span>{title}</span></div>
           <div className="tb-center">
             <div className="tb-search-wrap">

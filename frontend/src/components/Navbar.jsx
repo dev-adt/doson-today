@@ -426,7 +426,7 @@ export const Navbar = () => {
           {/* User Profile Avatar (if logged in) */}
           {role !== 'guest' && (
             <Link
-              to={role === 'admin' ? "/admin-dashboard" : role === 'creator' ? "/creator-dashboard" : "/member-dashboard"}
+              to={role === 'admin' ? "/admin-dashboard" : role === 'creator' ? "/creator-dashboard" : (role === 'organizer' || role === 'ticket_inspector') ? "/organizer-dashboard" : "/member-dashboard"}
               style={{
                 width: '34px',
                 height: '34px',
@@ -727,7 +727,7 @@ export const Navbar = () => {
                     <div>
                       <div style={{ fontSize: '13px', fontWeight: '700', color: '#0c2340' }}>{user?.name || 'Thành viên'}</div>
                       <Link
-                        to={role === 'admin' ? "/admin-dashboard" : role === 'creator' ? "/creator-dashboard" : "/member-dashboard"}
+                        to={role === 'admin' ? "/admin-dashboard" : role === 'creator' ? "/creator-dashboard" : (role === 'organizer' || role === 'ticket_inspector') ? "/organizer-dashboard" : "/member-dashboard"}
                         onClick={() => setMobileMenuOpen(false)}
                         style={{ fontSize: '11.5px', color: '#0284c7', textDecoration: 'none', fontWeight: '600' }}
                       >

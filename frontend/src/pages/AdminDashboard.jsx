@@ -181,31 +181,45 @@ export const AdminDashboard = () => {
       {/* STATS CARD ROW WITH SPARKLINES */}
       <div className="stats-row" style={{ textAlign: 'left' }}>
         {/* Card 1 */}
-        <div className="stat-card">
+        <div className="stat-card" style={{ overflow: 'hidden', position: 'relative' }}>
           <div className="stat-label">Tổng hội viên</div>
           <div className="stat-val">{stats.members.total}</div>
           <div className="stat-sub" style={{ color: 'var(--emerald)' }}><i className="ti ti-trending-up"></i> {stats.members.approved} đang hoạt động</div>
           <div className="db-sparkline">
-            <svg viewBox="0 0 100 30" width="100%" height="30" preserveAspectRatio="none">
-              <path d="M 0,25 Q 15,5 30,22 T 60,10 T 80,18 T 100,6" fill="none" stroke="var(--primary)" strokeWidth="2"/>
+            <svg viewBox="0 0 120 36" width="100%" height="36" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="grad-blue" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#0284c7" stopOpacity="0.25"/>
+                  <stop offset="100%" stopColor="#0284c7" stopOpacity="0.0"/>
+                </linearGradient>
+              </defs>
+              <path d="M 0,26 C 25,26 35,14 60,16 C 85,18 95,8 120,10 L 120,36 L 0,36 Z" fill="url(#grad-blue)"/>
+              <path d="M 0,26 C 25,26 35,14 60,16 C 85,18 95,8 120,10" fill="none" stroke="#0284c7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </div>
         </div>
         
         {/* Card 2 */}
-        <div className="stat-card">
+        <div className="stat-card" style={{ overflow: 'hidden', position: 'relative' }}>
           <div className="stat-label">Nhu cầu mới</div>
           <div className="stat-val">{stats.posts.total}</div>
           <div className="stat-sub" style={{ color: 'var(--emerald)' }}><i className="ti ti-trending-up"></i> {stats.posts.published} đã duyệt tin</div>
           <div className="db-sparkline">
-            <svg viewBox="0 0 100 30" width="100%" height="30" preserveAspectRatio="none">
-              <path d="M 0,28 Q 20,10 40,25 T 70,5 T 100,12" fill="none" stroke="var(--emerald)" stroke-width="2"/>
+            <svg viewBox="0 0 120 36" width="100%" height="36" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="grad-green" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#10b981" stopOpacity="0.25"/>
+                  <stop offset="100%" stopColor="#10b981" stopOpacity="0.0"/>
+                </linearGradient>
+              </defs>
+              <path d="M 0,28 C 30,28 45,12 70,16 C 95,20 105,8 120,6 L 120,36 L 0,36 Z" fill="url(#grad-green)"/>
+              <path d="M 0,28 C 30,28 45,12 70,16 C 95,20 105,8 120,6" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </div>
         </div>
 
         {/* Card 3 */}
-        <div className="stat-card">
+        <div className="stat-card" style={{ overflow: 'hidden', position: 'relative' }}>
           <div className="stat-label">Chờ duyệt</div>
           <div className="stat-val" style={{ color: 'var(--amber-dark)' }}>
             {Number(stats.members.pending || 0) + Number(stats.posts.pending || 0)}
@@ -214,20 +228,34 @@ export const AdminDashboard = () => {
             <i className="ti ti-alert-circle"></i> {stats.members.pending || 0} hội viên · {stats.posts.pending || 0} bài viết
           </div>
           <div className="db-sparkline">
-            <svg viewBox="0 0 100 30" width="100%" height="30" preserveAspectRatio="none">
-              <path d="M 0,15 T 25,25 T 50,15 T 75,25 T 100,15" fill="none" stroke="var(--amber)" stroke-width="2"/>
+            <svg viewBox="0 0 120 36" width="100%" height="36" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="grad-amber" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.25"/>
+                  <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.0"/>
+                </linearGradient>
+              </defs>
+              <path d="M 0,20 C 30,10 45,26 75,16 C 95,8 105,22 120,14 L 120,36 L 0,36 Z" fill="url(#grad-amber)"/>
+              <path d="M 0,20 C 30,10 45,26 75,16 C 95,8 105,22 120,14" fill="none" stroke="#f59e0b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </div>
         </div>
 
         {/* Card 4 */}
-        <div className="stat-card">
+        <div className="stat-card" style={{ overflow: 'hidden', position: 'relative' }}>
           <div className="stat-label">Sự kiện tương lai</div>
           <div className="stat-val" style={{ color: '#8B5CF6' }}>{stats.events.upcoming}</div>
           <div className="stat-sub" style={{ color: '#8B5CF6' }}><i className="ti ti-calendar"></i> Sự kiện sắp diễn ra</div>
           <div className="db-sparkline">
-            <svg viewBox="0 0 100 30" width="100%" height="30" preserveAspectRatio="none">
-              <path d="M 0,25 L 20,20 L 40,15 L 60,8 L 80,12 L 100,2" fill="none" stroke="#8B5CF6" stroke-width="2"/>
+            <svg viewBox="0 0 120 36" width="100%" height="36" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="grad-purple" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#8B5CF6" stopOpacity="0.25"/>
+                  <stop offset="100%" stopColor="#8B5CF6" stopOpacity="0.0"/>
+                </linearGradient>
+              </defs>
+              <path d="M 0,30 C 30,26 55,16 80,14 C 100,12 110,8 120,6 L 120,36 L 0,36 Z" fill="url(#grad-purple)"/>
+              <path d="M 0,30 C 30,26 55,16 80,14 C 100,12 110,8 120,6" fill="none" stroke="#8B5CF6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </div>
         </div>

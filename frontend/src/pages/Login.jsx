@@ -58,6 +58,10 @@ export const Login = () => {
         navigate('/admin-dashboard');
       } else if (data.role === 'creator') {
         navigate('/creator-dashboard');
+      } else if (data.role === 'ticket_inspector' || data.user?.role === 'ticket_inspector' || data.user?.staff_role === 'ticket_inspector') {
+        navigate('/organizer/checkin');
+      } else if (data.role === 'organizer' || data.user?.role === 'organizer') {
+        navigate('/organizer-dashboard');
       } else {
         navigate('/member-dashboard');
       }

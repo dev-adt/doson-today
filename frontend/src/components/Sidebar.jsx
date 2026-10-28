@@ -3,7 +3,7 @@ import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../contexts/LanguageContext';
 
-export const Sidebar = () => {
+export const Sidebar = ({ isMobileOpen, onClose }) => {
   const { logout, getAuthHeaders } = useAuth();
   const { currentLang, changeLang } = useTranslation();
   const navigate = useNavigate();
@@ -76,160 +76,174 @@ export const Sidebar = () => {
   const navigateTo = (url) => {
     setSearchOpen(false);
     setSearchQuery('');
+    onClose?.();
     navigate(url);
   };
 
+  const handleNavClick = () => {
+    onClose?.();
+  };
+
   return (
-    <aside className="sidebar">
-      <Link to="/admin-dashboard" className="sb-logo" style={{ textDecoration: 'none' }}>
-        <div className="sb-logo-icon"><img src="/doson_logo.png" alt="Logo" style={{ width: '20px', height: '20px', objectFit: 'contain' }} /></div>
-        <div>
-          <div className="sb-logo-name">Đồ Sơn</div>
-          <div className="sb-logo-sub">Hội viên doanh nghiệp</div>
-        </div>
-      </Link>
-      
-      <div className="sb-search">
-        <div className="sb-sw">
-          <i className="ti ti-search"></i>
-          <input 
-            type="text" 
-            placeholder="Tìm nhanh..." 
-            value={searchQuery}
-            onChange={handleSearch}
-            onFocus={() => searchQuery && setSearchOpen(true)}
-            onBlur={() => setTimeout(() => setSearchOpen(false), 200)}
-          />
-          {searchOpen && (
-            <div className="search-dropdown open" style={{ display: 'block', maxHeight: '300px', overflowY: 'auto' }}>
-              {searchResults.length === 0 ? (
-                <div className="sd-empty">Không tìm thấy kết quả</div>
-              ) : (
-                searchResults.map((item, idx) => (
-                  <div key={idx} className="sd-item" onClick={() => navigateTo(item.url)} style={{ cursor: 'pointer' }}>
-                    <i className={`ti ${item.type === 'member' ? 'ti-users' : (item.type === 'post' ? 'ti-news' : 'ti-calendar-event')}`} style={{ fontSize: '14px', color: '#185FA5' }}></i>
-                    <div>
-                      <div className="sd-title" style={{ fontSize: '12px', fontWeight: '600' }}>{item.title}</div>
-                      <div className="sd-sub" style={{ fontSize: '10px', color: '#94A3B8' }}>{item.sub}</div>
-                    </div>
-                  </div>
-                ))
-              )}
+    <>
+      {isMobileOpen && (
+        <div className="sb-backdrop" onClick={onClose} />
+      )}
+      <aside className={`sidebar ${isMobileOpen ? 'mobile-open' : ''}`}>
+        <div className="sb-logo-header">
+          <Link to="/admin-dashboard" className="sb-logo" style={{ textDecoration: 'none' }} onClick={handleNavClick}>
+            <div className="sb-logo-icon"><img src="/doson_logo.png" alt="Logo" style={{ width: '20px', height: '20px', objectFit: 'contain' }} /></div>
+            <div>
+              <div className="sb-logo-name">Đồ Sơn</div>
+              <div className="sb-logo-sub">Hội viên doanh nghiệp</div>
             </div>
-          )}
+          </Link>
+          <button className="sb-close-btn" onClick={onClose} aria-label="Đóng menu">
+            <i className="ti ti-x"></i>
+          </button>
         </div>
-      </div>
-      
-      <div className="sb-sec">Quản trị</div>
-      
-      <NavLink 
-        to="/admin-dashboard" 
-        className={({ isActive }) => `sb-item ${isActive ? 'active' : ''}`}
-        style={{ textDecoration: 'none' }}
-      >
-        <i className="ti ti-layout-dashboard"></i> Dashboard
-      </NavLink>
-      
-      <NavLink 
-        to="/admin-members" 
-        className={({ isActive }) => `sb-item ${isActive ? 'active' : ''}`}
-        style={{ textDecoration: 'none' }}
-      >
-        <i className="ti ti-users"></i> Duyệt hội viên 
-        {pendingMembers > 0 && <span className="sb-badge">{pendingMembers}</span>}
-      </NavLink>
-      
-      <NavLink 
-        to="/admin-posts" 
-        className={({ isActive }) => `sb-item ${isActive ? 'active' : ''}`}
-        style={{ textDecoration: 'none' }}
-      >
-        <i className="ti ti-clipboard-check"></i> Duyệt bài viết 
-        {pendingPosts > 0 && <span className="sb-badge">{pendingPosts}</span>}
-      </NavLink>
-
-      <NavLink 
-        to="/admin-events" 
-        className={({ isActive }) => `sb-item ${isActive ? 'active' : ''}`}
-        style={{ textDecoration: 'none' }}
-      >
-        <i className="ti ti-calendar-event"></i> Quản lý sự kiện
-      </NavLink>
-
-      <NavLink 
-        to="/admin-checkin" 
-        className={({ isActive }) => `sb-item ${isActive ? 'active' : ''}`}
-        style={{ textDecoration: 'none' }}
-      >
-        <i className="ti ti-qrcode"></i> Soát vé QR
-      </NavLink>
-
-      <NavLink 
-        to="/admin-organizers" 
-        className={({ isActive }) => `sb-item ${isActive ? 'active' : ''}`}
-        style={{ textDecoration: 'none' }}
-      >
-        <i className="ti ti-id-badge-2"></i> Ban tổ chức & Soát vé
-      </NavLink>
-
-
-      <NavLink 
-        to="/admin-categories" 
-        className={({ isActive }) => `sb-item ${isActive ? 'active' : ''}`}
-        style={{ textDecoration: 'none' }}
-      >
-        <i className="ti ti-category"></i> Quản lý Chuyên mục
-      </NavLink>
-
-      <NavLink 
-        to="/admin-creators" 
-        className={({ isActive }) => `sb-item ${isActive ? 'active' : ''}`}
-        style={{ textDecoration: 'none' }}
-      >
-        <i className="ti ti-user-check"></i> Biên tập viên
-      </NavLink>
-      
-      <NavLink 
-        to="/admin-config" 
-        className={({ isActive }) => `sb-item ${isActive ? 'active' : ''}`}
-        style={{ textDecoration: 'none' }}
-      >
-        <i className="ti ti-settings"></i> Cài đặt AI
-      </NavLink>
-
-      <Link to="/guide?role=admin" target="_blank" className="sb-item" style={{ textDecoration: 'none' }}>
-        <i className="ti ti-book"></i> Hướng dẫn Admin
-      </Link>
-      
-      <Link to="/" className="sb-item" style={{ textDecoration: 'none' }}>
-        <i className="ti ti-external-link"></i> Xem Trang chủ
-      </Link>
-
-      <button 
-        onClick={() => {
-          if (confirm('Bạn có muốn đăng xuất tài khoản Admin?')) logout();
-        }}
-        className="sb-item" 
-        style={{ 
-          background: 'none', 
-          border: 'none', 
-          width: '100%', 
-          textAlign: 'left', 
-          cursor: 'pointer',
-          color: 'var(--rose)'
-        }}
-      >
-        <i className="ti ti-logout"></i> Đăng xuất Admin
-      </button>
-      
-      <div className="lang-section">
-        <div className="lang-label">Ngôn ngữ</div>
-        <div className="lang-grid">
-          <button className={`lb ${currentLang === 'vi' ? 'active' : ''}`} onClick={() => changeLang('vi')}>🇻🇳 VI</button>
-          <button className={`lb ${currentLang === 'en' ? 'active' : ''}`} onClick={() => changeLang('en')}>🇺🇸 EN</button>
+        
+        <div className="sb-search">
+          <div className="sb-sw">
+            <i className="ti ti-search"></i>
+            <input 
+              type="text" 
+              placeholder="Tìm nhanh..." 
+              value={searchQuery}
+              onChange={handleSearch}
+              onFocus={() => searchQuery && setSearchOpen(true)}
+              onBlur={() => setTimeout(() => setSearchOpen(false), 200)}
+            />
+            {searchOpen && (
+              <div className="search-dropdown open" style={{ display: 'block', maxHeight: '300px', overflowY: 'auto' }}>
+                {searchResults.length === 0 ? (
+                  <div className="sd-empty">Không tìm thấy kết quả</div>
+                ) : (
+                  searchResults.map((item, idx) => (
+                    <div key={idx} className="sd-item" onClick={() => navigateTo(item.url)} style={{ cursor: 'pointer' }}>
+                      <i className={`ti ${item.type === 'member' ? 'ti-users' : (item.type === 'post' ? 'ti-news' : 'ti-calendar-event')}`} style={{ fontSize: '14px', color: '#185FA5' }}></i>
+                      <div>
+                        <div className="sd-title" style={{ fontSize: '12px', fontWeight: '600' }}>{item.title}</div>
+                        <div className="sd-sub" style={{ fontSize: '10px', color: '#94A3B8' }}>{item.sub}</div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
-    </aside>
+        
+        <div className="sb-sec">Quản trị</div>
+        
+        <NavLink 
+          to="/admin-dashboard" 
+          onClick={handleNavClick}
+          className={({ isActive }) => `sb-item ${isActive ? 'active' : ''}`}
+          style={{ textDecoration: 'none' }}
+        >
+          <i className="ti ti-layout-dashboard"></i> Dashboard
+        </NavLink>
+        
+        <NavLink 
+          to="/admin-members" 
+          onClick={handleNavClick}
+          className={({ isActive }) => `sb-item ${isActive ? 'active' : ''}`}
+          style={{ textDecoration: 'none' }}
+        >
+          <i className="ti ti-users"></i> Duyệt hội viên 
+          {pendingMembers > 0 && <span className="sb-badge">{pendingMembers}</span>}
+        </NavLink>
+        
+        <NavLink 
+          to="/admin-posts" 
+          onClick={handleNavClick}
+          className={({ isActive }) => `sb-item ${isActive ? 'active' : ''}`}
+          style={{ textDecoration: 'none' }}
+        >
+          <i className="ti ti-clipboard-check"></i> Duyệt bài viết 
+          {pendingPosts > 0 && <span className="sb-badge">{pendingPosts}</span>}
+        </NavLink>
+
+        <NavLink 
+          to="/admin-events" 
+          onClick={handleNavClick}
+          className={({ isActive }) => `sb-item ${isActive ? 'active' : ''}`}
+          style={{ textDecoration: 'none' }}
+        >
+          <i className="ti ti-calendar-event"></i> Quản lý sự kiện
+        </NavLink>
+
+        <NavLink 
+          to="/admin-organizers" 
+          onClick={handleNavClick}
+          className={({ isActive }) => `sb-item ${isActive ? 'active' : ''}`}
+          style={{ textDecoration: 'none' }}
+        >
+          <i className="ti ti-id-badge-2"></i> Ban tổ chức & Soát vé
+        </NavLink>
+
+        <NavLink 
+          to="/admin-categories" 
+          onClick={handleNavClick}
+          className={({ isActive }) => `sb-item ${isActive ? 'active' : ''}`}
+          style={{ textDecoration: 'none' }}
+        >
+          <i className="ti ti-category"></i> Quản lý Chuyên mục
+        </NavLink>
+
+        <NavLink 
+          to="/admin-creators" 
+          onClick={handleNavClick}
+          className={({ isActive }) => `sb-item ${isActive ? 'active' : ''}`}
+          style={{ textDecoration: 'none' }}
+        >
+          <i className="ti ti-user-check"></i> Biên tập viên
+        </NavLink>
+        
+        <NavLink 
+          to="/admin-config" 
+          onClick={handleNavClick}
+          className={({ isActive }) => `sb-item ${isActive ? 'active' : ''}`}
+          style={{ textDecoration: 'none' }}
+        >
+          <i className="ti ti-settings"></i> Cài đặt AI
+        </NavLink>
+
+        <Link to="/guide?role=admin" target="_blank" onClick={handleNavClick} className="sb-item" style={{ textDecoration: 'none' }}>
+          <i className="ti ti-book"></i> Hướng dẫn Admin
+        </Link>
+        
+        <Link to="/" onClick={handleNavClick} className="sb-item" style={{ textDecoration: 'none' }}>
+          <i className="ti ti-external-link"></i> Xem Trang chủ
+        </Link>
+
+        <button 
+          onClick={() => {
+            if (confirm('Bạn có muốn đăng xuất tài khoản Admin?')) logout();
+          }}
+          className="sb-item" 
+          style={{ 
+            background: 'none', 
+            border: 'none', 
+            width: '100%', 
+            textAlign: 'left', 
+            cursor: 'pointer',
+            color: 'var(--rose)'
+          }}
+        >
+          <i className="ti ti-logout"></i> Đăng xuất Admin
+        </button>
+        
+        <div className="lang-section">
+          <div className="lang-label">Ngôn ngữ</div>
+          <div className="lang-grid">
+            <button className={`lb ${currentLang === 'vi' ? 'active' : ''}`} onClick={() => changeLang('vi')}>🇻🇳 VI</button>
+            <button className={`lb ${currentLang === 'en' ? 'active' : ''}`} onClick={() => changeLang('en')}>🇺🇸 EN</button>
+          </div>
+        </div>
+      </aside>
+    </>
   );
 };
 export default Sidebar;

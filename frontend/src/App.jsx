@@ -87,21 +87,21 @@ function App() {
               } 
             />
 
-            {/* Tuyến đường bảo vệ dành cho Ban tổ chức Sự kiện */}
+            {/* Tuyến đường bảo vệ dành cho Ban tổ chức Sự kiện & Soát vé */}
             <Route 
               path="/organizer-dashboard" 
               element={
-                <ProtectedRoute allowedRoles={['organizer']}>
+                <ProtectedRoute allowedRoles={['admin', 'organizer', 'ticket_inspector']}>
                   <OrganizerDashboard />
                 </ProtectedRoute>
               } 
             />
 
-            {/* Check-in QR Code (Dành cho Admin & Ban tổ chức) */}
+            {/* Check-in QR Code (Dành cho Admin, Ban tổ chức & Nhân viên Soát vé) */}
             <Route 
               path="/admin/checkin" 
               element={
-                <ProtectedRoute allowedRoles={['admin', 'organizer']}>
+                <ProtectedRoute allowedRoles={['admin', 'organizer', 'ticket_inspector']}>
                   <AdminCheckin />
                 </ProtectedRoute>
               } 
@@ -109,7 +109,7 @@ function App() {
             <Route 
               path="/admin-checkin" 
               element={
-                <ProtectedRoute allowedRoles={['admin', 'organizer']}>
+                <ProtectedRoute allowedRoles={['admin', 'organizer', 'ticket_inspector']}>
                   <AdminCheckin />
                 </ProtectedRoute>
               } 
@@ -117,7 +117,7 @@ function App() {
             <Route 
               path="/organizer/checkin" 
               element={
-                <ProtectedRoute allowedRoles={['admin', 'organizer']}>
+                <ProtectedRoute allowedRoles={['admin', 'organizer', 'ticket_inspector']}>
                   <AdminCheckin />
                 </ProtectedRoute>
               } 

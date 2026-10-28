@@ -1108,7 +1108,7 @@ app.post('/api/auth/login', async (req, res) => {
         };
         return res.json({
           success: true,
-          role: 'organizer',
+          role: orgRole,
           token,
           user: orgData,
           organizer: orgData
@@ -1191,7 +1191,7 @@ app.post('/api/organizer/login', async (req, res) => {
     };
     return res.json({
       success: true,
-      role: 'organizer',
+      role: orgRole,
       token,
       user: orgData,
       organizer: orgData
@@ -1205,7 +1205,9 @@ app.post('/api/organizer/login', async (req, res) => {
 app.get(['/api/organizer/profile', '/api/organizer/check-auth'], organizerAuthMiddleware, async (req, res) => {
   res.json({
     success: true,
-    organizer: req.organizer
+    role: req.organizer.role || 'organizer',
+    organizer: req.organizer,
+    user: req.organizer
   });
 });
 

@@ -5,7 +5,7 @@ import { Html5Qrcode } from 'html5-qrcode';
 import { formatVNDateTime, formatVNTime } from '../utils/dateUtils';
 
 export const AdminCheckin = () => {
-  const { role, getAuthHeaders } = useAuth();
+  const { role, user, logout, getAuthHeaders } = useAuth();
   const navigate = useNavigate();
 
   // State
@@ -259,7 +259,7 @@ export const AdminCheckin = () => {
     }
   };
 
-  const backUrl = role === 'organizer' ? '/organizer-dashboard' : '/admin-events';
+  const backUrl = (role === 'organizer' || role === 'ticket_inspector') ? '/organizer-dashboard' : '/admin-events';
 
   return (
     <div style={{
@@ -271,8 +271,8 @@ export const AdminCheckin = () => {
     }}>
       <div style={{ maxWidth: '720px', margin: '0 auto' }}>
         
-        {/* Nút Quay lại theo đúng Ảnh 3: "← Quay lại quản lý sự kiện" */}
-        <div style={{ marginBottom: '1.5rem' }}>
+        {/* Nút Quay lại & User Info */}
+        <div style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
           <Link
             to={backUrl}
             style={{
@@ -291,6 +291,42 @@ export const AdminCheckin = () => {
             <i className="ti ti-arrow-left" style={{ fontSize: '15px' }}></i>
             Quay lại quản lý sự kiện
           </Link>
+
+          {user && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span style={{
+                fontSize: '11px',
+                fontWeight: '700',
+                padding: '3px 8px',
+                borderRadius: '6px',
+                backgroundColor: role === 'ticket_inspector' ? '#FEF3C7' : '#E0E7FF',
+                color: role === 'ticket_inspector' ? '#B45309' : '#4338CA',
+                textTransform: 'uppercase'
+              }}>
+                {role === 'ticket_inspector' ? 'Soát vé' : role === 'organizer' ? 'BTC' : 'Admin'}
+              </span>
+              <span style={{ fontSize: '13px', fontWeight: '600', color: '#334155' }}>
+                {user?.name || user?.username}
+              </span>
+              <button
+                onClick={() => {
+                  if (window.confirm('Bạn có muốn đăng xuất không?')) logout();
+                }}
+                style={{
+                  background: 'none',
+                  border: '1px solid #CBD5E1',
+                  padding: '4px 10px',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  color: '#EF4444',
+                  cursor: 'pointer',
+                  fontWeight: '600'
+                }}
+              >
+                Đăng xuất
+              </button>
+            </div>
+          )}
         </div>
 
         {/* ========================================================================= */}
